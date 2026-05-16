@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TeamLodgr — Group Hotel Link</title>
+  <meta name="description" content="Your team's hotel has been selected. Book your room now before they sell out."/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0d1b3e;
+      --blue: #1a6fd4;
+      --blue-light: #3a8af0;
+      --white: #ffffff;
+      --gray: #f4f6fa;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--gray); color: var(--text); min-height: 100vh; }
+
+    nav {
+      background: var(--navy);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+    }
+    nav img { height: 40px; }
+
+    .hero {
+      background: linear-gradient(135deg, var(--navy) 0%, #1a3a70 100%);
+      color: white;
+      text-align: center;
+      padding: 50px 20px 40px;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #a8c8ff;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 5px 14px;
+      border-radius: 50px;
+      margin-bottom: 18px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .hero h1 { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 900; margin-bottom: 10px; }
+    .hero p { color: #b0c8f0; font-size: 1rem; }
+
+    .main { max-width: 720px; margin: -30px auto 60px; padding: 0 20px; }
+
+    .hotel-card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .hotel-name { font-size: 1.5rem; font-weight: 800; color: var(--navy); margin-bottom: 10px; }
+    .hotel-meta { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
+    .hotel-meta span { font-size: 0.9rem; color: var(--muted); font-weight: 500; }
+
+    .availability-bar {
+      background: var(--gray);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .avail-count { font-size: 1.4rem; font-weight: 900; color: var(--navy); }
+    .avail-label { font-size: 0.85rem; color: var(--muted); }
+    .avail-status { font-size: 0.85rem; font-weight: 700; color: #16a34a; }
+    .avail-status.low { color: #dc2626; }
+
+    .price-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 24px; }
+    .price { font-size: 2rem; font-weight: 900; color: var(--blue); }
+    .price-label { color: var(--muted); font-size: 0.9rem; }
+
+    .btn-book {
+      display: block;
+      background: var(--blue);
+      color: white;
+      text-align: center;
+      padding: 16px;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .btn-book:hover { background: var(--blue-light); }
+
+    .notify-card {
+      background: white;
+      border-radius: 16px;
+      padding: 28px 32px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    }
+    .notify-card h3 { font-size: 1rem; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+    .notify-card p { font-size: 0.88rem; color: var(--muted); margin-bottom: 16px; }
+    .notify-form { display: flex; gap: 10px; }
+    .notify-form input {
+      flex: 1;
+      padding: 11px 14px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+    }
+    .notify-form input:focus { border-color: var(--blue); }
+    .notify-form button {
+      background: var(--navy);
+      color: white;
+      border: none;
+      padding: 11px 20px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+
+    .powered {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .powered a { color: var(--blue); text-decoration: none; font-weight: 600; }
+
+    @media (max-width: 500px) {
+      .notify-form { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/"><img src="logo.png" alt="TeamLodgr"/></a>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">🏨 Your Team's Hotel</div>
+  <h1 id="hero-title">Hotel Selected for Your Group</h1>
+  <p>Book your room before they sell out</p>
+</div>
+
+<div class="main">
+
+  <div class="hotel-card" id="hotel-card">
+    <div class="hotel-name" id="hotel-name">Loading...</div>
+    <div class="hotel-meta" id="hotel-meta"></div>
+
+    <div class="availability-bar">
+      <div>
+        <div class="avail-count" id="avail-count">—</div>
+        <div class="avail-label">rooms still available</div>
+      </div>
+      <div class="avail-status" id="avail-status">✅ Available</div>
+    </div>
+
+    <div class="price-row">
+      <div class="price" id="hotel-price">—</div>
+      <div class="price-label">/ night per room</div>
+    </div>
+
+    <div id="trip-details" style="margin-bottom:24px; font-size:0.9rem; color:var(--muted);"></div>
+
+    <a href="#" class="btn-book" id="book-btn">Book Your Room Now →</a>
+  </div>
+
+  <div class="notify-card">
+    <h3>🔔 Get Availability Alerts</h3>
+    <p>We'll email you if rooms are running low or sell out — so you don't miss out.</p>
+    <div class="notify-form">
+      <input type="email" id="notify-email" placeholder="your@email.com"/>
+      <button onclick="subscribeAlerts()">Notify Me</button>
+    </div>
+    <p id="notify-confirm" style="display:none; color:#16a34a; font-weight:600; margin-top:10px;">✅ You're on the list!</p>
+  </div>
+
+  <div class="powered">
+    Powered by <a href="/">TeamLodgr</a> — Group hotel booking made simple
+  </div>
+
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const hotelId = params.get('hotel');
+  const hotelName = decodeURIComponent(params.get('name') || 'Your Team Hotel');
+  const checkin = params.get('checkin');
+  const checkout = params.get('checkout');
+  const rooms = params.get('rooms');
+
+  // Populate from URL params
+  document.getElementById('hotel-name').textContent = hotelName;
+  document.getElementById('hero-title').textContent = hotelName;
+
+  if (checkin && checkout && rooms) {
+    const ci = new Date(checkin).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
+    const co = new Date(checkout).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
+    document.getElementById('trip-details').innerHTML = `📅 ${ci} → ${co} &nbsp;|&nbsp; 🛏️ ${rooms} rooms requested`;
+  }
+
+  // Load live hotel data from API
+  async function loadHotelData() {
+    if (!hotelId) return;
+    try {
+      const res = await fetch(`/api/hotel?id=${hotelId}&checkin=${checkin}&checkout=${checkout}&rooms=${rooms}`);
+      const data = await res.json();
+
+      document.getElementById('avail-count').textContent = data.availableRooms;
+      document.getElementById('hotel-price').textContent = `$${data.pricePerNight}`;
+      document.getElementById('book-btn').href = data.bookingUrl;
+
+      const meta = document.getElementById('hotel-meta');
+      meta.innerHTML = `
+        <span>⭐ ${data.rating || 'N/A'}</span>
+        <span>📍 ${data.address || ''}</span>
+        <span>🏨 via ${data.source}</span>
+      `;
+
+      if (data.availableRooms < 5) {
+        document.getElementById('avail-status').textContent = '⚠️ Almost Full!';
+        document.getElementById('avail-status').classList.add('low');
+      }
+    } catch (e) {
+      console.log('API not connected yet');
+    }
+  }
+
+  loadHotelData();
+  // Refresh availability every 5 minutes
+  setInterval(loadHotelData, 300000);
+
+  function subscribeAlerts() {
+    const email = document.getElementById('notify-email').value;
+    if (!email) return;
+    // TODO: POST to /api/notify with email + hotelId
+    document.getElementById('notify-confirm').style.display = 'block';
+    document.getElementById('notify-email').value = '';
+  }
+</script>
+
+</body>
+</html>

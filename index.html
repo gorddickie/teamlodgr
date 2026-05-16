@@ -436,32 +436,114 @@
 
 <!-- SEARCH -->
 <section class="search-section" id="search">
-  <div class="search-card">
+  <form class="search-card" id="search-form">
     <h2>Find Hotels for Your Group</h2>
     <p>Enter your trip details and we'll find the top hotels with enough rooms for everyone.</p>
     <div class="search-grid">
       <div class="field">
         <label>Destination City</label>
-        <input type="text" placeholder="e.g. Halifax, NS"/>
+        <input type="text" id="city" placeholder="e.g. Halifax, NS" required/>
       </div>
       <div class="field">
         <label>Check-In</label>
-        <input type="date"/>
+        <input type="date" id="checkin" required/>
       </div>
       <div class="field">
         <label>Check-Out</label>
-        <input type="date"/>
+        <input type="date" id="checkout" required/>
       </div>
       <div class="field">
         <label>Rooms Needed</label>
-        <input type="number" min="2" placeholder="e.g. 10"/>
+        <input type="number" id="rooms" min="2" placeholder="e.g. 10" required/>
       </div>
     </div>
     <div style="margin-top: 16px;">
-      <button class="btn-search">Search Hotels →</button>
+      <button class="btn-search" type="submit">Search Hotels →</button>
     </div>
+  </form>
+</section>
+
+<!-- RESULTS -->
+<section id="results-section" style="display:none; padding: 40px; background: #f4f6fa;">
+  <div style="max-width:960px; margin:0 auto;">
+    <h2 style="font-size:1.4rem; font-weight:800; color:#0d1b3e; margin-bottom:8px;">Top Hotels for Your Group</h2>
+    <p style="color:#6b7280; margin-bottom:28px; font-size:0.95rem;">Showing hotels with enough rooms for your entire team. Pick one and share the link.</p>
+    <div id="loading" style="display:flex; align-items:center; gap:12px; color:#6b7280; padding:40px 0;">
+      <div style="width:24px;height:24px;border:3px solid #1a6fd4;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+      Searching across Expedia, Booking.com, Kayak and more...
+    </div>
+    <div id="results-grid"></div>
   </div>
 </section>
+
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hotel-card {
+    background: white;
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    display: grid;
+    grid-template-columns: 40px 1fr auto;
+    gap: 20px;
+    align-items: center;
+  }
+  .hotel-rank {
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: #1a6fd4;
+  }
+  .hotel-info h3 { font-size: 1.1rem; font-weight: 800; color: #0d1b3e; margin-bottom: 6px; }
+  .hotel-meta { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 8px; }
+  .hotel-meta span { font-size: 0.85rem; color: #6b7280; }
+  .hotel-price { font-size: 0.95rem; color: #0d1b3e; }
+  .hotel-price strong { color: #1a6fd4; font-size: 1.1rem; }
+  .hotel-source { font-size: 0.8rem; color: #6b7280; margin-left: 8px; }
+  .hotel-actions { display: flex; flex-direction: column; gap: 8px; min-width: 130px; }
+  .btn-share {
+    background: #0d1b3e;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: center;
+  }
+  .btn-book {
+    background: #1a6fd4;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-decoration: none;
+    text-align: center;
+    display: block;
+  }
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0d1b3e;
+    color: white;
+    padding: 14px 28px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform: translateX(-50%) translateY(10px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+  @media (max-width: 600px) {
+    .hotel-card { grid-template-columns: 1fr; }
+    .hotel-rank { display: none; }
+  }
+</style>
 
 <!-- HOW IT WORKS -->
 <section class="how-section" id="how">
@@ -588,5 +670,6 @@
   <p style="margin-top:20px;">© 2026 TeamLodgr. All rights reserved.</p>
 </footer>
 
+<script src="search.js"></script>
 </body>
 </html>

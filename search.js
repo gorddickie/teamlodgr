@@ -173,7 +173,7 @@ async function loadProviderData(h, params) {
     const providers = [
       {
         icon: '🔵', name: 'Booking.com',
-        rooms: bookingSold ? '❌ Sold out' : bookingRooms !== null ? `${bookingRooms} rooms` : 'Check site',
+        rooms: bookingSold ? '❌ Sold out' : bookingRooms !== null ? `${bookingRooms} ${bookingRooms === 1 ? 'room' : 'rooms'} available` : 'Check site',
         roomsClass: bookingSold ? 'sold' : bookingRooms !== null ? 'avail' : '',
         price: bookingPrice,
         url: `https://www.booking.com/hotel/${hotelInfo.countryCode}/${h.hotel_id}.html?checkin=${params.checkin}&checkout=${params.checkout}&no_rooms=${params.rooms}&group_adults=2`

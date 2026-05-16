@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TeamLodgr — Group Hotel Booking for Sports Teams</title>
+  <meta name="description" content="Book hotel rooms for your entire team in minutes. Search, compare, and share a group hotel link — your team books their own rooms."/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #0d1b3e;
+      --blue: #1a6fd4;
+      --blue-light: #3a8af0;
+      --blue-pale: #e8f0fd;
+      --white: #ffffff;
+      --gray: #f4f6fa;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: var(--white);
+    }
+
+    /* NAV */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 40px;
+      background: var(--white);
+      border-bottom: 1px solid #e5e7eb;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+    }
+    .logo-text {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--navy);
+    }
+    .logo-text span { color: var(--blue); }
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--navy); }
+    .nav-cta {
+      background: var(--blue);
+      color: var(--white) !important;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-weight: 600 !important;
+    }
+    .nav-cta:hover { background: var(--blue-light); color: var(--white) !important; }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, var(--navy) 0%, #1a3a70 100%);
+      color: var(--white);
+      padding: 90px 40px 80px;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #a8c8ff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 50px;
+      margin-bottom: 24px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      font-weight: 900;
+      line-height: 1.15;
+      max-width: 820px;
+      margin: 0 auto 20px;
+    }
+    .hero h1 span { color: #5aabff; }
+    .hero p {
+      font-size: 1.15rem;
+      color: #b0c8f0;
+      max-width: 580px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: var(--blue);
+      color: var(--white);
+      padding: 15px 32px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-primary:hover { background: var(--blue-light); transform: translateY(-1px); }
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: var(--white);
+      padding: 15px 32px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.25);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.18); }
+
+    /* SEARCH BOX */
+    .search-section {
+      background: var(--gray);
+      padding: 60px 40px;
+    }
+    .search-card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 860px;
+      margin: 0 auto;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    .search-card h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+    .search-card p {
+      color: var(--muted);
+      margin-bottom: 28px;
+      font-size: 0.95rem;
+    }
+    .search-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 12px;
+      align-items: end;
+    }
+    .field label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .field input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    .field input:focus { border-color: var(--blue); }
+    .btn-search {
+      background: var(--blue);
+      color: var(--white);
+      padding: 13px 24px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.2s;
+      font-family: inherit;
+    }
+    .btn-search:hover { background: var(--blue-light); }
+
+    /* HOW IT WORKS */
+    .how-section {
+      padding: 80px 40px;
+      text-align: center;
+    }
+    .section-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--blue);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 16px;
+    }
+    .section-sub {
+      color: var(--muted);
+      font-size: 1rem;
+      max-width: 520px;
+      margin: 0 auto 56px;
+      line-height: 1.7;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 32px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .step {
+      text-align: center;
+      padding: 32px 24px;
+      border-radius: 16px;
+      background: var(--gray);
+      position: relative;
+    }
+    .step-num {
+      width: 48px;
+      height: 48px;
+      background: var(--blue);
+      color: var(--white);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      margin: 0 auto 18px;
+    }
+    .step h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 10px;
+    }
+    .step p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .step-icon { font-size: 2rem; margin-bottom: 14px; }
+
+    /* FEATURES */
+    .features-section {
+      background: var(--navy);
+      color: var(--white);
+      padding: 80px 40px;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 28px;
+      max-width: 1100px;
+      margin: 48px auto 0;
+    }
+    .feature-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 28px;
+    }
+    .feature-icon {
+      font-size: 1.8rem;
+      margin-bottom: 14px;
+    }
+    .feature-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--white);
+    }
+    .feature-card p {
+      font-size: 0.88rem;
+      color: #8ca8d0;
+      line-height: 1.6;
+    }
+
+    /* SPORTS */
+    .sports-section {
+      padding: 80px 40px;
+      text-align: center;
+      background: var(--gray);
+    }
+    .sports-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      max-width: 700px;
+      margin: 40px auto 0;
+    }
+    .sport-tag {
+      background: var(--white);
+      border: 1.5px solid #d1d5db;
+      border-radius: 50px;
+      padding: 10px 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--navy);
+    }
+
+    /* STATS */
+    .stats-section {
+      padding: 70px 40px;
+      text-align: center;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 32px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .stat h3 {
+      font-size: 2.6rem;
+      font-weight: 900;
+      color: var(--blue);
+      margin-bottom: 6px;
+    }
+    .stat p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* CTA BANNER */
+    .cta-section {
+      background: linear-gradient(135deg, var(--blue) 0%, #0d5ab8 100%);
+      color: var(--white);
+      padding: 80px 40px;
+      text-align: center;
+    }
+    .cta-section h2 {
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-weight: 900;
+      margin-bottom: 16px;
+    }
+    .cta-section p {
+      font-size: 1.05rem;
+      color: #b8d4ff;
+      margin-bottom: 36px;
+      max-width: 520px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--navy);
+      color: #8ca8d0;
+      padding: 40px;
+      text-align: center;
+      font-size: 0.88rem;
+    }
+    footer .footer-logo {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 12px;
+    }
+    footer .footer-logo span { color: var(--blue-light); }
+    footer p { margin-top: 8px; }
+
+    /* RESPONSIVE */
+    @media (max-width: 700px) {
+      nav { padding: 16px 20px; }
+      .nav-links { display: none; }
+      .hero { padding: 60px 20px; }
+      .search-section { padding: 40px 20px; }
+      .search-grid { grid-template-columns: 1fr; }
+      .how-section, .features-section, .sports-section, .stats-section, .cta-section { padding: 60px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">
+    <img src="logo.png" alt="TeamLodgr" style="height:44px; width:auto;"/>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#sports">Sports</a></li>
+    <li><a href="#search" class="nav-cta">Book Now</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">🏒 Built for Sports Teams & Groups</div>
+  <h1>Hotel Booking for Your <span>Entire Team</span> — In Minutes</h1>
+  <p>Search hundreds of hotels, find the best group availability, and share one link. Your teammates book their own rooms. Simple.</p>
+  <div class="hero-buttons">
+    <a href="#search" class="btn-primary">🔍 Search Hotels</a>
+    <a href="#how" class="btn-secondary">See How It Works</a>
+  </div>
+</section>
+
+<!-- SEARCH -->
+<section class="search-section" id="search">
+  <div class="search-card">
+    <h2>Find Hotels for Your Group</h2>
+    <p>Enter your trip details and we'll find the top hotels with enough rooms for everyone.</p>
+    <div class="search-grid">
+      <div class="field">
+        <label>Destination City</label>
+        <input type="text" placeholder="e.g. Halifax, NS"/>
+      </div>
+      <div class="field">
+        <label>Check-In</label>
+        <input type="date"/>
+      </div>
+      <div class="field">
+        <label>Check-Out</label>
+        <input type="date"/>
+      </div>
+      <div class="field">
+        <label>Rooms Needed</label>
+        <input type="number" min="2" placeholder="e.g. 10"/>
+      </div>
+    </div>
+    <div style="margin-top: 16px;">
+      <button class="btn-search">Search Hotels →</button>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+  <div class="section-label">How It Works</div>
+  <h2 class="section-title">Three Steps to a Booked Team</h2>
+  <p class="section-sub">No phone calls, no group chats, no chaos. Just search, pick, and share.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-icon">🔍</div>
+      <div class="step-num">1</div>
+      <h3>Search Your City</h3>
+      <p>Enter your destination, dates, and how many rooms you need. We search Expedia, Booking.com, Kayak, and more.</p>
+    </div>
+    <div class="step">
+      <div class="step-icon">🏨</div>
+      <div class="step-num">2</div>
+      <h3>Pick the Best Hotel</h3>
+      <p>See the top 5 hotels with enough rooms available. Compare prices, ratings, and amenities side by side.</p>
+    </div>
+    <div class="step">
+      <div class="step-icon">🔗</div>
+      <div class="step-num">3</div>
+      <h3>Share the Link</h3>
+      <p>Get a shareable link and send it to your team. Everyone books their own room — and gets notified if availability changes.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section" id="features">
+  <div class="section-label" style="color:#5aabff;">Features</div>
+  <h2 class="section-title" style="color:white;">Everything Your Team Needs</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🌐</div>
+      <h3>Multi-Source Search</h3>
+      <p>We search Expedia, Booking.com, Kayak, Hotels.com, and more — all at once. Best price, every time.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔗</div>
+      <h3>Shareable Group Link</h3>
+      <p>One link, sent to the whole team. Each person books their own room at the same hotel.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔔</div>
+      <h3>Availability Alerts</h3>
+      <p>Group members get notified when rooms are running low or the hotel sells out — so no one misses out.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <h3>Mobile Friendly</h3>
+      <p>Works perfectly on any device. Search on your laptop, share to your team's phones. Done.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💰</div>
+      <h3>Best Available Rates</h3>
+      <p>We find the lowest price across all platforms — no markup, no hidden fees on our end.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>No Account Required</h3>
+      <p>Search and share instantly. No sign-up needed for the organizer or the team.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SPORTS -->
+<section class="sports-section" id="sports">
+  <div class="section-label">Perfect For</div>
+  <h2 class="section-title">Any Team. Any Sport. Any Event.</h2>
+  <p class="section-sub">TeamLodgr was built for groups on the move — whether it's a tournament, a league road trip, or a corporate event.</p>
+  <div class="sports-grid">
+    <span class="sport-tag">🏒 Hockey</span>
+    <span class="sport-tag">⚽ Soccer</span>
+    <span class="sport-tag">🏀 Basketball</span>
+    <span class="sport-tag">⚾ Baseball</span>
+    <span class="sport-tag">🏈 Football</span>
+    <span class="sport-tag">🎾 Tennis</span>
+    <span class="sport-tag">🏊 Swimming</span>
+    <span class="sport-tag">🤼 Wrestling</span>
+    <span class="sport-tag">🎽 Track & Field</span>
+    <span class="sport-tag">🏢 Corporate Groups</span>
+    <span class="sport-tag">🎓 School Trips</span>
+    <span class="sport-tag">🎉 Group Events</span>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats-section">
+  <div class="section-label">Why TeamLodgr</div>
+  <h2 class="section-title" style="margin-bottom:48px;">The Numbers Speak</h2>
+  <div class="stats-grid">
+    <div class="stat">
+      <h3>500k+</h3>
+      <p>Hotels Searchable</p>
+    </div>
+    <div class="stat">
+      <h3>6</h3>
+      <p>Booking Sources</p>
+    </div>
+    <div class="stat">
+      <h3>3 min</h3>
+      <p>Avg. Time to Share</p>
+    </div>
+    <div class="stat">
+      <h3>$0</h3>
+      <p>Cost to Use</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Ready to Book Your Team's Next Trip?</h2>
+  <p>Search hotels, share a link, and let your team do the rest. It takes less than 3 minutes.</p>
+  <a href="#search" class="btn-primary" style="font-size:1.05rem; padding: 16px 36px;">Get Started — It's Free</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo"><img src="logo.png" alt="TeamLodgr" style="height:48px; width:auto; filter:brightness(0) invert(1);"/></div>
+  <p>Group hotel booking made simple for sports teams and events.</p>
+  <p style="margin-top:20px;">© 2026 TeamLodgr. All rights reserved.</p>
+</footer>
+
+</body>
+</html>

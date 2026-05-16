@@ -180,51 +180,51 @@ async function loadProviderData(h, params) {
       },
       {
         icon: '🟣', name: 'Priceline',
-        rooms: plMatch ? 'Available' : 'Check site',
+        rooms: plMatch ? '✅ Available' : 'See availability',
         roomsClass: plMatch ? 'avail' : '',
         price: plPrice,
         url: `https://www.priceline.com/hotel/search?q=${encodeURIComponent(params.city)}&date_start=${params.checkin}&date_end=${params.checkout}&num_rooms=${params.rooms}`
       },
       {
         icon: '🟡', name: 'Kayak',
-        rooms: skyMatch ? 'Available' : 'Check site',
+        rooms: skyMatch ? '✅ Available' : 'See availability',
         roomsClass: skyMatch ? 'avail' : '',
         price: skyPrice,
         url: `https://www.kayak.com/hotels/${encodeURIComponent(params.city)}/${params.checkin}/${params.checkout}/${params.rooms}rooms/`
       },
       {
         icon: '🟠', name: 'Expedia',
-        rooms: 'Check site', roomsClass: '', price: null,
+        rooms: 'See availability', roomsClass: '', price: null,
         url: `https://www.expedia.ca/Hotel-Search?destination=${encodeURIComponent(params.city)}&startDate=${params.checkin}&endDate=${params.checkout}&rooms=${params.rooms}&adults=2`
       },
       {
         icon: '🔴', name: 'Hotels.com',
-        rooms: 'Check site', roomsClass: '', price: null,
+        rooms: 'See availability', roomsClass: '', price: null,
         url: `https://www.hotels.com/search.do?q-destination=${encodeURIComponent(params.city)}&q-check-in=${params.checkin}&q-check-out=${params.checkout}&q-rooms=${params.rooms}`
       },
       {
         icon: '🟢', name: 'Trivago',
-        rooms: 'Check site', roomsClass: '', price: null,
+        rooms: 'See availability', roomsClass: '', price: null,
         url: `https://www.trivago.ca/?search[destination]=${encodeURIComponent(params.city)}&search[arrivalDate]=${params.checkin}&search[departureDate]=${params.checkout}&search[roomsCount]=${params.rooms}`
       },
       {
         icon: '🔷', name: 'Agoda',
-        rooms: 'Check site', roomsClass: '', price: null,
+        rooms: 'See availability', roomsClass: '', price: null,
         url: `https://www.agoda.com/search?city=${params.ufi}&checkIn=${params.checkin}&checkOut=${params.checkout}&rooms=${params.rooms}&adults=2`
       },
       {
         icon: '🟤', name: 'Trip.com',
-        rooms: 'Check site', roomsClass: '', price: null,
+        rooms: 'See availability', roomsClass: '', price: null,
         url: `https://ca.trip.com/hotels/list?cityName=${encodeURIComponent(params.city)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}`
       },
       {
         icon: '⭐', name: 'Marriott',
-        rooms: 'Check site', roomsClass: '', price: null,
+        rooms: 'See availability', roomsClass: '', price: null,
         url: `https://www.marriott.com/search/default.mi?roomCount=${params.rooms}&fromDate=${params.checkin}&toDate=${params.checkout}&destination=${encodeURIComponent(params.city)}`
       },
       {
         icon: '⚪', name: 'Hilton',
-        rooms: 'Check site', roomsClass: '', price: null,
+        rooms: 'See availability', roomsClass: '', price: null,
         url: `https://www.hilton.com/en/search/?query=${encodeURIComponent(params.city)}&arrivalDate=${params.checkin}&departureDate=${params.checkout}&numRooms=${params.rooms}`
       },
     ];

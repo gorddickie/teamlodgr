@@ -1,10 +1,8 @@
 // TeamLodgr Search — Multi-provider inline availability
 const RAPIDAPI_KEY = '3173251728msha891fafe5abe622p17d02fjsn272b51fed579';
 const BOOKING_HOST = 'booking-com15.p.rapidapi.com';
-const SKY_HOST = 'sky-scrapper.p.rapidapi.com';
 const PRICELINE_HOST = 'priceline-com-provider.p.rapidapi.com';
 const HEADERS_BOOKING  = { 'x-rapidapi-host': BOOKING_HOST,   'x-rapidapi-key': RAPIDAPI_KEY };
-const HEADERS_SKY      = { 'x-rapidapi-host': SKY_HOST,        'x-rapidapi-key': RAPIDAPI_KEY };
 const HEADERS_PRICELINE= { 'x-rapidapi-host': PRICELINE_HOST,  'x-rapidapi-key': RAPIDAPI_KEY };
 
 let currentParams = {};
@@ -37,7 +35,6 @@ if (searchForm) {
       // Get all destination IDs in parallel
       const [bookingDest, skyDest, pricelineDest] = await Promise.all([
         fetch(`https://${BOOKING_HOST}/api/v1/hotels/searchDestination?query=${encodeURIComponent(city)}`, { headers: HEADERS_BOOKING }).then(r=>r.json()).catch(()=>({})),
-        fetch(`https://${SKY_HOST}/api/v1/flights/searchAirport?query=${encodeURIComponent(city)}&locale=en-US`, { headers: HEADERS_SKY }).then(r=>r.json()).catch(()=>({})),
         fetch(`https://${PRICELINE_HOST}/v1/hotels/locations?name=${encodeURIComponent(city)}&search_type=ALL`, { headers: HEADERS_PRICELINE }).then(r=>r.json()).catch(()=>({}))
       ]);
 
@@ -46,7 +43,7 @@ if (searchForm) {
 
       currentParams.ufi             = dest.dest_id;
       currentParams.searchType      = dest.search_type;
-      currentParams.skyEntityId     = skyDest.data?.[0]?.navigation?.relevantHotelParams?.entityId || null;
+      currentParams.skyEntityId = null;
       currentParams.pricelineLocId  = Array.isArray(pricelineDest) ? pricelineDest[0]?.id : null;
 
       // Search Booking.com hotels
@@ -131,8 +128,8 @@ async function loadProviderData(h, params) {
       fetch(`https://${BOOKING_HOST}/api/v1/hotels/getHotelDetails?hotel_id=${h.hotel_id}&arrival_date=${params.checkin}&departure_date=${params.checkout}&adults=2&room_qty=${params.rooms}&currency_code=CAD&languagecode=en-us&units=metric`,
         { headers: HEADERS_BOOKING }).then(r=>r.json()).catch(()=>({})),
 
-      params.skyEntityId ? fetch(`https://${SKY_HOST}/api/v1/hotels/searchHotels?entityId=${params.skyEntityId}&checkin=${params.checkin}&checkout=${params.checkout}&adults=2&rooms=${params.rooms}&currency=CAD&countryCode=CA&market=en-CA`,
-        { headers: HEADERS_SKY }).then(r=>r.json()).catch(()=>({})) : Promise.resolve({}),
+      Promise.resolve({}),
+      // Skyscanner removed to preserve API quota
 
       params.pricelineLocId ? fetch(`https://${PRICELINE_HOST}/v1/hotels/search?location_id=${params.pricelineLocId}&date_checkin=${params.checkin}&date_checkout=${params.checkout}&sort_order=PRICE&rooms_number=${params.rooms}&adults_number=2&limit=20`,
         { headers: HEADERS_PRICELINE }).then(r=>r.json()).catch(()=>({})) : Promise.resolve({})

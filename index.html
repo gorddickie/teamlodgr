@@ -557,88 +557,77 @@
   .results-summary { color:#6b7280; font-size:0.9rem; margin-bottom:20px; }
   .results-summary strong { color:#0d1b3e; }
   .hotel-stars { color:#f59e0b; font-size:0.9rem; }
-  .btn-show-rooms {
+  .hotel-card { flex-direction: column; align-items: stretch; }
+  .hotel-photo { width:100%; height:200px; object-fit:cover; }
+  .hotel-body { padding: 20px 24px; flex:1; }
+  .hotel-actions { display:none; }
+
+  /* Providers Table */
+  .providers-table { margin-top: 16px; border: 1.5px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
+  .providers-header {
+    display: grid;
+    grid-template-columns: 160px 120px 110px 110px 80px;
+    background: #f0f4f8;
+    padding: 8px 14px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    gap: 8px;
+  }
+  .provider-row {
+    display: grid;
+    grid-template-columns: 160px 120px 110px 110px 80px;
+    padding: 11px 14px;
+    border-top: 1px solid #f3f4f6;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    transition: background 0.15s;
+  }
+  .provider-row:hover { background: #f8faff; }
+  .provider-name { font-weight: 600; font-size: 0.88rem; color: #0d1b3e; }
+  .provider-dates { font-size: 0.8rem; color: #6b7280; }
+  .provider-rooms { font-size: 0.82rem; color: #6b7280; }
+  .provider-rooms.avail { color: #16a34a; font-weight: 700; }
+  .provider-rooms.sold { color: #dc2626; font-weight: 700; }
+  .provider-price { font-size: 0.88rem; font-weight: 700; color: #1a6fd4; }
+  .btn-book-sm {
     background: #1a6fd4;
     color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 8px;
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
     font-weight: 700;
-    font-size: 0.88rem;
-    cursor: pointer;
-    font-family: inherit;
-    white-space: nowrap;
+    text-decoration: none;
+    text-align: center;
+    display: inline-block;
     transition: background 0.2s;
-    width: 100%;
   }
-  .btn-show-rooms:hover { background: #3a8af0; }
-  .btn-show-rooms:disabled { opacity: 0.6; cursor: wait; }
-
-  /* Rooms Panel */
-  .rooms-panel {
-    background: white;
-    border-radius: 0 0 16px 16px;
-    border-top: 2px solid #e8f0fd;
-    padding: 24px 28px;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-  }
-  .rooms-header {
+  .btn-book-sm:hover { background: #3a8af0; }
+  .provider-loading {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
     gap: 10px;
+    padding: 16px;
+    font-size: 0.85rem;
+    color: #6b7280;
   }
-  .rooms-avail {
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-size: 0.92rem;
-    font-weight: 600;
-  }
-  .rooms-avail.good { background:#f0fdf4; color:#16a34a; }
-  .rooms-avail.low { background:#fff7ed; color:#c2410c; }
-  .rooms-avail.sold-out { background:#fef2f2; color:#dc2626; }
   .btn-copy-share {
     background: #0d1b3e;
     color: white;
     border: none;
-    padding: 10px 18px;
+    padding: 9px 16px;
     border-radius: 8px;
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: 0.83rem;
     cursor: pointer;
     font-family: inherit;
     white-space: nowrap;
   }
   .btn-copy-share:hover { background: #1a3a70; }
-  .rooms-subtext { font-size:0.88rem; color:#6b7280; margin-bottom:14px; }
-
-  /* Providers List */
-  .providers-list { display: flex; flex-direction: column; gap: 8px; }
-  .provider-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 13px 16px;
-    background: #f4f6fa;
-    border: 1.5px solid #e5e7eb;
-    border-radius: 10px;
-    text-decoration: none;
-    color: #0d1b3e;
-    font-size: 0.9rem;
-    transition: all 0.15s;
-  }
-  .provider-row:hover { background:#e8f0fd; border-color:#1a6fd4; }
-  .provider-icon { font-size:1.1rem; width:24px; text-align:center; }
-  .provider-name { font-weight:700; flex:1; }
-  .provider-rooms { font-size:0.82rem; color:#6b7280; }
-  .provider-rooms.avail { color:#16a34a; font-weight:700; }
-  .provider-rooms.sold { color:#dc2626; font-weight:700; }
-  .provider-price { font-size:0.85rem; font-weight:700; color:#1a6fd4; }
-  .provider-book { font-size:0.82rem; font-weight:800; color:#1a6fd4; margin-left:auto; }
-
+  .share-row { display:flex; align-items:center; }
   .spinner {
     width:22px; height:22px;
     border:3px solid #1a6fd4;
@@ -647,11 +636,19 @@
     animation:spin 0.8s linear infinite;
     flex-shrink:0;
   }
-  @media (max-width:640px) {
-    .hotel-card { flex-direction:column; }
-    .hotel-photo { width:100%; height:160px; }
-    .hotel-actions { border-left:none; border-top:1px solid #f3f4f6; padding:16px; }
-    .rooms-panel { padding:16px; }
+  .spinner-sm {
+    width:14px; height:14px;
+    border:2px solid #1a6fd4;
+    border-top-color:transparent;
+    border-radius:50%;
+    animation:spin 0.8s linear infinite;
+    flex-shrink:0;
+  }
+  @media (max-width:700px) {
+    .providers-header { display:none; }
+    .provider-row { grid-template-columns: 1fr 1fr 70px; }
+    .provider-dates { display:none; }
+    .provider-price { display:none; }
   }
   .toast {
     position: fixed;

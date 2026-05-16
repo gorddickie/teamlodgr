@@ -1,91 +1,72 @@
-// TeamLodgr Search — Multi-provider hotel availability
+// TeamLodgr Search — Multi-provider inline availability
 const RAPIDAPI_KEY = '3173251728msha891fafe5abe622p17d02fjsn272b51fed579';
 const BOOKING_HOST = 'booking-com15.p.rapidapi.com';
 const SKY_HOST = 'sky-scrapper.p.rapidapi.com';
 const PRICELINE_HOST = 'priceline-com-provider.p.rapidapi.com';
-const HEADERS_BOOKING = { 'x-rapidapi-host': BOOKING_HOST, 'x-rapidapi-key': RAPIDAPI_KEY };
-const HEADERS_SKY = { 'x-rapidapi-host': SKY_HOST, 'x-rapidapi-key': RAPIDAPI_KEY };
-const HEADERS_PRICELINE = { 'x-rapidapi-host': PRICELINE_HOST, 'x-rapidapi-key': RAPIDAPI_KEY };
-
-// Providers — each links to that site with dates pre-filled
-const PROVIDERS = [
-  { name: 'Booking.com',    icon: '🔵', buildUrl: (h, p) => `https://www.booking.com/hotel/${h.countryCode}/${h.id}.html?checkin=${p.checkin}&checkout=${p.checkout}&no_rooms=${p.rooms}&group_adults=2` },
-  { name: 'Expedia',        icon: '🟠', buildUrl: (h, p) => `https://www.expedia.ca/Hotel-Search?destination=${encodeURIComponent(h.city)}&startDate=${p.checkin}&endDate=${p.checkout}&rooms=${p.rooms}&adults=2` },
-  { name: 'Hotels.com',     icon: '🔴', buildUrl: (h, p) => `https://www.hotels.com/search.do?q-destination=${encodeURIComponent(h.city)}&q-check-in=${p.checkin}&q-check-out=${p.checkout}&q-rooms=${p.rooms}` },
-  { name: 'Kayak',          icon: '🟡', buildUrl: (h, p) => `https://www.kayak.com/hotels/${encodeURIComponent(h.city)}/${p.checkin}/${p.checkout}/${p.rooms}rooms/` },
-  { name: 'Priceline',      icon: '🟣', buildUrl: (h, p) => `https://www.priceline.com/hotel/search?q=${encodeURIComponent(h.city)}&date_start=${p.checkin}&date_end=${p.checkout}&num_rooms=${p.rooms}` },
-  { name: 'Agoda',          icon: '🔷', buildUrl: (h, p) => `https://www.agoda.com/search?city=${h.ufi}&checkIn=${p.checkin}&checkOut=${p.checkout}&rooms=${p.rooms}&adults=2` },
-  { name: 'Trivago',        icon: '🟢', buildUrl: (h, p) => `https://www.trivago.ca/?search[destination]=${encodeURIComponent(h.city)}&search[arrivalDate]=${p.checkin}&search[departureDate]=${p.checkout}&search[roomsCount]=${p.rooms}` },
-  { name: 'Trip.com',       icon: '🟤', buildUrl: (h, p) => `https://ca.trip.com/hotels/list?cityName=${encodeURIComponent(h.city)}&checkin=${p.checkin}&checkout=${p.checkout}&rooms=${p.rooms}` },
-  { name: 'HotelsCombined', icon: '⚪', buildUrl: (h, p) => `https://www.hotelscombined.com/Place/Place?Name=${encodeURIComponent(h.city)}&Arrival=${p.checkin}&Departure=${p.checkout}&Rooms=${p.rooms}` },
-  { name: 'Marriott',       icon: '⭐', buildUrl: (h, p) => `https://www.marriott.com/search/default.mi?roomCount=${p.rooms}&fromDate=${p.checkin}&toDate=${p.checkout}&destination=${encodeURIComponent(h.city)}` },
-];
+const HEADERS_BOOKING  = { 'x-rapidapi-host': BOOKING_HOST,   'x-rapidapi-key': RAPIDAPI_KEY };
+const HEADERS_SKY      = { 'x-rapidapi-host': SKY_HOST,        'x-rapidapi-key': RAPIDAPI_KEY };
+const HEADERS_PRICELINE= { 'x-rapidapi-host': PRICELINE_HOST,  'x-rapidapi-key': RAPIDAPI_KEY };
 
 let currentParams = {};
 
-const searchForm = document.getElementById('search-form');
-const resultsSection = document.getElementById('results-section');
-const resultsGrid = document.getElementById('results-grid');
-const loadingEl = document.getElementById('loading');
+const searchForm    = document.getElementById('search-form');
+const resultsSection= document.getElementById('results-section');
+const resultsGrid   = document.getElementById('results-grid');
+const loadingEl     = document.getElementById('loading');
 
 if (searchForm) {
   searchForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const city = document.getElementById('city').value.trim();
+    const city    = document.getElementById('city').value.trim();
     const checkin = document.getElementById('checkin').value;
-    const checkout = document.getElementById('checkout').value;
-    const rooms = parseInt(document.getElementById('rooms').value);
+    const checkout= document.getElementById('checkout').value;
+    const rooms   = parseInt(document.getElementById('rooms').value);
 
-    if (!city || !checkin || !checkout || !rooms) {
-      alert('Please fill in all fields.');
-      return;
-    }
+    if (!city || !checkin || !checkout || !rooms) { alert('Please fill in all fields.'); return; }
 
     currentParams = { city, checkin, checkout, rooms };
 
     resultsSection.style.display = 'block';
     loadingEl.style.display = 'flex';
-    loadingEl.innerHTML = '<div class="spinner"></div> Searching for hotels in ' + city + ' with ' + rooms + ' rooms available...';
+    loadingEl.innerHTML = '<div class="spinner"></div> Searching hotels in ' + city + '...';
     resultsGrid.innerHTML = '';
     resultsSection.scrollIntoView({ behavior: 'smooth' });
 
     try {
-      // Step 1: Get Booking.com destination
-      const destRes = await fetch(
-        `https://${BOOKING_HOST}/api/v1/hotels/searchDestination?query=${encodeURIComponent(city)}`,
-        { headers: HEADERS_BOOKING }
-      );
-      const destData = await destRes.json();
-      const dest = destData.data?.[0];
-      if (!dest) { showError('City not found. Try a different location.'); return; }
-      currentParams.ufi = dest.dest_id;
-
-      // Step 2: Get Skyscanner + Priceline location IDs in parallel
-      loadingEl.innerHTML = '<div class="spinner"></div> Finding hotel inventory across providers...';
-      let skyEntityId = null, pricelineLocationId = null;
-      await Promise.all([
-        fetch(`https://${SKY_HOST}/api/v1/flights/searchAirport?query=${encodeURIComponent(city)}&locale=en-US`, { headers: HEADERS_SKY })
-          .then(r => r.json()).then(d => { skyEntityId = d.data?.[0]?.navigation?.relevantHotelParams?.entityId || null; }).catch(()=>{}),
-        fetch(`https://${PRICELINE_HOST}/v1/hotels/locations?name=${encodeURIComponent(city)}&search_type=ALL`, { headers: HEADERS_PRICELINE })
-          .then(r => r.json()).then(d => { pricelineLocationId = d?.[0]?.id || null; }).catch(()=>{})
+      // Get all destination IDs in parallel
+      const [bookingDest, skyDest, pricelineDest] = await Promise.all([
+        fetch(`https://${BOOKING_HOST}/api/v1/hotels/searchDestination?query=${encodeURIComponent(city)}`, { headers: HEADERS_BOOKING }).then(r=>r.json()).catch(()=>({})),
+        fetch(`https://${SKY_HOST}/api/v1/flights/searchAirport?query=${encodeURIComponent(city)}&locale=en-US`, { headers: HEADERS_SKY }).then(r=>r.json()).catch(()=>({})),
+        fetch(`https://${PRICELINE_HOST}/v1/hotels/locations?name=${encodeURIComponent(city)}&search_type=ALL`, { headers: HEADERS_PRICELINE }).then(r=>r.json()).catch(()=>({}))
       ]);
-      currentParams.skyEntityId = skyEntityId;
-      currentParams.pricelineLocationId = pricelineLocationId;
 
-      // Step 3: Search Booking.com hotels
-      loadingEl.innerHTML = '<div class="spinner"></div> Searching across providers...';
+      const dest = bookingDest.data?.[0];
+      if (!dest) { showError('City not found. Try a different location.'); return; }
+
+      currentParams.ufi             = dest.dest_id;
+      currentParams.searchType      = dest.search_type;
+      currentParams.skyEntityId     = skyDest.data?.[0]?.navigation?.relevantHotelParams?.entityId || null;
+      currentParams.pricelineLocId  = Array.isArray(pricelineDest) ? pricelineDest[0]?.id : null;
+
+      // Search Booking.com hotels
+      loadingEl.innerHTML = '<div class="spinner"></div> Finding hotels with availability...';
       const searchRes = await fetch(
         `https://${BOOKING_HOST}/api/v1/hotels/searchHotels?dest_id=${dest.dest_id}&search_type=${dest.search_type}&arrival_date=${checkin}&departure_date=${checkout}&adults=2&room_qty=${rooms}&currency_code=CAD&sort_by=popularity`,
         { headers: HEADERS_BOOKING }
       );
       const searchData = await searchRes.json();
-      loadingEl.style.display = 'none';
+      const hotels = searchData.data?.hotels?.slice(0, 5);
 
-      const hotels = searchData.data?.hotels;
       if (!hotels?.length) { showError('No hotels found. Try different dates or city.'); return; }
 
-      renderHotelList(hotels.slice(0, 5), currentParams);
+      loadingEl.style.display = 'none';
+
+      // Render skeleton cards immediately
+      renderSkeletonCards(hotels, currentParams);
+
+      // Then fetch provider details for all hotels in parallel
+      hotels.forEach(h => loadProviderData(h, currentParams));
 
     } catch (err) {
       showError('Search failed. Please try again.');
@@ -94,193 +75,189 @@ if (searchForm) {
   });
 }
 
-function renderHotelList(hotels, params) {
-  resultsGrid.innerHTML = `
-    <p class="results-summary">
-      Showing hotels in <strong>${params.city}</strong> with <strong>${params.rooms} rooms</strong> available
-      &nbsp;·&nbsp; ${params.checkin} → ${params.checkout}
-    </p>
-  `;
+function renderSkeletonCards(hotels, params) {
+  resultsGrid.innerHTML = `<p class="results-summary">
+    Found hotels in <strong>${params.city}</strong> &nbsp;·&nbsp;
+    ${formatDate(params.checkin)} → ${formatDate(params.checkout)} &nbsp;·&nbsp;
+    ${params.rooms} rooms requested
+  </p>`;
 
   hotels.forEach((h, i) => {
-    const prop = h.property;
-    const price = prop.priceBreakdown?.grossPrice?.value
-      ? `$${Math.round(prop.priceBreakdown.grossPrice.value)} CAD`
-      : 'Check price';
-    const rating = prop.reviewScore ? `${prop.reviewScore}/10` : '';
-    const reviewWord = prop.reviewScoreWord || '';
+    const prop  = h.property;
+    const price = prop.priceBreakdown?.grossPrice?.value ? `$${Math.round(prop.priceBreakdown.grossPrice.value)} CAD` : '';
+    const rating= prop.reviewScore ? `${prop.reviewScore}/10` : '';
     const stars = prop.propertyClass ? '★'.repeat(Math.min(prop.propertyClass, 5)) : '';
     const photo = prop.photoUrls?.[0] || '';
 
-    const hotelInfo = {
-      id: h.hotel_id,
-      name: prop.name,
-      countryCode: prop.countryCode || 'ca',
-      city: params.city,
-      ufi: params.ufi,
-    };
-
     const card = document.createElement('div');
     card.className = 'hotel-card';
-    card.id = `hotel-${h.hotel_id}`;
+    card.id = `hotel-card-${h.hotel_id}`;
     card.innerHTML = `
       ${photo ? `<img src="${photo}" alt="${prop.name}" class="hotel-photo" onerror="this.style.display='none'"/>` : ''}
       <div class="hotel-body">
         <div class="hotel-rank-name">
-          <span class="hotel-rank">#${i + 1}</span>
+          <span class="hotel-rank">#${i+1}</span>
           <h3 class="hotel-name">${prop.name}</h3>
           ${stars ? `<span class="hotel-stars">${stars}</span>` : ''}
         </div>
         <div class="hotel-meta">
-          ${rating ? `<span>⭐ ${rating} ${reviewWord ? '· ' + reviewWord : ''}</span>` : ''}
+          ${rating ? `<span>⭐ ${rating} · ${prop.reviewScoreWord||''}</span>` : ''}
           <span>📍 ${params.city}</span>
-          <span>🛏️ ${params.rooms} rooms requested</span>
         </div>
-        <div class="hotel-price-row">
-          <div class="hotel-price">${price}</div>
-          <span class="hotel-source">from Booking.com</span>
+
+        <div class="providers-table" id="providers-${h.hotel_id}">
+          <div class="provider-loading">
+            <div class="spinner-sm"></div> Loading availability from all booking sites...
+          </div>
         </div>
-      </div>
-      <div class="hotel-actions">
-        <button class="btn-show-rooms" id="btn-${h.hotel_id}"
-          onclick="toggleRooms(this, ${h.hotel_id}, '${prop.name.replace(/'/g,"\\'")}', '${prop.countryCode || 'ca'}')">
-          Show Rooms
-        </button>
+
+        <div class="share-row" style="margin-top:12px;">
+          <button class="btn-copy-share" onclick="copyShareLink('${window.location.origin}/share.html?hotel=${h.hotel_id}&name=${encodeURIComponent(prop.name)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}', this)">
+            🔗 Share with Team
+          </button>
+        </div>
       </div>
     `;
     resultsGrid.appendChild(card);
-
-    // Placeholder for room panel (inserted after card)
-    const panel = document.createElement('div');
-    panel.id = `rooms-${h.hotel_id}`;
-    panel.className = 'rooms-panel';
-    panel.style.display = 'none';
-    resultsGrid.appendChild(panel);
   });
 }
 
-async function toggleRooms(btn, hotelId, hotelName, countryCode) {
-  const panel = document.getElementById(`rooms-${hotelId}`);
-
-  // Toggle off if already open
-  if (panel.style.display === 'block') {
-    panel.style.display = 'none';
-    btn.textContent = 'Show Rooms';
-    return;
-  }
-
-  btn.textContent = 'Loading...';
-  btn.disabled = true;
-
-  const params = currentParams;
-  const hotelInfo = {
-    id: hotelId,
-    name: hotelName,
-    countryCode: countryCode,
-    city: params.city,
-    ufi: params.ufi,
-  };
+async function loadProviderData(h, params) {
+  const container = document.getElementById(`providers-${h.hotel_id}`);
 
   try {
-    // Fetch Booking.com, Skyscanner, Priceline in parallel
-    const [detailData, skyData, pricelineData] = await Promise.all([
-      fetch(
-        `https://${BOOKING_HOST}/api/v1/hotels/getHotelDetails?hotel_id=${hotelId}&arrival_date=${params.checkin}&departure_date=${params.checkout}&adults=2&room_qty=${params.rooms}&currency_code=CAD&languagecode=en-us&units=metric`,
-        { headers: HEADERS_BOOKING }
-      ).then(r => r.json()).catch(() => ({})),
-      params.skyEntityId ? fetch(
-        `https://${SKY_HOST}/api/v1/hotels/searchHotels?entityId=${params.skyEntityId}&checkin=${params.checkin}&checkout=${params.checkout}&adults=2&rooms=${params.rooms}&currency=CAD&countryCode=CA&market=en-CA`,
-        { headers: HEADERS_SKY }
-      ).then(r => r.json()).catch(() => ({})) : Promise.resolve({}),
-      params.pricelineLocationId ? fetch(
-        `https://${PRICELINE_HOST}/v1/hotels/search?location_id=${params.pricelineLocationId}&date_checkin=${params.checkin}&date_checkout=${params.checkout}&sort_order=PRICE&rooms_number=${params.rooms}&adults_number=2&limit=20`,
-        { headers: HEADERS_PRICELINE }
-      ).then(r => r.json()).catch(() => ({})) : Promise.resolve({})
+    // Fetch Booking.com details + Priceline + Skyscanner in parallel
+    const [bookingDetail, skyResults, plResults] = await Promise.all([
+      fetch(`https://${BOOKING_HOST}/api/v1/hotels/getHotelDetails?hotel_id=${h.hotel_id}&arrival_date=${params.checkin}&departure_date=${params.checkout}&adults=2&room_qty=${params.rooms}&currency_code=CAD&languagecode=en-us&units=metric`,
+        { headers: HEADERS_BOOKING }).then(r=>r.json()).catch(()=>({})),
+
+      params.skyEntityId ? fetch(`https://${SKY_HOST}/api/v1/hotels/searchHotels?entityId=${params.skyEntityId}&checkin=${params.checkin}&checkout=${params.checkout}&adults=2&rooms=${params.rooms}&currency=CAD&countryCode=CA&market=en-CA`,
+        { headers: HEADERS_SKY }).then(r=>r.json()).catch(()=>({})) : Promise.resolve({}),
+
+      params.pricelineLocId ? fetch(`https://${PRICELINE_HOST}/v1/hotels/search?location_id=${params.pricelineLocId}&date_checkin=${params.checkin}&date_checkout=${params.checkout}&sort_order=PRICE&rooms_number=${params.rooms}&adults_number=2&limit=20`,
+        { headers: HEADERS_PRICELINE }).then(r=>r.json()).catch(()=>({})) : Promise.resolve({})
     ]);
 
-    const detail = detailData.data;
-    const bookingRooms = detail?.available_rooms ?? null;
-    const bookingSoldOut = detail?.soldout === 1;
-    const bookingPrice = detail?.product_price_breakdown?.gross_amount?.value
+    const detail      = bookingDetail.data || {};
+    const bookingRooms= detail.available_rooms ?? null;
+    const bookingSold = detail.soldout === 1;
+    const bookingPrice= detail.product_price_breakdown?.gross_amount?.value
       ? `$${Math.round(detail.product_price_breakdown.gross_amount.value)} CAD`
       : null;
 
-    // Match hotel in Skyscanner results
-    const skyHotels = skyData?.data?.hotels || [];
-    const skyMatch = skyHotels.find(h =>
-      h.name?.toLowerCase().includes(hotelName.split(' ')[0].toLowerCase()) ||
-      hotelName.toLowerCase().includes(h.name?.split(' ')[0]?.toLowerCase() || '')
+    // Match in Skyscanner
+    const skyHotels = skyResults?.data?.hotels || [];
+    const skyMatch  = skyHotels.find(sh =>
+      sh.name?.toLowerCase().includes(h.property.name.split(' ')[0].toLowerCase())
     );
-    const skyPrice = skyMatch?.price || null;
+    const skyPrice  = skyMatch?.price || null;
 
-    // Match hotel in Priceline results
-    const plHotels = pricelineData?.hotels || [];
-    const plMatch = plHotels.find(h =>
-      h.name?.toLowerCase().includes(hotelName.split(' ')[0].toLowerCase()) ||
-      hotelName.toLowerCase().includes(h.name?.split(' ')[0]?.toLowerCase() || '')
+    // Match in Priceline
+    const plHotels  = plResults?.hotels || [];
+    const plMatch   = plHotels.find(ph =>
+      ph.name?.toLowerCase().includes(h.property.name.split(' ')[0].toLowerCase())
     );
-    const plPrice = plMatch?.ratesSummary?.minPrice
+    const plPrice   = plMatch?.ratesSummary?.minPrice
       ? `$${Math.round(plMatch.ratesSummary.minPrice)} USD`
       : null;
 
-    const shareUrl = `${window.location.origin}/share.html?hotel=${hotelId}&name=${encodeURIComponent(hotelName)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}`;
+    const hotelInfo = {
+      id: h.hotel_id,
+      name: h.property.name,
+      countryCode: h.property.countryCode || 'ca',
+      city: params.city,
+      ufi: params.ufi,
+    };
 
-    // Build provider rows with real data where available
-    const providerRows = PROVIDERS.map(p => {
-      let roomsBadge = '<span class="provider-rooms">Click to check</span>';
-      let priceBadge = '';
+    // Build provider rows
+    const providers = [
+      {
+        icon: '🔵', name: 'Booking.com',
+        rooms: bookingSold ? '❌ Sold out' : bookingRooms !== null ? `${bookingRooms} rooms` : 'Check site',
+        roomsClass: bookingSold ? 'sold' : bookingRooms !== null ? 'avail' : '',
+        price: bookingPrice,
+        url: `https://www.booking.com/hotel/${hotelInfo.countryCode}/${h.hotel_id}.html?checkin=${params.checkin}&checkout=${params.checkout}&no_rooms=${params.rooms}&group_adults=2`
+      },
+      {
+        icon: '🟣', name: 'Priceline',
+        rooms: plMatch ? 'Available' : 'Check site',
+        roomsClass: plMatch ? 'avail' : '',
+        price: plPrice,
+        url: `https://www.priceline.com/hotel/search?q=${encodeURIComponent(params.city)}&date_start=${params.checkin}&date_end=${params.checkout}&num_rooms=${params.rooms}`
+      },
+      {
+        icon: '🟡', name: 'Kayak',
+        rooms: skyMatch ? 'Available' : 'Check site',
+        roomsClass: skyMatch ? 'avail' : '',
+        price: skyPrice,
+        url: `https://www.kayak.com/hotels/${encodeURIComponent(params.city)}/${params.checkin}/${params.checkout}/${params.rooms}rooms/`
+      },
+      {
+        icon: '🟠', name: 'Expedia',
+        rooms: 'Check site', roomsClass: '', price: null,
+        url: `https://www.expedia.ca/Hotel-Search?destination=${encodeURIComponent(params.city)}&startDate=${params.checkin}&endDate=${params.checkout}&rooms=${params.rooms}&adults=2`
+      },
+      {
+        icon: '🔴', name: 'Hotels.com',
+        rooms: 'Check site', roomsClass: '', price: null,
+        url: `https://www.hotels.com/search.do?q-destination=${encodeURIComponent(params.city)}&q-check-in=${params.checkin}&q-check-out=${params.checkout}&q-rooms=${params.rooms}`
+      },
+      {
+        icon: '🟢', name: 'Trivago',
+        rooms: 'Check site', roomsClass: '', price: null,
+        url: `https://www.trivago.ca/?search[destination]=${encodeURIComponent(params.city)}&search[arrivalDate]=${params.checkin}&search[departureDate]=${params.checkout}&search[roomsCount]=${params.rooms}`
+      },
+      {
+        icon: '🔷', name: 'Agoda',
+        rooms: 'Check site', roomsClass: '', price: null,
+        url: `https://www.agoda.com/search?city=${params.ufi}&checkIn=${params.checkin}&checkOut=${params.checkout}&rooms=${params.rooms}&adults=2`
+      },
+      {
+        icon: '🟤', name: 'Trip.com',
+        rooms: 'Check site', roomsClass: '', price: null,
+        url: `https://ca.trip.com/hotels/list?cityName=${encodeURIComponent(params.city)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}`
+      },
+      {
+        icon: '⭐', name: 'Marriott',
+        rooms: 'Check site', roomsClass: '', price: null,
+        url: `https://www.marriott.com/search/default.mi?roomCount=${params.rooms}&fromDate=${params.checkin}&toDate=${params.checkout}&destination=${encodeURIComponent(params.city)}`
+      },
+      {
+        icon: '⚪', name: 'Hilton',
+        rooms: 'Check site', roomsClass: '', price: null,
+        url: `https://www.hilton.com/en/search/?query=${encodeURIComponent(params.city)}&arrivalDate=${params.checkin}&departureDate=${params.checkout}&numRooms=${params.rooms}`
+      },
+    ];
 
-      if (p.name === 'Booking.com') {
-        if (bookingSoldOut) {
-          roomsBadge = '<span class="provider-rooms sold">❌ Sold out</span>';
-        } else if (bookingRooms !== null) {
-          roomsBadge = `<span class="provider-rooms avail">${bookingRooms} rooms available</span>`;
-        }
-        if (bookingPrice) priceBadge = `<span class="provider-price">${bookingPrice}</span>`;
-      }
-
-      if (p.name === 'Kayak' && skyPrice) {
-        priceBadge = `<span class="provider-price">${skyPrice}</span>`;
-        roomsBadge = '<span class="provider-rooms avail">Available</span>';
-      }
-      if (p.name === 'Priceline' && plPrice) {
-        priceBadge = `<span class="provider-price">${plPrice}</span>`;
-        roomsBadge = '<span class="provider-rooms avail">Available</span>';
-      }
-
-      return `
-        <a href="${p.buildUrl(hotelInfo, params)}" target="_blank" class="provider-row">
-          <span class="provider-icon">${p.icon}</span>
-          <span class="provider-name">${p.name}</span>
-          ${roomsBadge}
-          ${priceBadge}
-          <span class="provider-book">Book →</span>
-        </a>
-      `;
-    }).join('');
-
-    panel.innerHTML = `
-      <div class="rooms-header">
-        <div>
-          <p class="rooms-subtext" style="margin:0;">Showing availability for <strong>${hotelName}</strong> across providers:</p>
-        </div>
-        <button class="btn-copy-share" onclick="copyShareLink('${shareUrl}', this)">🔗 Share with Team</button>
+    container.innerHTML = `
+      <div class="providers-header">
+        <span>Booking Site</span>
+        <span>Dates</span>
+        <span>Rooms</span>
+        <span>Price/night</span>
+        <span></span>
       </div>
-      <div class="providers-list">${providerRows}</div>
+      ${providers.map(p => `
+        <div class="provider-row">
+          <span class="provider-name">${p.icon} ${p.name}</span>
+          <span class="provider-dates">${formatDate(params.checkin)} → ${formatDate(params.checkout)}</span>
+          <span class="provider-rooms ${p.roomsClass}">${p.rooms}</span>
+          <span class="provider-price">${p.price || '—'}</span>
+          <a href="${p.url}" target="_blank" class="btn-book-sm">Book →</a>
+        </div>
+      `).join('')}
     `;
 
-    panel.style.display = 'block';
-    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    btn.textContent = 'Hide Rooms';
-
   } catch (err) {
-    panel.innerHTML = `<p style="color:#e74c3c;padding:16px;">Could not load room details. Please try again.</p>`;
-    panel.style.display = 'block';
-    btn.textContent = 'Show Rooms';
+    container.innerHTML = `<p style="color:#e74c3c;font-size:0.85rem;padding:10px 0;">Could not load availability. <a href="https://www.booking.com" target="_blank">Try Booking.com directly</a></p>`;
     console.error(err);
   }
+}
 
-  btn.disabled = false;
+function formatDate(d) {
+  if (!d) return '';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' });
 }
 
 function copyShareLink(url, btn) {

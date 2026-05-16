@@ -2,8 +2,10 @@
 const RAPIDAPI_KEY = '3173251728msha891fafe5abe622p17d02fjsn272b51fed579';
 const BOOKING_HOST = 'booking-com15.p.rapidapi.com';
 const SKY_HOST = 'sky-scrapper.p.rapidapi.com';
+const PRICELINE_HOST = 'priceline-com-provider.p.rapidapi.com';
 const HEADERS_BOOKING = { 'x-rapidapi-host': BOOKING_HOST, 'x-rapidapi-key': RAPIDAPI_KEY };
 const HEADERS_SKY = { 'x-rapidapi-host': SKY_HOST, 'x-rapidapi-key': RAPIDAPI_KEY };
+const HEADERS_PRICELINE = { 'x-rapidapi-host': PRICELINE_HOST, 'x-rapidapi-key': RAPIDAPI_KEY };
 
 // Providers — each links to that site with dates pre-filled
 const PROVIDERS = [
@@ -59,18 +61,17 @@ if (searchForm) {
       if (!dest) { showError('City not found. Try a different location.'); return; }
       currentParams.ufi = dest.dest_id;
 
-      // Step 2: Get Skyscanner entity ID
-      loadingEl.innerHTML = '<div class="spinner"></div> Finding hotel inventory...';
-      let skyEntityId = null;
-      try {
-        const skyDestRes = await fetch(
-          `https://${SKY_HOST}/api/v1/flights/searchAirport?query=${encodeURIComponent(city)}&locale=en-US`,
-          { headers: HEADERS_SKY }
-        );
-        const skyDestData = await skyDestRes.json();
-        skyEntityId = skyDestData.data?.[0]?.navigation?.relevantHotelParams?.entityId || null;
-      } catch(e) { console.log('Sky dest lookup failed', e); }
+      // Step 2: Get Skyscanner + Priceline location IDs in parallel
+      loadingEl.innerHTML = '<div class="spinner"></div> Finding hotel inventory across providers...';
+      let skyEntityId = null, pricelineLocationId = null;
+      await Promise.all([
+        fetch(`https://${SKY_HOST}/api/v1/flights/searchAirport?query=${encodeURIComponent(city)}&locale=en-US`, { headers: HEADERS_SKY })
+          .then(r => r.json()).then(d => { skyEntityId = d.data?.[0]?.navigation?.relevantHotelParams?.entityId || null; }).catch(()=>{}),
+        fetch(`https://${PRICELINE_HOST}/v1/hotels/locations?name=${encodeURIComponent(city)}&search_type=ALL`, { headers: HEADERS_PRICELINE })
+          .then(r => r.json()).then(d => { pricelineLocationId = d?.[0]?.id || null; }).catch(()=>{})
+      ]);
       currentParams.skyEntityId = skyEntityId;
+      currentParams.pricelineLocationId = pricelineLocationId;
 
       // Step 3: Search Booking.com hotels
       loadingEl.innerHTML = '<div class="spinner"></div> Searching across providers...';
@@ -181,8 +182,8 @@ async function toggleRooms(btn, hotelId, hotelName, countryCode) {
   };
 
   try {
-    // Fetch Booking.com details + Skyscanner in parallel
-    const [detailData, skyData] = await Promise.all([
+    // Fetch Booking.com, Skyscanner, Priceline in parallel
+    const [detailData, skyData, pricelineData] = await Promise.all([
       fetch(
         `https://${BOOKING_HOST}/api/v1/hotels/getHotelDetails?hotel_id=${hotelId}&arrival_date=${params.checkin}&departure_date=${params.checkout}&adults=2&room_qty=${params.rooms}&currency_code=CAD&languagecode=en-us&units=metric`,
         { headers: HEADERS_BOOKING }
@@ -190,6 +191,10 @@ async function toggleRooms(btn, hotelId, hotelName, countryCode) {
       params.skyEntityId ? fetch(
         `https://${SKY_HOST}/api/v1/hotels/searchHotels?entityId=${params.skyEntityId}&checkin=${params.checkin}&checkout=${params.checkout}&adults=2&rooms=${params.rooms}&currency=CAD&countryCode=CA&market=en-CA`,
         { headers: HEADERS_SKY }
+      ).then(r => r.json()).catch(() => ({})) : Promise.resolve({}),
+      params.pricelineLocationId ? fetch(
+        `https://${PRICELINE_HOST}/v1/hotels/search?location_id=${params.pricelineLocationId}&date_checkin=${params.checkin}&date_checkout=${params.checkout}&sort_order=PRICE&rooms_number=${params.rooms}&adults_number=2&limit=20`,
+        { headers: HEADERS_PRICELINE }
       ).then(r => r.json()).catch(() => ({})) : Promise.resolve({})
     ]);
 
@@ -200,14 +205,23 @@ async function toggleRooms(btn, hotelId, hotelName, countryCode) {
       ? `$${Math.round(detail.product_price_breakdown.gross_amount.value)} CAD`
       : null;
 
-    // Find matching hotel in Skyscanner results by name similarity
+    // Match hotel in Skyscanner results
     const skyHotels = skyData?.data?.hotels || [];
     const skyMatch = skyHotels.find(h =>
       h.name?.toLowerCase().includes(hotelName.split(' ')[0].toLowerCase()) ||
       hotelName.toLowerCase().includes(h.name?.split(' ')[0]?.toLowerCase() || '')
     );
-    const skyPrice = skyMatch?.price ? skyMatch.price : null;
-    const skyLink = skyMatch ? `https://www.skyscanner.com/hotels/${params.city.toLowerCase().replace(/\s/g,'-')}/${params.checkin}/${params.checkout}/${params.rooms}-rooms/` : null;
+    const skyPrice = skyMatch?.price || null;
+
+    // Match hotel in Priceline results
+    const plHotels = pricelineData?.hotels || [];
+    const plMatch = plHotels.find(h =>
+      h.name?.toLowerCase().includes(hotelName.split(' ')[0].toLowerCase()) ||
+      hotelName.toLowerCase().includes(h.name?.split(' ')[0]?.toLowerCase() || '')
+    );
+    const plPrice = plMatch?.ratesSummary?.minPrice
+      ? `$${Math.round(plMatch.ratesSummary.minPrice)} USD`
+      : null;
 
     const shareUrl = `${window.location.origin}/share.html?hotel=${hotelId}&name=${encodeURIComponent(hotelName)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}`;
 
@@ -227,6 +241,10 @@ async function toggleRooms(btn, hotelId, hotelName, countryCode) {
 
       if (p.name === 'Kayak' && skyPrice) {
         priceBadge = `<span class="provider-price">${skyPrice}</span>`;
+        roomsBadge = '<span class="provider-rooms avail">Available</span>';
+      }
+      if (p.name === 'Priceline' && plPrice) {
+        priceBadge = `<span class="provider-price">${plPrice}</span>`;
         roomsBadge = '<span class="provider-rooms avail">Available</span>';
       }
 

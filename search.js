@@ -1,10 +1,9 @@
 // TeamLodgr Search — Multi-provider hotel availability
 const RAPIDAPI_KEY = '3173251728msha891fafe5abe622p17d02fjsn272b51fed579';
-const RAPIDAPI_HOST = 'booking-com15.p.rapidapi.com';
-const HEADERS = {
-  'x-rapidapi-host': RAPIDAPI_HOST,
-  'x-rapidapi-key': RAPIDAPI_KEY,
-};
+const BOOKING_HOST = 'booking-com15.p.rapidapi.com';
+const SKY_HOST = 'sky-scrapper.p.rapidapi.com';
+const HEADERS_BOOKING = { 'x-rapidapi-host': BOOKING_HOST, 'x-rapidapi-key': RAPIDAPI_KEY };
+const HEADERS_SKY = { 'x-rapidapi-host': SKY_HOST, 'x-rapidapi-key': RAPIDAPI_KEY };
 
 // Providers — each links to that site with dates pre-filled
 const PROVIDERS = [
@@ -50,21 +49,34 @@ if (searchForm) {
     resultsSection.scrollIntoView({ behavior: 'smooth' });
 
     try {
-      // Get destination
+      // Step 1: Get Booking.com destination
       const destRes = await fetch(
-        `https://${RAPIDAPI_HOST}/api/v1/hotels/searchDestination?query=${encodeURIComponent(city)}`,
-        { headers: HEADERS }
+        `https://${BOOKING_HOST}/api/v1/hotels/searchDestination?query=${encodeURIComponent(city)}`,
+        { headers: HEADERS_BOOKING }
       );
       const destData = await destRes.json();
       const dest = destData.data?.[0];
       if (!dest) { showError('City not found. Try a different location.'); return; }
-
       currentParams.ufi = dest.dest_id;
 
-      // Search hotels
+      // Step 2: Get Skyscanner entity ID
+      loadingEl.innerHTML = '<div class="spinner"></div> Finding hotel inventory...';
+      let skyEntityId = null;
+      try {
+        const skyDestRes = await fetch(
+          `https://${SKY_HOST}/api/v1/flights/searchAirport?query=${encodeURIComponent(city)}&locale=en-US`,
+          { headers: HEADERS_SKY }
+        );
+        const skyDestData = await skyDestRes.json();
+        skyEntityId = skyDestData.data?.[0]?.navigation?.relevantHotelParams?.entityId || null;
+      } catch(e) { console.log('Sky dest lookup failed', e); }
+      currentParams.skyEntityId = skyEntityId;
+
+      // Step 3: Search Booking.com hotels
+      loadingEl.innerHTML = '<div class="spinner"></div> Searching across providers...';
       const searchRes = await fetch(
-        `https://${RAPIDAPI_HOST}/api/v1/hotels/searchHotels?dest_id=${dest.dest_id}&search_type=${dest.search_type}&arrival_date=${checkin}&departure_date=${checkout}&adults=2&room_qty=${rooms}&currency_code=CAD&sort_by=popularity`,
-        { headers: HEADERS }
+        `https://${BOOKING_HOST}/api/v1/hotels/searchHotels?dest_id=${dest.dest_id}&search_type=${dest.search_type}&arrival_date=${checkin}&departure_date=${checkout}&adults=2&room_qty=${rooms}&currency_code=CAD&sort_by=popularity`,
+        { headers: HEADERS_BOOKING }
       );
       const searchData = await searchRes.json();
       loadingEl.style.display = 'none';
@@ -169,46 +181,74 @@ async function toggleRooms(btn, hotelId, hotelName, countryCode) {
   };
 
   try {
-    // Get hotel details + available room count
-    const detailRes = await fetch(
-      `https://${RAPIDAPI_HOST}/api/v1/hotels/getHotelDetails?hotel_id=${hotelId}&arrival_date=${params.checkin}&departure_date=${params.checkout}&adults=2&room_qty=${params.rooms}&currency_code=CAD&languagecode=en-us&units=metric`,
-      { headers: HEADERS }
-    );
-    const detailData = await detailRes.json();
-    const detail = detailData.data;
+    // Fetch Booking.com details + Skyscanner in parallel
+    const [detailData, skyData] = await Promise.all([
+      fetch(
+        `https://${BOOKING_HOST}/api/v1/hotels/getHotelDetails?hotel_id=${hotelId}&arrival_date=${params.checkin}&departure_date=${params.checkout}&adults=2&room_qty=${params.rooms}&currency_code=CAD&languagecode=en-us&units=metric`,
+        { headers: HEADERS_BOOKING }
+      ).then(r => r.json()).catch(() => ({})),
+      params.skyEntityId ? fetch(
+        `https://${SKY_HOST}/api/v1/hotels/searchHotels?entityId=${params.skyEntityId}&checkin=${params.checkin}&checkout=${params.checkout}&adults=2&rooms=${params.rooms}&currency=CAD&countryCode=CA&market=en-CA`,
+        { headers: HEADERS_SKY }
+      ).then(r => r.json()).catch(() => ({})) : Promise.resolve({})
+    ]);
 
-    const availableRooms = detail?.available_rooms ?? '?';
-    const soldOut = detail?.soldout === 1;
-    const address = detail?.address || params.city;
-    const pricePerNight = detail?.product_price_breakdown?.gross_amount?.value
-      ? `$${Math.round(detail.product_price_breakdown.gross_amount.value)} CAD/night`
+    const detail = detailData.data;
+    const bookingRooms = detail?.available_rooms ?? null;
+    const bookingSoldOut = detail?.soldout === 1;
+    const bookingPrice = detail?.product_price_breakdown?.gross_amount?.value
+      ? `$${Math.round(detail.product_price_breakdown.gross_amount.value)} CAD`
       : null;
 
-    // Share link
+    // Find matching hotel in Skyscanner results by name similarity
+    const skyHotels = skyData?.data?.hotels || [];
+    const skyMatch = skyHotels.find(h =>
+      h.name?.toLowerCase().includes(hotelName.split(' ')[0].toLowerCase()) ||
+      hotelName.toLowerCase().includes(h.name?.split(' ')[0]?.toLowerCase() || '')
+    );
+    const skyPrice = skyMatch?.price ? skyMatch.price : null;
+    const skyLink = skyMatch ? `https://www.skyscanner.com/hotels/${params.city.toLowerCase().replace(/\s/g,'-')}/${params.checkin}/${params.checkout}/${params.rooms}-rooms/` : null;
+
     const shareUrl = `${window.location.origin}/share.html?hotel=${hotelId}&name=${encodeURIComponent(hotelName)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}`;
+
+    // Build provider rows with real data where available
+    const providerRows = PROVIDERS.map(p => {
+      let roomsBadge = '<span class="provider-rooms">Click to check</span>';
+      let priceBadge = '';
+
+      if (p.name === 'Booking.com') {
+        if (bookingSoldOut) {
+          roomsBadge = '<span class="provider-rooms sold">❌ Sold out</span>';
+        } else if (bookingRooms !== null) {
+          roomsBadge = `<span class="provider-rooms avail">${bookingRooms} rooms available</span>`;
+        }
+        if (bookingPrice) priceBadge = `<span class="provider-price">${bookingPrice}</span>`;
+      }
+
+      if (p.name === 'Kayak' && skyPrice) {
+        priceBadge = `<span class="provider-price">${skyPrice}</span>`;
+        roomsBadge = '<span class="provider-rooms avail">Available</span>';
+      }
+
+      return `
+        <a href="${p.buildUrl(hotelInfo, params)}" target="_blank" class="provider-row">
+          <span class="provider-icon">${p.icon}</span>
+          <span class="provider-name">${p.name}</span>
+          ${roomsBadge}
+          ${priceBadge}
+          <span class="provider-book">Book →</span>
+        </a>
+      `;
+    }).join('');
 
     panel.innerHTML = `
       <div class="rooms-header">
-        <div class="rooms-avail ${soldOut ? 'sold-out' : availableRooms <= 5 ? 'low' : 'good'}">
-          ${soldOut
-            ? '❌ Sold out on Booking.com for these dates'
-            : `✅ ${availableRooms} rooms available on Booking.com`}
+        <div>
+          <p class="rooms-subtext" style="margin:0;">Showing availability for <strong>${hotelName}</strong> across providers:</p>
         </div>
         <button class="btn-copy-share" onclick="copyShareLink('${shareUrl}', this)">🔗 Share with Team</button>
       </div>
-
-      <p class="rooms-subtext">Book on any of these providers — all link directly to <strong>${hotelName}</strong>:</p>
-
-      <div class="providers-list">
-        ${PROVIDERS.map(p => `
-          <a href="${p.buildUrl(hotelInfo, params)}" target="_blank" class="provider-row">
-            <span class="provider-icon">${p.icon}</span>
-            <span class="provider-name">${p.name}</span>
-            <span class="provider-rooms">🛏️ Check availability</span>
-            <span class="provider-book">Book →</span>
-          </a>
-        `).join('')}
-      </div>
+      <div class="providers-list">${providerRows}</div>
     `;
 
     panel.style.display = 'block';

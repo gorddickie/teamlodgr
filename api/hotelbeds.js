@@ -37,39 +37,27 @@ export default async function handler(req, res) {
   // Hotelbeds sandbox base URL (switch to api.hotelbeds.com for production)
   const BASE_URL = 'https://api.test.hotelbeds.com';
 
+  // lat/lng passed from the frontend (from Booking.com search result)
+  const { lat, lng } = req.query;
+
   try {
-    // Step 1: Find destination using Hotel Content API
-    const destRes = await fetch(
-      `${BASE_URL}/hotel-content-api/1.0/locations/destinations?fields=all&language=ENG&from=1&to=5&useSecondaryLanguage=false&match=${encodeURIComponent(city)}`,
-      { headers }
-    );
-    const destData = await destRes.json();
-    const destination = destData.destinations?.[0];
-
-    if (!destination) {
-      return res.status(200).json({ hotels: [] });
-    }
-
-    // Step 2: Search availability
+    // Search by geolocation — more reliable than destination code lookup
     const numRooms = parseInt(rooms) || 1;
     const occupancies = Array(numRooms).fill({ rooms: 1, adults: 2, children: 0 });
+
+    const searchBody = lat && lng ? {
+      stay: { checkIn: checkin, checkOut: checkout },
+      occupancies,
+      geolocation: { latitude: parseFloat(lat), longitude: parseFloat(lng), radius: 20, unit: 'km' },
+      filter: { maxHotels: 20 },
+    } : null;
+
+    if (!searchBody) return res.status(200).json({ hotels: [] });
 
     const searchRes = await fetch(`${BASE_URL}/hotel-api/1.0/hotels`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({
-        stay: {
-          checkIn: checkin,
-          checkOut: checkout,
-        },
-        occupancies,
-        destination: {
-          code: destination.code,
-        },
-        filter: {
-          maxHotels: 10,
-        },
-      }),
+      body: JSON.stringify(searchBody),
     });
 
     const searchData = await searchRes.json();
@@ -78,8 +66,8 @@ export default async function handler(req, res) {
       return res.status(200).json({ hotels: [] });
     }
 
-    // Step 3: Format results
-    const hotels = searchData.hotels.hotels.slice(0, 5).map(h => {
+    // Format results
+    const hotels = searchData.hotels.hotels.slice(0, 20).map(h => {
       // Find cheapest rate and its allotment
       let cheapestRate = null;
       let totalAllotment = 0;
@@ -97,7 +85,7 @@ export default async function handler(req, res) {
         id: h.code,
         name: h.name,
         rating: h.categoryCode || 'N/A',
-        address: `${h.zoneName || ''}, ${destination.name || city}`.trim().replace(/^,\s*/, ''),
+        address: `${h.zoneName || ''}, ${city}`.trim().replace(/^,\s*/, ''),
         availableRooms: totalAllotment,
         pricePerNight: cheapestRate ? Math.round(parseFloat(cheapestRate.net)) : 'N/A',
         currency: searchData.hotels.currency || 'USD',

@@ -40,6 +40,8 @@ if (searchForm) {
       if (!dest) { showError('City not found. Try a different location.'); return; }
       currentParams.ufi        = dest.dest_id;
       currentParams.searchType = dest.search_type;
+      currentParams.lat        = dest.latitude || dest.lat || null;
+      currentParams.lng        = dest.longitude || dest.lng || null;
 
       // Step 2: Hotel list
       loadingEl.innerHTML = '<div class="spinner"></div> Finding hotels with availability...';
@@ -136,7 +138,7 @@ async function loadProviderAvailability(h, params) {
       ).then(r => r.json()),
 
       fetch(
-        `/api/hotelbeds?city=${encodeURIComponent(params.city)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}`
+        `/api/hotelbeds?city=${encodeURIComponent(params.city)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}&lat=${params.lat || ''}&lng=${params.lng || ''}`
       ).then(r => r.json()).catch(() => ({ hotels: [] }))
     ]);
 

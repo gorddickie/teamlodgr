@@ -1,16 +1,16 @@
-// TeamLodgr Search — Multi-provider inline availability
-const RAPIDAPI_KEY = '3173251728msha891fafe5abe622p17d02fjsn272b51fed579';
-const BOOKING_HOST = 'booking-com15.p.rapidapi.com';
-const PRICELINE_HOST = 'priceline-com-provider.p.rapidapi.com';
-const HEADERS_BOOKING  = { 'x-rapidapi-host': BOOKING_HOST,   'x-rapidapi-key': RAPIDAPI_KEY };
-const HEADERS_PRICELINE= { 'x-rapidapi-host': PRICELINE_HOST,  'x-rapidapi-key': RAPIDAPI_KEY };
+// TeamLodgr — Hotel Search & Room Aggregation
+// Aggregates real room counts across booking providers
+
+const RAPIDAPI_KEY  = '3173251728msha891fafe5abe622p17d02fjsn272b51fed579';
+const BOOKING_HOST  = 'booking-com15.p.rapidapi.com';
+const HEADERS_BOOKING = { 'x-rapidapi-host': BOOKING_HOST, 'x-rapidapi-key': RAPIDAPI_KEY };
 
 let currentParams = {};
 
-const searchForm    = document.getElementById('search-form');
-const resultsSection= document.getElementById('results-section');
-const resultsGrid   = document.getElementById('results-grid');
-const loadingEl     = document.getElementById('loading');
+const searchForm     = document.getElementById('search-form');
+const resultsSection = document.getElementById('results-section');
+const resultsGrid    = document.getElementById('results-grid');
+const loadingEl      = document.getElementById('loading');
 
 if (searchForm) {
   searchForm.addEventListener('submit', async (e) => {
@@ -32,38 +32,42 @@ if (searchForm) {
     resultsSection.scrollIntoView({ behavior: 'smooth' });
 
     try {
-      // Get all destination IDs in parallel
-      const [bookingDest, skyDest, pricelineDest] = await Promise.all([
-        fetch(`https://${BOOKING_HOST}/api/v1/hotels/searchDestination?query=${encodeURIComponent(city)}`, { headers: HEADERS_BOOKING }).then(r=>r.json()).catch(()=>({})),
-        fetch(`https://${PRICELINE_HOST}/v1/hotels/locations?name=${encodeURIComponent(city)}&search_type=ALL`, { headers: HEADERS_PRICELINE }).then(r=>r.json()).catch(()=>({}))
-      ]);
+      // Step 1: Destination lookup
+      const destRes  = await fetch(`https://${BOOKING_HOST}/api/v1/hotels/searchDestination?query=${encodeURIComponent(city)}`, { headers: HEADERS_BOOKING });
+      const destData = await destRes.json();
+      const dest     = destData.data?.[0];
 
-      const dest = bookingDest.data?.[0];
       if (!dest) { showError('City not found. Try a different location.'); return; }
+      currentParams.ufi        = dest.dest_id;
+      currentParams.searchType = dest.search_type;
 
-      currentParams.ufi             = dest.dest_id;
-      currentParams.searchType      = dest.search_type;
-      currentParams.skyEntityId = null;
-      currentParams.pricelineLocId  = Array.isArray(pricelineDest) ? pricelineDest[0]?.id : null;
-
-      // Search Booking.com hotels
+      // Step 2: Hotel list
       loadingEl.innerHTML = '<div class="spinner"></div> Finding hotels with availability...';
-      const searchRes = await fetch(
+      const searchRes  = await fetch(
         `https://${BOOKING_HOST}/api/v1/hotels/searchHotels?dest_id=${dest.dest_id}&search_type=${dest.search_type}&arrival_date=${checkin}&departure_date=${checkout}&adults=2&room_qty=${rooms}&currency_code=CAD&sort_by=popularity`,
         { headers: HEADERS_BOOKING }
       );
       const searchData = await searchRes.json();
-      const hotels = searchData.data?.hotels?.slice(0, 5);
+      const hotels     = searchData.data?.hotels?.slice(0, 5);
 
       if (!hotels?.length) { showError('No hotels found. Try different dates or city.'); return; }
 
       loadingEl.style.display = 'none';
 
-      // Render skeleton cards immediately
-      renderSkeletonCards(hotels, currentParams);
+      // Render summary header
+      resultsGrid.innerHTML = `
+        <div class="results-summary">
+          Hotels in <strong>${city}</strong> &nbsp;·&nbsp;
+          ${formatDate(checkin)} → ${formatDate(checkout)} &nbsp;·&nbsp;
+          <strong>${rooms} rooms needed</strong>
+        </div>
+      `;
 
-      // Then fetch provider details for all hotels in parallel
-      hotels.forEach(h => loadProviderData(h, currentParams));
+      // Render each hotel card + load provider availability
+      for (const h of hotels) {
+        renderHotelCard(h, currentParams);
+      }
+      hotels.forEach(h => loadProviderAvailability(h, currentParams));
 
     } catch (err) {
       showError('Search failed. Please try again.');
@@ -72,173 +76,165 @@ if (searchForm) {
   });
 }
 
-function renderSkeletonCards(hotels, params) {
-  resultsGrid.innerHTML = `<p class="results-summary">
-    Found hotels in <strong>${params.city}</strong> &nbsp;·&nbsp;
-    ${formatDate(params.checkin)} → ${formatDate(params.checkout)} &nbsp;·&nbsp;
-    ${params.rooms} rooms requested
-  </p>`;
+// ── Render hotel card skeleton ────────────────────────────────────────────────
+function renderHotelCard(h, params) {
+  const prop   = h.property;
+  const price  = prop.priceBreakdown?.grossPrice?.value ? `$${Math.round(prop.priceBreakdown.grossPrice.value)} CAD/night` : '';
+  const rating = prop.reviewScore ? `${prop.reviewScore}/10` : '';
+  const stars  = prop.propertyClass ? '★'.repeat(Math.min(prop.propertyClass, 5)) : '';
+  const photo  = prop.photoUrls?.[0] || '';
 
-  hotels.forEach((h, i) => {
-    const prop  = h.property;
-    const price = prop.priceBreakdown?.grossPrice?.value ? `$${Math.round(prop.priceBreakdown.grossPrice.value)} CAD` : '';
-    const rating= prop.reviewScore ? `${prop.reviewScore}/10` : '';
-    const stars = prop.propertyClass ? '★'.repeat(Math.min(prop.propertyClass, 5)) : '';
-    const photo = prop.photoUrls?.[0] || '';
-
-    const card = document.createElement('div');
-    card.className = 'hotel-card';
-    card.id = `hotel-card-${h.hotel_id}`;
-    card.innerHTML = `
-      ${photo ? `<img src="${photo}" alt="${prop.name}" class="hotel-photo" onerror="this.style.display='none'"/>` : ''}
-      <div class="hotel-body">
-        <div class="hotel-rank-name">
-          <span class="hotel-rank">#${i+1}</span>
-          <h3 class="hotel-name">${prop.name}</h3>
-          ${stars ? `<span class="hotel-stars">${stars}</span>` : ''}
-        </div>
-        <div class="hotel-meta">
-          ${rating ? `<span>⭐ ${rating} · ${prop.reviewScoreWord||''}</span>` : ''}
-          <span>📍 ${params.city}</span>
-        </div>
-
-        <div class="providers-table" id="providers-${h.hotel_id}">
-          <div class="provider-loading">
-            <div class="spinner-sm"></div> Loading availability from all booking sites...
-          </div>
-        </div>
-
-        <div class="share-row" style="margin-top:12px;">
-          <button class="btn-copy-share" onclick="copyShareLink('${window.location.origin}/share.html?hotel=${h.hotel_id}&name=${encodeURIComponent(prop.name)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}', this)">
-            🔗 Share with Team
-          </button>
-        </div>
+  const card = document.createElement('div');
+  card.className = 'hotel-card';
+  card.id = `hotel-card-${h.hotel_id}`;
+  card.innerHTML = `
+    ${photo ? `<img src="${photo}" alt="${prop.name}" class="hotel-photo" onerror="this.style.display='none'"/>` : ''}
+    <div class="hotel-body">
+      <div class="hotel-rank-name">
+        <h3 class="hotel-name">${prop.name}</h3>
+        ${stars ? `<span class="hotel-stars">${stars}</span>` : ''}
       </div>
-    `;
-    resultsGrid.appendChild(card);
-  });
+      <div class="hotel-meta">
+        ${rating ? `<span>⭐ ${rating} ${prop.reviewScoreWord ? '· ' + prop.reviewScoreWord : ''}</span>` : ''}
+        <span>📍 ${params.city}</span>
+        ${price ? `<span>From ${price}</span>` : ''}
+      </div>
+
+      <div class="room-tally" id="tally-${h.hotel_id}">
+        <div class="tally-bar-wrap">
+          <div class="tally-bar" id="tally-bar-${h.hotel_id}" style="width:0%"></div>
+        </div>
+        <span class="tally-label" id="tally-label-${h.hotel_id}">Loading availability...</span>
+      </div>
+
+      <div class="providers-table" id="providers-${h.hotel_id}">
+        <div class="provider-loading"><div class="spinner-sm"></div> Checking room availability across booking sites...</div>
+      </div>
+
+      <div class="share-row">
+        <button class="btn-copy-share" onclick="copyShareLink('${window.location.origin}/share.html?hotel=${h.hotel_id}&name=${encodeURIComponent(prop.name)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}', this)">
+          🔗 Share with Team
+        </button>
+      </div>
+    </div>
+  `;
+  resultsGrid.appendChild(card);
 }
 
-async function loadProviderData(h, params) {
-  const container = document.getElementById(`providers-${h.hotel_id}`);
+// ── Load real availability from all providers ─────────────────────────────────
+async function loadProviderAvailability(h, params) {
+  const container  = document.getElementById(`providers-${h.hotel_id}`);
+  const tallyBar   = document.getElementById(`tally-bar-${h.hotel_id}`);
+  const tallyLabel = document.getElementById(`tally-label-${h.hotel_id}`);
 
   try {
-    // Fetch Booking.com details + Priceline + Skyscanner in parallel
-    const [bookingDetail, skyResults, plResults] = await Promise.all([
-      fetch(`https://${BOOKING_HOST}/api/v1/hotels/getHotelDetails?hotel_id=${h.hotel_id}&arrival_date=${params.checkin}&departure_date=${params.checkout}&adults=2&room_qty=${params.rooms}&currency_code=CAD&languagecode=en-us&units=metric`,
-        { headers: HEADERS_BOOKING }).then(r=>r.json()).catch(()=>({})),
+    // Fetch Booking.com room detail (real count) + Hotelbeds (via our API)
+    const [bookingDetail, hbResult] = await Promise.allSettled([
+      fetch(
+        `https://${BOOKING_HOST}/api/v1/hotels/getHotelDetails?hotel_id=${h.hotel_id}&arrival_date=${params.checkin}&departure_date=${params.checkout}&adults=2&room_qty=${params.rooms}&currency_code=CAD&languagecode=en-us&units=metric`,
+        { headers: HEADERS_BOOKING }
+      ).then(r => r.json()),
 
-      Promise.resolve({}),
-      // Skyscanner removed to preserve API quota
-
-      params.pricelineLocId ? fetch(`https://${PRICELINE_HOST}/v1/hotels/search?location_id=${params.pricelineLocId}&date_checkin=${params.checkin}&date_checkout=${params.checkout}&sort_order=PRICE&rooms_number=${params.rooms}&adults_number=2&limit=20`,
-        { headers: HEADERS_PRICELINE }).then(r=>r.json()).catch(()=>({})) : Promise.resolve({})
+      fetch(
+        `/api/hotelbeds?city=${encodeURIComponent(params.city)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}`
+      ).then(r => r.json()).catch(() => ({ hotels: [] }))
     ]);
 
-    const detail      = bookingDetail.data || {};
-    const bookingRooms= detail.available_rooms ?? null;
-    const bookingSold = detail.soldout === 1;
-    const bookingPrice= detail.product_price_breakdown?.gross_amount?.value
+    const detail       = bookingDetail.status === 'fulfilled' ? bookingDetail.value?.data || {} : {};
+    const hbHotels     = hbResult.status === 'fulfilled' ? hbResult.value?.hotels || [] : [];
+    const countryCode  = h.property.countryCode || 'ca';
+
+    // Booking.com real room count
+    const bookingRooms = detail.available_rooms ?? null;
+    const bookingSold  = detail.soldout === 1;
+    const bookingPrice = detail.product_price_breakdown?.gross_amount?.value
       ? `$${Math.round(detail.product_price_breakdown.gross_amount.value)} CAD`
       : null;
 
-    // Match in Skyscanner
-    const skyHotels = skyResults?.data?.hotels || [];
-    const skyMatch  = skyHotels.find(sh =>
-      sh.name?.toLowerCase().includes(h.property.name.split(' ')[0].toLowerCase())
+    // Hotelbeds — fuzzy match by name
+    const hbMatch = hbHotels.find(hb =>
+      hb.name?.toLowerCase().includes(h.property.name.split(' ')[0].toLowerCase()) ||
+      h.property.name.toLowerCase().includes(hb.name?.split(' ')[0]?.toLowerCase())
     );
-    const skyPrice  = skyMatch?.price || null;
+    const hbRooms = hbMatch?.availableRooms || null;
+    const hbPrice = hbMatch?.pricePerNight ? `$${hbMatch.pricePerNight} ${hbMatch.currency}` : null;
 
-    // Match in Priceline
-    const plHotels  = plResults?.hotels || [];
-    const plMatch   = plHotels.find(ph =>
-      ph.name?.toLowerCase().includes(h.property.name.split(' ')[0].toLowerCase())
-    );
-    const plPrice   = plMatch?.ratesSummary?.minPrice
-      ? `$${Math.round(plMatch.ratesSummary.minPrice)} USD`
-      : null;
-
-    const hotelInfo = {
-      id: h.hotel_id,
-      name: h.property.name,
-      countryCode: h.property.countryCode || 'ca',
-      city: params.city,
-      ufi: params.ufi,
-    };
-
-    // Build provider rows
+    // Build provider list — real counts first, then links-only
     const providers = [
       {
-        icon: '🔵', name: 'Booking.com',
-        rooms: bookingSold ? '❌ Sold out' : bookingRooms !== null ? `${bookingRooms} ${bookingRooms === 1 ? 'room' : 'rooms'} available` : 'Check site',
-        roomsClass: bookingSold ? 'sold' : bookingRooms !== null ? 'avail' : '',
+        name: 'Booking.com',
+        icon: '🔵',
+        rooms: bookingSold ? 0 : bookingRooms,
+        roomsLabel: bookingSold ? '❌ Sold out' : bookingRooms !== null ? bookingRooms : null,
         price: bookingPrice,
-        url: `https://www.booking.com/hotel/${hotelInfo.countryCode}/${h.hotel_id}.html?checkin=${params.checkin}&checkout=${params.checkout}&no_rooms=${params.rooms}&group_adults=2`
+        hasRealCount: bookingRooms !== null && !bookingSold,
+        url: `https://www.booking.com/hotel/${countryCode}/${h.hotel_id}.html?checkin=${params.checkin}&checkout=${params.checkout}&no_rooms=${params.rooms}&group_adults=2`,
       },
       {
-        icon: '🟣', name: 'Priceline',
-        rooms: plMatch ? '✅ Available' : 'See availability',
-        roomsClass: plMatch ? 'avail' : '',
-        price: plPrice,
-        url: `https://www.priceline.com/hotel/search?q=${encodeURIComponent(params.city)}&date_start=${params.checkin}&date_end=${params.checkout}&num_rooms=${params.rooms}`
+        name: 'Hotelbeds',
+        icon: '🟤',
+        rooms: hbRooms,
+        roomsLabel: hbRooms !== null ? hbRooms : null,
+        price: hbPrice,
+        hasRealCount: hbRooms !== null,
+        url: `https://www.booking.com/hotel/${countryCode}/${h.hotel_id}.html?checkin=${params.checkin}&checkout=${params.checkout}&no_rooms=${params.rooms}`,
       },
       {
-        icon: '🟡', name: 'Kayak',
-        rooms: skyMatch ? '✅ Available' : 'See availability',
-        roomsClass: skyMatch ? 'avail' : '',
-        price: skyPrice,
-        url: `https://www.kayak.com/hotels/${encodeURIComponent(params.city)}/${params.checkin}/${params.checkout}/${params.rooms}rooms/`
+        name: 'Expedia',       icon: '🟡', rooms: null, roomsLabel: null, price: null, hasRealCount: false,
+        url: `https://www.expedia.ca/Hotel-Search?destination=${encodeURIComponent(params.city)}&startDate=${params.checkin}&endDate=${params.checkout}&rooms=${params.rooms}&adults=2`,
       },
       {
-        icon: '🟠', name: 'Expedia',
-        rooms: 'See availability', roomsClass: '', price: null,
-        url: `https://www.expedia.ca/Hotel-Search?destination=${encodeURIComponent(params.city)}&startDate=${params.checkin}&endDate=${params.checkout}&rooms=${params.rooms}&adults=2`
+        name: 'Priceline',     icon: '🟣', rooms: null, roomsLabel: null, price: null, hasRealCount: false,
+        url: `https://www.priceline.com/hotel/search?q=${encodeURIComponent(params.city)}&date_start=${params.checkin}&date_end=${params.checkout}&num_rooms=${params.rooms}`,
       },
       {
-        icon: '🔴', name: 'Hotels.com',
-        rooms: 'See availability', roomsClass: '', price: null,
-        url: `https://www.hotels.com/search.do?q-destination=${encodeURIComponent(params.city)}&q-check-in=${params.checkin}&q-check-out=${params.checkout}&q-rooms=${params.rooms}`
+        name: 'Hotels.com',    icon: '🔴', rooms: null, roomsLabel: null, price: null, hasRealCount: false,
+        url: `https://www.hotels.com/search.do?q-destination=${encodeURIComponent(params.city)}&q-check-in=${params.checkin}&q-check-out=${params.checkout}&q-rooms=${params.rooms}`,
       },
       {
-        icon: '🟢', name: 'Trivago',
-        rooms: 'See availability', roomsClass: '', price: null,
-        url: `https://www.trivago.ca/?search[destination]=${encodeURIComponent(params.city)}&search[arrivalDate]=${params.checkin}&search[departureDate]=${params.checkout}&search[roomsCount]=${params.rooms}`
+        name: 'Kayak',         icon: '🟠', rooms: null, roomsLabel: null, price: null, hasRealCount: false,
+        url: `https://www.kayak.com/hotels/${encodeURIComponent(params.city)}/${params.checkin}/${params.checkout}/${params.rooms}rooms/`,
       },
       {
-        icon: '🔷', name: 'Agoda',
-        rooms: 'See availability', roomsClass: '', price: null,
-        url: `https://www.agoda.com/search?city=${params.ufi}&checkIn=${params.checkin}&checkOut=${params.checkout}&rooms=${params.rooms}&adults=2`
+        name: 'Agoda',         icon: '🟢', rooms: null, roomsLabel: null, price: null, hasRealCount: false,
+        url: `https://www.agoda.com/search?city=${params.ufi}&checkIn=${params.checkin}&checkOut=${params.checkout}&rooms=${params.rooms}&adults=2`,
       },
       {
-        icon: '🟤', name: 'Trip.com',
-        rooms: 'See availability', roomsClass: '', price: null,
-        url: `https://ca.trip.com/hotels/list?cityName=${encodeURIComponent(params.city)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}`
-      },
-      {
-        icon: '⭐', name: 'Marriott',
-        rooms: 'See availability', roomsClass: '', price: null,
-        url: `https://www.marriott.com/search/default.mi?roomCount=${params.rooms}&fromDate=${params.checkin}&toDate=${params.checkout}&destination=${encodeURIComponent(params.city)}`
-      },
-      {
-        icon: '⚪', name: 'Hilton',
-        rooms: 'See availability', roomsClass: '', price: null,
-        url: `https://www.hilton.com/en/search/?query=${encodeURIComponent(params.city)}&arrivalDate=${params.checkin}&departureDate=${params.checkout}&numRooms=${params.rooms}`
+        name: 'Trivago',       icon: '⚪', rooms: null, roomsLabel: null, price: null, hasRealCount: false,
+        url: `https://www.trivago.ca/?search[destination]=${encodeURIComponent(params.city)}&search[arrivalDate]=${params.checkin}&search[departureDate]=${params.checkout}&search[roomsCount]=${params.rooms}`,
       },
     ];
 
+    // Calculate tally — sum of confirmed room counts
+    const confirmedRooms = providers
+      .filter(p => p.hasRealCount && p.rooms > 0)
+      .reduce((sum, p) => sum + p.rooms, 0);
+    const pct = Math.min(100, Math.round((confirmedRooms / params.rooms) * 100));
+    const met = confirmedRooms >= params.rooms;
+
+    // Update tally bar
+    tallyBar.style.width  = `${pct}%`;
+    tallyBar.style.background = met ? '#16a34a' : '#1a6fd4';
+    tallyLabel.innerHTML = met
+      ? `✅ <strong>${confirmedRooms} rooms confirmed</strong> across providers — goal of ${params.rooms} met!`
+      : `<strong>${confirmedRooms} of ${params.rooms} rooms confirmed</strong> — check additional sites below`;
+
+    // Render providers table
     container.innerHTML = `
       <div class="providers-header">
         <span>Booking Site</span>
-        <span>Dates</span>
-        <span>Rooms</span>
+        <span>Rooms Available</span>
         <span>Price/night</span>
         <span></span>
       </div>
       ${providers.map(p => `
-        <div class="provider-row">
+        <div class="provider-row ${p.hasRealCount && p.rooms > 0 ? 'has-count' : ''}">
           <span class="provider-name">${p.icon} ${p.name}</span>
-          <span class="provider-dates">${formatDate(params.checkin)} → ${formatDate(params.checkout)}</span>
-          <span class="provider-rooms ${p.roomsClass}">${p.rooms}</span>
+          <span class="provider-rooms ${p.hasRealCount ? (p.rooms > 0 ? 'avail' : 'sold') : 'unknown'}">
+            ${p.hasRealCount
+              ? (p.rooms > 0 ? `<strong>${p.roomsLabel}</strong> rooms` : p.roomsLabel)
+              : '<span class="check-site">Check site</span>'}
+          </span>
           <span class="provider-price">${p.price || '—'}</span>
           <a href="${p.url}" target="_blank" class="btn-book-sm">Book →</a>
         </div>
@@ -251,10 +247,10 @@ async function loadProviderData(h, params) {
   }
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function formatDate(d) {
   if (!d) return '';
-  const dt = new Date(d + 'T00:00:00');
-  return dt.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' });
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric' });
 }
 
 function copyShareLink(url, btn) {

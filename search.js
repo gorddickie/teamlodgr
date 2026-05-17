@@ -151,11 +151,26 @@ async function loadProviderAvailability(h, params) {
       ? `$${Math.round(detail.product_price_breakdown.gross_amount.value)} CAD`
       : null;
 
-    // Hotelbeds — fuzzy match by name
-    const hbMatch = hbHotels.find(hb =>
-      hb.name?.toLowerCase().includes(h.property.name.split(' ')[0].toLowerCase()) ||
-      h.property.name.toLowerCase().includes(hb.name?.split(' ')[0]?.toLowerCase())
-    );
+    // Hotelbeds — improved fuzzy match by scoring shared words
+    function normalizeHotelName(name) {
+      return (name || '').toLowerCase()
+        .replace(/\b(hotel|the|inn|suites|suite|resort|and|by|at)\b/g, '')
+        .replace(/[^a-z0-9\s]/g, '')
+        .replace(/\s+/g, ' ').trim();
+    }
+    function matchScore(a, b) {
+      const na = normalizeHotelName(a);
+      const nb = normalizeHotelName(b);
+      if (na === nb) return 100;
+      const wordsA = na.split(' ').filter(w => w.length > 2);
+      const wordsB = nb.split(' ').filter(w => w.length > 2);
+      const shared = wordsA.filter(w => wordsB.includes(w)).length;
+      return Math.round((shared / Math.max(wordsA.length, wordsB.length)) * 100);
+    }
+    const hbMatch = hbHotels
+      .map(hb => ({ hb, score: matchScore(h.property.name, hb.name) }))
+      .filter(x => x.score >= 40)
+      .sort((a, b) => b.score - a.score)[0]?.hb || null;
     const hbRooms = hbMatch?.availableRooms || null;
     const hbPrice = hbMatch?.pricePerNight ? `$${hbMatch.pricePerNight} ${hbMatch.currency}` : null;
 

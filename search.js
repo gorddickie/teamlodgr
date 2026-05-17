@@ -236,6 +236,9 @@ async function loadProviderAvailability(h, params) {
       ? `✅ <strong>${confirmedRooms} rooms confirmed</strong> across providers — goal of ${params.rooms} met!`
       : `<strong>${confirmedRooms} of ${params.rooms} rooms confirmed</strong> — check additional sites below`;
 
+    // Filter: only show providers with 5+ rooms OR no real count (unknown)
+    const visibleProviders = providers.filter(p => !p.hasRealCount || p.rooms >= 5);
+
     // Render providers table
     container.innerHTML = `
       <div class="providers-header">
@@ -244,7 +247,7 @@ async function loadProviderAvailability(h, params) {
         <span>Price/night</span>
         <span></span>
       </div>
-      ${providers.map(p => `
+      ${visibleProviders.map(p => `
         <div class="provider-row ${p.hasRealCount && p.rooms > 0 ? 'has-count' : ''}">
           <span class="provider-name">${p.icon} ${p.name}</span>
           <span class="provider-rooms ${p.hasRealCount ? (p.rooms > 0 ? 'avail' : 'sold') : 'unknown'}">
@@ -256,6 +259,7 @@ async function loadProviderAvailability(h, params) {
           <a href="${p.url}" target="_blank" class="btn-book-sm">Book →</a>
         </div>
       `).join('')}
+      ${visibleProviders.length === 0 ? '<p style="padding:12px;color:#e74c3c;font-size:0.85rem;">No providers currently have 5+ rooms available for these dates.</p>' : ''}
     `;
 
   } catch (err) {

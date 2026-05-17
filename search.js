@@ -252,7 +252,7 @@ async function loadProviderAvailability(h, params) {
           <span class="provider-name">${p.icon} ${p.name}</span>
           <span class="provider-rooms ${p.hasRealCount ? (p.rooms > 0 ? 'avail' : 'sold') : 'unknown'}">
             ${p.hasRealCount
-              ? `✅ At least ${p.roomsLabel} available`
+              ? '✅ Rooms available'
               : '<span class="check-site">Check site</span>'}
           </span>
           <span class="provider-price">${p.price || '—'}</span>

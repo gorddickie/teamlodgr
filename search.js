@@ -50,16 +50,14 @@ if (searchForm) {
       currentParams.lat        = dest.latitude || dest.lat || null;
       currentParams.lng        = dest.longitude || dest.lng || null;
 
-      // Pre-fetch Priceline + Agoda location IDs in parallel
+      // Fetch Priceline + Agoda location IDs — wait for both before proceeding
       pricelineCache = {};
-      fetch(`https://${PRICELINE_HOST}/v1/hotels/locations?name=${encodeURIComponent(city)}&search_type=ALL`, { headers: HEADERS_PRICELINE })
-        .then(r => r.json())
-        .then(d => { if (Array.isArray(d) && d[0]) currentParams.pricelineLocId = d[0].id; })
-        .catch(() => {});
-      fetch(`https://${AGODA_HOST}/hotels/auto-complete?query=${encodeURIComponent(city)}&locale=en-us`, { headers: HEADERS_AGODA })
-        .then(r => r.json())
-        .then(d => { const p = d.places?.find(p => p.typeId === 1); if (p) currentParams.agodaCityId = p.id; })
-        .catch(() => {});
+      const [plLoc, agodaLoc] = await Promise.allSettled([
+        fetch(`https://${PRICELINE_HOST}/v1/hotels/locations?name=${encodeURIComponent(city)}&search_type=ALL`, { headers: HEADERS_PRICELINE }).then(r => r.json()),
+        fetch(`https://${AGODA_HOST}/hotels/auto-complete?query=${encodeURIComponent(city)}&locale=en-us`, { headers: HEADERS_AGODA }).then(r => r.json())
+      ]);
+      if (plLoc.status === 'fulfilled' && Array.isArray(plLoc.value) && plLoc.value[0]) currentParams.pricelineLocId = plLoc.value[0].id;
+      if (agodaLoc.status === 'fulfilled') { const p = agodaLoc.value.places?.find(p => p.typeId === 1); if (p) currentParams.agodaCityId = p.id; }
 
       // Hotel search
       loadingEl.innerHTML = '<div class="spinner"></div> Finding hotels with availability...';

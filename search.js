@@ -4,8 +4,10 @@
 const RAPIDAPI_KEY      = '3173251728msha891fafe5abe622p17d02fjsn272b51fed579';
 const BOOKING_HOST      = 'booking-com15.p.rapidapi.com';
 const PRICELINE_HOST    = 'priceline-com-provider.p.rapidapi.com';
+const AGODA_HOST        = 'agoda-com.p.rapidapi.com';
 const HEADERS_BOOKING   = { 'x-rapidapi-host': BOOKING_HOST,   'x-rapidapi-key': RAPIDAPI_KEY };
 const HEADERS_PRICELINE = { 'x-rapidapi-host': PRICELINE_HOST, 'x-rapidapi-key': RAPIDAPI_KEY };
+const HEADERS_AGODA     = { 'x-rapidapi-host': AGODA_HOST,     'x-rapidapi-key': RAPIDAPI_KEY };
 
 const TIERS = [20, 10, 5]; // Check highest first
 let pricelineCache = {}; // Cache Priceline city results to avoid repeat calls
@@ -48,11 +50,15 @@ if (searchForm) {
       currentParams.lat        = dest.latitude || dest.lat || null;
       currentParams.lng        = dest.longitude || dest.lng || null;
 
-      // Pre-fetch Priceline location ID in parallel
+      // Pre-fetch Priceline + Agoda location IDs in parallel
       pricelineCache = {};
       fetch(`https://${PRICELINE_HOST}/v1/hotels/locations?name=${encodeURIComponent(city)}&search_type=ALL`, { headers: HEADERS_PRICELINE })
         .then(r => r.json())
         .then(d => { if (Array.isArray(d) && d[0]) currentParams.pricelineLocId = d[0].id; })
+        .catch(() => {});
+      fetch(`https://${AGODA_HOST}/hotels/auto-complete?query=${encodeURIComponent(city)}&locale=en-us`, { headers: HEADERS_AGODA })
+        .then(r => r.json())
+        .then(d => { const p = d.places?.find(p => p.typeId === 1); if (p) currentParams.agodaCityId = p.id; })
         .catch(() => {});
 
       // Hotel search
@@ -149,6 +155,20 @@ async function checkPricelineAvailability(hotelName, checkin, checkout, locId) {
   return { available: false, tier: 0, price: null };
 }
 
+// ── Tiered availability check for Agoda ─────────────────────────────────
+async function checkAgodaAvailability(checkin, checkout, cityId) {
+  if (!cityId) return { available: false, tier: 0, price: null };
+  for (const tier of TIERS) {
+    const r = await fetch(
+      `https://${AGODA_HOST}/hotels/search-overnight?id=1_${cityId}&checkinDate=${checkin}&checkoutDate=${checkout}&adults=2&rooms=${tier}&locale=en-us&currency=USD`,
+      { headers: HEADERS_AGODA }
+    ).then(r => r.json()).catch(() => null);
+    const total = r?.data?.citySearch?.searchResult?.searchInfo?.totalAvailableHotelsWithoutFilter || 0;
+    if (total > 0) return { available: true, tier, price: null };
+  }
+  return { available: false, tier: 0, price: null };
+}
+
 // ── Shared fuzzy scorer ───────────────────────────────────────────────────────
 function fuzzyScore(a, b) {
   const norm = s => (s||'').toLowerCase().replace(/\b(hotel|the|inn|suites|suite|resort|and|by|at)\b/g,'').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
@@ -190,17 +210,19 @@ async function loadProviderAvailability(h, params) {
 
   try {
     // Run all providers in parallel
-    const [bookingAvail, hbResult, plAvail] = await Promise.allSettled([
+    const [bookingAvail, hbResult, plAvail, agodaAvail] = await Promise.allSettled([
       checkBookingAvailability(h.hotel_id, params.checkin, params.checkout, countryCode),
       fetch(`/api/hotelbeds?city=${encodeURIComponent(params.city)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=5&lat=${params.lat||''}&lng=${params.lng||''}`)
         .then(r => r.json()).catch(() => ({ hotels: [] })),
 
-      checkPricelineAvailability(h.property.name, params.checkin, params.checkout, params.pricelineLocId)
+      checkPricelineAvailability(h.property.name, params.checkin, params.checkout, params.pricelineLocId),
+      checkAgodaAvailability(params.checkin, params.checkout, params.agodaCityId)
     ]);
 
     const booking  = bookingAvail.status === 'fulfilled' ? bookingAvail.value : { available: false, tier: 0 };
     const hbHotels = hbResult.status === 'fulfilled' ? hbResult.value?.hotels || [] : [];
     const priceline = plAvail.status === 'fulfilled' ? plAvail.value : { available: false, tier: 0 };
+    const agoda     = agodaAvail.status === 'fulfilled' ? agodaAvail.value : { available: false, tier: 0 };
 
     // Hotelbeds fuzzy match
     const hbMatch = hbHotels.map(hb=>({hb,s:fuzzyScore(h.property.name,hb.name)})).filter(x=>x.s>=40).sort((a,b)=>b.s-a.s)[0]?.hb||null;
@@ -231,7 +253,14 @@ async function loadProviderAvailability(h, params) {
         url: `https://www.priceline.com/hotel/search?q=${encodeURIComponent(params.city)}&date_start=${params.checkin}&date_end=${params.checkout}&num_rooms=${params.rooms}`,
       },
       {
-        name: 'Expedia',    icon: '🟡', available: null, tier: null, price: null,
+        name: 'Agoda', icon: '🟢',
+        available: agoda.available,
+        tier: agoda.tier,
+        price: agoda.price,
+        url: `https://www.agoda.com/search?city=${params.agodaCityId||''}&checkIn=${params.checkin}&checkOut=${params.checkout}&rooms=${params.rooms}&adults=2`,
+      },
+      {
+        name: 'Expedia', icon: '🟡', available: null, tier: null, price: null,
         url: `https://www.expedia.ca/Hotel-Search?destination=${encodeURIComponent(params.city)}&startDate=${params.checkin}&endDate=${params.checkout}&rooms=${params.rooms}&adults=2`,
       },
       {

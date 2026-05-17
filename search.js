@@ -1,11 +1,14 @@
 // TeamLodgr — Hotel Search & Room Aggregation
 // Tiered availability: queries at 5, 10, 20 rooms — shows highest confirmed tier
 
-const RAPIDAPI_KEY    = '3173251728msha891fafe5abe622p17d02fjsn272b51fed579';
-const BOOKING_HOST    = 'booking-com15.p.rapidapi.com';
-const HEADERS_BOOKING = { 'x-rapidapi-host': BOOKING_HOST, 'x-rapidapi-key': RAPIDAPI_KEY };
+const RAPIDAPI_KEY      = '3173251728msha891fafe5abe622p17d02fjsn272b51fed579';
+const BOOKING_HOST      = 'booking-com15.p.rapidapi.com';
+const PRICELINE_HOST    = 'priceline-com-provider.p.rapidapi.com';
+const HEADERS_BOOKING   = { 'x-rapidapi-host': BOOKING_HOST,   'x-rapidapi-key': RAPIDAPI_KEY };
+const HEADERS_PRICELINE = { 'x-rapidapi-host': PRICELINE_HOST, 'x-rapidapi-key': RAPIDAPI_KEY };
 
 const TIERS = [20, 10, 5]; // Check highest first
+let pricelineCache = {}; // Cache Priceline city results to avoid repeat calls
 
 let currentParams = {};
 
@@ -44,6 +47,13 @@ if (searchForm) {
       currentParams.searchType = dest.search_type;
       currentParams.lat        = dest.latitude || dest.lat || null;
       currentParams.lng        = dest.longitude || dest.lng || null;
+
+      // Pre-fetch Priceline location ID in parallel
+      pricelineCache = {};
+      fetch(`https://${PRICELINE_HOST}/v1/hotels/locations?name=${encodeURIComponent(city)}&search_type=ALL`, { headers: HEADERS_PRICELINE })
+        .then(r => r.json())
+        .then(d => { if (Array.isArray(d) && d[0]) currentParams.pricelineLocId = d[0].id; })
+        .catch(() => {});
 
       // Hotel search
       loadingEl.innerHTML = '<div class="spinner"></div> Finding hotels with availability...';
@@ -111,6 +121,43 @@ function renderHotelCard(h, params) {
   resultsGrid.appendChild(card);
 }
 
+// ── Tiered availability check for Priceline ─────────────────────────────────
+async function checkPricelineAvailability(hotelName, checkin, checkout, locId) {
+  if (!locId) return { available: false, tier: 0, price: null };
+  for (const tier of TIERS) {
+    const cacheKey = `${locId}_${checkin}_${checkout}_${tier}`;
+    let hotels;
+    if (pricelineCache[cacheKey]) {
+      hotels = pricelineCache[cacheKey];
+    } else {
+      const r = await fetch(
+        `https://${PRICELINE_HOST}/v1/hotels/search?location_id=${locId}&date_checkin=${checkin}&date_checkout=${checkout}&sort_order=PRICE&rooms_number=${tier}&adults_number=2&limit=20`,
+        { headers: HEADERS_PRICELINE }
+      ).then(r => r.json()).catch(() => []);
+      hotels = Array.isArray(r) ? r : (r.hotels || []);
+      pricelineCache[cacheKey] = hotels;
+    }
+    const match = hotels.find(h => {
+      const score = fuzzyScore(hotelName, h.name || '');
+      return score >= 40;
+    });
+    if (match) {
+      const price = match.ratesSummary?.minPrice ? `$${Math.round(match.ratesSummary.minPrice)} USD` : null;
+      return { available: true, tier, price };
+    }
+  }
+  return { available: false, tier: 0, price: null };
+}
+
+// ── Shared fuzzy scorer ───────────────────────────────────────────────────────
+function fuzzyScore(a, b) {
+  const norm = s => (s||'').toLowerCase().replace(/\b(hotel|the|inn|suites|suite|resort|and|by|at)\b/g,'').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+  const wa = norm(a).split(' ').filter(w=>w.length>2);
+  const wb = norm(b).split(' ').filter(w=>w.length>2);
+  if (!wa.length || !wb.length) return 0;
+  return Math.round((wa.filter(w=>wb.includes(w)).length / Math.max(wa.length,wb.length))*100);
+}
+
 // ── Tiered availability check for Booking.com ────────────────────────────────
 async function checkBookingAvailability(hotelId, checkin, checkout, countryCode) {
   // Query all tiers in parallel
@@ -142,27 +189,21 @@ async function loadProviderAvailability(h, params) {
   const countryCode = h.property.countryCode || 'ca';
 
   try {
-    // Run Booking.com tiered check + Hotelbeds in parallel
-    const [bookingAvail, hbResult] = await Promise.allSettled([
+    // Run all providers in parallel
+    const [bookingAvail, hbResult, plAvail] = await Promise.allSettled([
       checkBookingAvailability(h.hotel_id, params.checkin, params.checkout, countryCode),
-      fetch(`/api/hotelbeds?city=${encodeURIComponent(params.city)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=5&lat=${params.lat||''}&lng=${params.lng||}`)
-        .then(r => r.json()).catch(() => ({ hotels: [] }))
+      fetch(`/api/hotelbeds?city=${encodeURIComponent(params.city)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=5&lat=${params.lat||''}&lng=${params.lng||''}`)
+        .then(r => r.json()).catch(() => ({ hotels: [] })),
+
+      checkPricelineAvailability(h.property.name, params.checkin, params.checkout, params.pricelineLocId)
     ]);
 
     const booking  = bookingAvail.status === 'fulfilled' ? bookingAvail.value : { available: false, tier: 0 };
     const hbHotels = hbResult.status === 'fulfilled' ? hbResult.value?.hotels || [] : [];
+    const priceline = plAvail.status === 'fulfilled' ? plAvail.value : { available: false, tier: 0 };
 
     // Hotelbeds fuzzy match
-    function normalize(name) {
-      return (name||'').toLowerCase().replace(/\b(hotel|the|inn|suites|suite|resort|and|by|at)\b/g,'').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
-    }
-    function score(a, b) {
-      const wa = normalize(a).split(' ').filter(w=>w.length>2);
-      const wb = normalize(b).split(' ').filter(w=>w.length>2);
-      const shared = wa.filter(w=>wb.includes(w)).length;
-      return Math.round((shared/Math.max(wa.length,wb.length))*100);
-    }
-    const hbMatch = hbHotels.map(hb=>({hb,s:score(h.property.name,hb.name)})).filter(x=>x.s>=40).sort((a,b)=>b.s-a.s)[0]?.hb||null;
+    const hbMatch = hbHotels.map(hb=>({hb,s:fuzzyScore(h.property.name,hb.name)})).filter(x=>x.s>=40).sort((a,b)=>b.s-a.s)[0]?.hb||null;
     const hbTier  = hbMatch?.availableRooms >= 20 ? 20 : hbMatch?.availableRooms >= 10 ? 10 : hbMatch?.availableRooms >= 5 ? 5 : 0;
     const hbPrice = hbMatch?.pricePerNight ? `$${hbMatch.pricePerNight} ${hbMatch.currency}` : null;
 
@@ -183,12 +224,15 @@ async function loadProviderAvailability(h, params) {
         url: `https://www.booking.com/hotel/${countryCode}/${h.hotel_id}.html?checkin=${params.checkin}&checkout=${params.checkout}&no_rooms=${params.rooms}`,
       },
       {
-        name: 'Expedia',    icon: '🟡', available: null, tier: null, price: null,
-        url: `https://www.expedia.ca/Hotel-Search?destination=${encodeURIComponent(params.city)}&startDate=${params.checkin}&endDate=${params.checkout}&rooms=${params.rooms}&adults=2`,
+        name: 'Priceline', icon: '🟣',
+        available: priceline.available,
+        tier: priceline.tier,
+        price: priceline.price,
+        url: `https://www.priceline.com/hotel/search?q=${encodeURIComponent(params.city)}&date_start=${params.checkin}&date_end=${params.checkout}&num_rooms=${params.rooms}`,
       },
       {
-        name: 'Priceline',  icon: '🟣', available: null, tier: null, price: null,
-        url: `https://www.priceline.com/hotel/search?q=${encodeURIComponent(params.city)}&date_start=${params.checkin}&date_end=${params.checkout}&num_rooms=${params.rooms}`,
+        name: 'Expedia',    icon: '🟡', available: null, tier: null, price: null,
+        url: `https://www.expedia.ca/Hotel-Search?destination=${encodeURIComponent(params.city)}&startDate=${params.checkin}&endDate=${params.checkout}&rooms=${params.rooms}&adults=2`,
       },
       {
         name: 'Hotels.com', icon: '🔴', available: null, tier: null, price: null,

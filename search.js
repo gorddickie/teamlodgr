@@ -208,8 +208,8 @@ async function loadProviderAvailability(h, params) {
       },
     ];
 
-    // Only show providers with confirmed availability OR unknown (null)
-    const visible = providers.filter(p => p.available !== false);
+    // Only show providers with confirmed availability
+    const visible = providers.filter(p => p.available === true);
 
     container.innerHTML = `
       <div class="providers-header">
@@ -228,7 +228,7 @@ async function loadProviderAvailability(h, params) {
           <a href="${p.url}" target="_blank" class="btn-book-sm">Book →</a>
         </div>
       `).join('')}
-      ${visible.length === 0 ? '<p style="padding:12px;color:#e74c3c;font-size:0.85rem;">No availability confirmed for these dates. Try different dates.</p>' : ''}
+      ${visible.length === 0 ? '<p style="padding:16px;color:#6b7280;font-size:0.88rem;">No confirmed availability found. Use the Book buttons above to check sites directly.</p>' : ''}
     `;
 
   } catch (err) {

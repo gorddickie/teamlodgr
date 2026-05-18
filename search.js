@@ -386,7 +386,7 @@ async function loadProviderAvailability(h, params) {
         available: agoda.available,
         tier: agoda.tier,
         price: agoda.price,
-        url: `https://www.agoda.com/search?city=${params.agodaCityId||''}&checkIn=${params.checkin}&checkOut=${params.checkout}&rooms=${params.rooms}&adults=2`,
+        url: `https://www.agoda.com/search?q=${encodeURIComponent(h.property.name)}&checkIn=${params.checkin}&checkOut=${params.checkout}&rooms=${params.rooms}&adults=2&los=${Math.max(1,Math.round((new Date(params.checkout)-new Date(params.checkin))/86400000))}`,
       },
       {
         name: 'Expedia', icon: '🟡', available: null, tier: null, price: null,

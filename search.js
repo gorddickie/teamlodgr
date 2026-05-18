@@ -13,22 +13,132 @@ const TIERS = [20, 10, 5]; // Check highest first
 let pricelineCache = {}; // Cache Priceline city results to avoid repeat calls
 
 let currentParams = {};
+let venueMode = false; // true when searching near a venue
+let selectedVenue = null; // { name, lat, lng }
+
+// ── Venue search (Nominatim) ─────────────────────────────────────────────────
+let nominatimTimer = null;
+function initVenueSearch() {
+  const input = document.getElementById('venue-input');
+  const dropdown = document.getElementById('venue-dropdown');
+  if (!input) return;
+
+  input.addEventListener('input', () => {
+    clearTimeout(nominatimTimer);
+    const q = input.value.trim();
+    if (q.length < 3) { dropdown.style.display = 'none'; return; }
+    nominatimTimer = setTimeout(() => fetchVenueSuggestions(q), 400);
+  });
+
+  input.addEventListener('blur', () => {
+    setTimeout(() => { dropdown.style.display = 'none'; }, 200);
+  });
+
+  input.addEventListener('focus', () => {
+    const q = input.value.trim();
+    if (q.length >= 3 && dropdown.innerHTML) dropdown.style.display = 'block';
+  });
+}
+
+async function fetchVenueSuggestions(q) {
+  const dropdown = document.getElementById('venue-dropdown');
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&addressdetails=1`,
+      { headers: { 'Accept': 'application/json' } }
+    );
+    const data = await res.json();
+    if (!data.length) { dropdown.style.display = 'none'; return; }
+    dropdown.innerHTML = data.map((item, i) => {
+      const parts = item.display_name.split(',');
+      const name = parts[0].trim();
+      const loc = parts.slice(1, 3).join(',').trim();
+      return `<div class="venue-option" data-idx="${i}" data-lat="${item.lat}" data-lng="${item.lon}" data-name="${encodeURIComponent(name)}" data-display="${encodeURIComponent(item.display_name)}">
+        <div class="venue-option-name">${name}</div>
+        <div class="venue-option-loc">${loc}</div>
+      </div>`;
+    }).join('');
+    dropdown.style.display = 'block';
+    dropdown.querySelectorAll('.venue-option').forEach(el => {
+      el.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        selectVenue(el);
+      });
+    });
+  } catch (err) {
+    dropdown.style.display = 'none';
+  }
+}
+
+function selectVenue(el) {
+  const name = decodeURIComponent(el.dataset.name);
+  const lat = parseFloat(el.dataset.lat);
+  const lng = parseFloat(el.dataset.lng);
+  selectedVenue = { name, lat, lng };
+
+  const input = document.getElementById('venue-input');
+  const dropdown = document.getElementById('venue-dropdown');
+  const selectedDiv = document.getElementById('venue-selected');
+
+  input.style.display = 'none';
+  dropdown.style.display = 'none';
+  selectedDiv.style.display = 'block';
+  selectedDiv.innerHTML = `<div class="venue-selected-badge">🏒 ${name}<button type="button" class="clear-venue" onclick="clearVenue()">✕</button></div>`;
+}
+
+function clearVenue() {
+  selectedVenue = null;
+  const input = document.getElementById('venue-input');
+  const selectedDiv = document.getElementById('venue-selected');
+  input.style.display = 'block';
+  input.value = '';
+  selectedDiv.style.display = 'none';
+  input.focus();
+}
+
+// ── Mode switcher ─────────────────────────────────────────────────────────────
+function switchMode(mode) {
+  venueMode = (mode === 'venue');
+  document.getElementById('city-field').style.display = venueMode ? 'none' : 'block';
+  document.getElementById('venue-field').style.display = venueMode ? 'block' : 'none';
+  document.getElementById('btn-city').classList.toggle('active', !venueMode);
+  document.getElementById('btn-venue').classList.toggle('active', venueMode);
+  // Update required
+  const cityInput = document.getElementById('city');
+  if (cityInput) cityInput.required = !venueMode;
+}
+
+// ── Haversine distance (km) ───────────────────────────────────────────────────
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
 
 const searchForm     = document.getElementById('search-form');
 const resultsSection = document.getElementById('results-section');
 const resultsGrid    = document.getElementById('results-grid');
 const loadingEl      = document.getElementById('loading');
 
+// Init venue search on page load
+document.addEventListener('DOMContentLoaded', initVenueSearch);
+// Also init immediately in case DOM already loaded
+if (document.readyState !== 'loading') initVenueSearch();
+
 if (searchForm) {
   searchForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const city    = document.getElementById('city').value.trim();
+    const city    = venueMode ? '' : document.getElementById('city').value.trim();
     const checkin = document.getElementById('checkin').value;
     const checkout= document.getElementById('checkout').value;
     const rooms   = parseInt(document.getElementById('rooms').value);
 
-    if (!city || !checkin || !checkout || !rooms) { alert('Please fill in all fields.'); return; }
+    if (venueMode && !selectedVenue) { alert('Please select a venue from the suggestions.'); return; }
+    if (!venueMode && !city) { alert('Please fill in all fields.'); return; }
+    if (!checkin || !checkout || !rooms) { alert('Please fill in all fields.'); return; }
 
     currentParams = { city, checkin, checkout, rooms };
 
@@ -49,6 +159,11 @@ if (searchForm) {
       currentParams.searchType = dest.search_type;
       currentParams.lat        = dest.latitude || dest.lat || null;
       currentParams.lng        = dest.longitude || dest.lng || null;
+      if (venueMode && selectedVenue) {
+        currentParams.lat = selectedVenue.lat;
+        currentParams.lng = selectedVenue.lng;
+        currentParams.venueName = selectedVenue.name;
+      }
 
       // Fetch Priceline + Agoda location IDs — wait for both before proceeding
       pricelineCache = {};
@@ -61,26 +176,47 @@ if (searchForm) {
 
       // Hotel search
       loadingEl.innerHTML = '<div class="spinner"></div> Finding hotels with availability...';
-      const searchRes  = await fetch(
-        `https://${BOOKING_HOST}/api/v1/hotels/searchHotels?dest_id=${dest.dest_id}&search_type=${dest.search_type}&arrival_date=${checkin}&departure_date=${checkout}&adults=2&room_qty=5&currency_code=CAD&sort_by=popularity`,
-        { headers: HEADERS_BOOKING }
-      );
+      let hotelSearchUrl;
+      if (venueMode && currentParams.lat && currentParams.lng) {
+        hotelSearchUrl = `https://${BOOKING_HOST}/api/v1/hotels/searchHotels?latitude=${currentParams.lat}&longitude=${currentParams.lng}&arrival_date=${checkin}&departure_date=${checkout}&adults=2&room_qty=5&currency_code=CAD&sort_by=popularity`;
+      } else {
+        hotelSearchUrl = `https://${BOOKING_HOST}/api/v1/hotels/searchHotels?dest_id=${dest.dest_id}&search_type=${dest.search_type}&arrival_date=${checkin}&departure_date=${checkout}&adults=2&room_qty=5&currency_code=CAD&sort_by=popularity`;
+      }
+      const searchRes  = await fetch(hotelSearchUrl, { headers: HEADERS_BOOKING });
       const searchData = await searchRes.json();
       const hotels     = searchData.data?.hotels?.slice(0, 5);
       if (!hotels?.length) { showError('No hotels found. Try different dates or city.'); return; }
 
       loadingEl.style.display = 'none';
 
+      // Sort by distance when in venue mode
+      let hotelsToShow = hotels;
+      if (venueMode && currentParams.lat && currentParams.lng) {
+        hotelsToShow = hotels.slice().sort((a, b) => {
+          const aLat = a.property.latitude || a.property.lat;
+          const aLng = a.property.longitude || a.property.lng || a.property.lon;
+          const bLat = b.property.latitude || b.property.lat;
+          const bLng = b.property.longitude || b.property.lng || b.property.lon;
+          if (!aLat || !bLat) return 0;
+          return haversineKm(currentParams.lat, currentParams.lng, aLat, aLng) -
+                 haversineKm(currentParams.lat, currentParams.lng, bLat, bLng);
+        });
+      }
+
+      const locationLabel = venueMode && currentParams.venueName
+        ? `near <strong>${currentParams.venueName}</strong>`
+        : `in <strong>${city}</strong>`;
+
       resultsGrid.innerHTML = `
         <div class="results-summary">
-          Hotels in <strong>${city}</strong> &nbsp;·&nbsp;
+          Hotels ${locationLabel} &nbsp;·&nbsp;
           ${formatDate(checkin)} → ${formatDate(checkout)} &nbsp;·&nbsp;
           <strong>${rooms} rooms needed</strong>
         </div>
       `;
 
-      for (const h of hotels) renderHotelCard(h, currentParams);
-      hotels.forEach(h => loadProviderAvailability(h, currentParams));
+      for (const h of hotelsToShow) renderHotelCard(h, currentParams);
+      hotelsToShow.forEach(h => loadProviderAvailability(h, currentParams));
 
     } catch (err) {
       showError('Search failed. Please try again.');
@@ -112,9 +248,15 @@ function renderHotelCard(h, params) {
       </div>
       <div class="hotel-meta">
         ${rating ? `<span>⭐ ${rating} ${prop.reviewScoreWord ? '· ' + prop.reviewScoreWord : ''}</span>` : ''}
-        <span>📍 ${params.city}</span>
+        <span>📍 ${params.venueName || params.city}</span>
         ${price ? `<span>From ${price}</span>` : ''}
       </div>
+      ${params.venueName && (prop.latitude || prop.lat) ? (() => {
+        const hLat = prop.latitude || prop.lat;
+        const hLng = prop.longitude || prop.lng || prop.lon;
+        const km = haversineKm(params.lat, params.lng, hLat, hLng);
+        return `<div><span class="distance-badge">📍 ${km < 1 ? (km*1000).toFixed(0)+' m' : km.toFixed(1)+' km'} from ${params.venueName}</span></div>`;
+      })() : ''}
       <div class="providers-table" id="providers-${h.hotel_id}">
         <div class="provider-loading"><div class="spinner-sm"></div> Checking availability across booking sites...</div>
       </div>

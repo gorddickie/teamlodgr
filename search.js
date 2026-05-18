@@ -244,7 +244,7 @@ function renderHotelCard(h, params) {
         <div class="provider-loading"><div class="spinner-sm"></div> Checking availability across booking sites...</div>
       </div>
       <div class="share-row">
-        <button class="btn-copy-share" onclick="openSharePage('${window.location.origin}/share.html?hotel=${h.hotel_id}&name=${encodeURIComponent(prop.name)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}&photo=${encodeURIComponent(photo||'')}', this)">
+        <button class="btn-copy-share" onclick="openSharePage('${window.location.origin}/share.html?hotel=${h.hotel_id}&name=${encodeURIComponent(prop.name)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}&photo=${encodeURIComponent(photo||'')}&providers=${encodeURIComponent(JSON.stringify(providers.filter(p=>p.available).map(p=>({name:p.name,price:p.price,url:p.url}))))}', this)">
           🔗 Share with Team
         </button>
       </div>

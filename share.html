@@ -298,6 +298,8 @@
   let currentBookingSite = null;
   let currentRoomsAvailable = null;
   let currentPricePerNight = null;
+  let currentProviders = [];
+  try { currentProviders = JSON.parse(decodeURIComponent(params.get('providers') || '[]')); } catch(e) { currentProviders = []; }
 
   // ── Populate UI ───────────────────────────────────────────────────────────
   document.getElementById('hero-subtitle').textContent  = hotelName;
@@ -539,6 +541,7 @@
           roomsAvailable: currentRoomsAvailable || null,
           roomsNeeded: rooms,
           pricePerNight: currentPricePerNight || null,
+          providers: currentProviders,
         }),
       });
 

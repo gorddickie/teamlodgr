@@ -80,17 +80,30 @@ module.exports = async (req, res) => {
                         <td style="padding:6px 0;font-weight:600;color:#1a1a2e;font-size:0.88rem;">${checkin} → ${checkout}</td>
                       </tr>
                       <tr>
-                        <td style="padding:6px 0;color:#6b7280;font-size:0.88rem;">🏨 Booking site</td>
-                        <td style="padding:6px 0;font-weight:600;color:#1a1a2e;font-size:0.88rem;">${req.body.bookingSite || 'Booking.com'}</td>
+                        <td style="padding:6px 0;color:#6b7280;font-size:0.88rem;">🛏️ Rooms needed</td>
+                        <td style="padding:6px 0;font-weight:600;color:#1a1a2e;font-size:0.88rem;">${req.body.roomsNeeded || '—'} rooms</td>
                       </tr>
-                      <tr>
-                        <td style="padding:6px 0;color:#6b7280;font-size:0.88rem;">🛏️ Rooms available</td>
-                        <td style="padding:6px 0;font-weight:600;color:#1a1a2e;font-size:0.88rem;">${req.body.roomsAvailable || req.body.roomsNeeded || '—'} rooms</td>
-                      </tr>
-                      <tr>
-                        <td style="padding:6px 0;color:#6b7280;font-size:0.88rem;">💰 Estimated price</td>
-                        <td style="padding:6px 0;font-weight:600;color:#1a6fd4;font-size:0.88rem;">${req.body.pricePerNight ? '$' + req.body.pricePerNight + ' CAD/night' : 'See booking site'}</td>
-                      </tr>
+                    </table>
+
+                    ${req.body.providers && req.body.providers.length > 0 ? `
+                    <div style="margin-top:16px;">
+                      <div style="font-size:0.82rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Best Prices by Booking Site</div>
+                      <table style="width:100%;border-collapse:collapse;">
+                        <tr style="background:#e8f0fd;">
+                          <th style="padding:8px 10px;text-align:left;font-size:0.82rem;color:#0d1b3e;">Site</th>
+                          <th style="padding:8px 10px;text-align:right;font-size:0.82rem;color:#0d1b3e;">Price/night</th>
+                          <th style="padding:8px 10px;text-align:center;font-size:0.82rem;color:#0d1b3e;">Book</th>
+                        </tr>
+                        ${req.body.providers.map(p => `
+                        <tr style="border-bottom:1px solid #e5e7eb;">
+                          <td style="padding:8px 10px;font-size:0.88rem;font-weight:600;color:#1a1a2e;">${p.name}</td>
+                          <td style="padding:8px 10px;font-size:0.88rem;font-weight:700;color:#1a6fd4;text-align:right;">${p.price || '—'}</td>
+                          <td style="padding:8px 10px;text-align:center;"><a href="${p.url}" style="background:#1a6fd4;color:white;padding:4px 12px;border-radius:4px;text-decoration:none;font-size:0.8rem;font-weight:700;">Book</a></td>
+                        </tr>`).join('')}
+                      </table>
+                    </div>` : ''}
+
+                    <table style="width:100%;border-collapse:collapse;"><tr><td><!-- spacer --></td></tr>
                     </table>
                   </div>
 

@@ -19,6 +19,7 @@
     }
     body { font-family: 'Inter', sans-serif; background: var(--gray); color: var(--text); min-height: 100vh; }
 
+    /* ── Nav ── */
     nav {
       background: var(--navy);
       padding: 16px 32px;
@@ -27,36 +28,26 @@
     }
     nav img { height: 40px; }
 
+    /* ── Hero ── */
     .hero {
       background: linear-gradient(135deg, var(--navy) 0%, #1a3a70 100%);
       color: white;
       text-align: center;
-      padding: 50px 20px 40px;
-    }
-    .hero-badge {
-      display: inline-block;
-      background: rgba(255,255,255,0.15);
-      border: 1px solid rgba(255,255,255,0.25);
-      color: #a8c8ff;
-      font-size: 0.78rem;
-      font-weight: 700;
-      padding: 5px 14px;
-      border-radius: 50px;
-      margin-bottom: 18px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
+      padding: 52px 20px 44px;
     }
     .hero h1 { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 900; margin-bottom: 10px; }
-    .hero p { color: #b0c8f0; font-size: 1rem; }
+    .hero-subtitle { color: #b0c8f0; font-size: 1.05rem; font-weight: 600; }
 
+    /* ── Main container ── */
     .main { max-width: 720px; margin: -30px auto 60px; padding: 0 20px; }
 
+    /* ── Hotel Card ── */
     .hotel-card {
       background: white;
       border-radius: 16px;
       padding: 32px;
       box-shadow: 0 4px 24px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
     .hotel-name { font-size: 1.5rem; font-weight: 800; color: var(--navy); margin-bottom: 10px; }
     .hotel-meta { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
@@ -94,18 +85,32 @@
     }
     .btn-book:hover { background: var(--blue-light); }
 
-    /* Section cards */
+    /* ── Section cards ── */
     .section-card {
       background: white;
       border-radius: 16px;
       padding: 28px 32px;
       box-shadow: 0 4px 24px rgba(0,0,0,0.07);
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
-    .section-card h3 { font-size: 1.05rem; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
-    .section-card > p { font-size: 0.88rem; color: var(--muted); margin-bottom: 16px; }
+    .section-card h3 { font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+    .section-card > p, .section-card .section-sub { font-size: 0.88rem; color: var(--muted); margin-bottom: 16px; }
 
-    /* Form fields */
+    /* ── Organizer section label ── */
+    .organizer-label {
+      display: inline-block;
+      background: #eff6ff;
+      color: var(--blue);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 50px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Form fields ── */
     .field-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
     .field-group input,
     .field-group textarea {
@@ -120,30 +125,38 @@
     .field-group input:focus,
     .field-group textarea:focus { border-color: var(--blue); }
 
-    .btn-primary {
-      background: var(--navy);
+    /* ── Already booked row ── */
+    .booked-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .booked-row input {
+      flex: 1;
+      min-width: 200px;
+      padding: 11px 14px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+    }
+    .booked-row input:focus { border-color: var(--blue); }
+    .btn-booked {
+      background: #16a34a;
       color: white;
       border: none;
-      padding: 12px 24px;
+      padding: 11px 20px;
       border-radius: 8px;
       font-weight: 700;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       cursor: pointer;
       font-family: inherit;
-      transition: background 0.2s;
+      white-space: nowrap;
     }
-    .btn-primary:hover { background: #162d5a; }
-    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-booked:hover { background: #15803d; }
 
-    .success-msg { color: #16a34a; font-weight: 600; margin-top: 10px; font-size: 0.9rem; }
-    .error-msg { color: #dc2626; font-weight: 600; margin-top: 10px; font-size: 0.9rem; }
-
-    /* Booking status tracker */
-    .status-bar {
+    /* ── Booking status ── */
+    .status-inner {
       background: var(--gray);
       border-radius: 12px;
       padding: 18px 20px;
-      margin-bottom: 20px;
     }
     .status-bar-header {
       display: flex;
@@ -174,91 +187,63 @@
       padding: 3px 10px;
       border-radius: 50px;
     }
-    .urgency-ok { background: #dcfce7; color: #16a34a; }
+    .urgency-ok   { background: #dcfce7; color: #16a34a; }
     .urgency-warn { background: #fef9c3; color: #b45309; }
     .urgency-crit { background: #fee2e2; color: #dc2626; }
 
-    /* Mark booked */
-    .mark-booked-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
-    .mark-booked-row input {
-      flex: 1;
-      min-width: 200px;
-      padding: 10px 14px;
-      border: 1.5px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-family: inherit;
-      outline: none;
-    }
-    .mark-booked-row input:focus { border-color: var(--blue); }
-    .btn-booked {
-      background: #16a34a;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 0.9rem;
-      cursor: pointer;
-      font-family: inherit;
-      white-space: nowrap;
-    }
-    .btn-booked:hover { background: #15803d; }
-
-    /* Legacy notify card kept as simple alert form */
-    .notify-form { display: flex; gap: 10px; }
-    .notify-form input {
-      flex: 1;
-      padding: 11px 14px;
-      border: 1.5px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-family: inherit;
-      outline: none;
-    }
-    .notify-form input:focus { border-color: var(--blue); }
-    .notify-form button {
+    /* ── Buttons ── */
+    .btn-primary {
       background: var(--navy);
       color: white;
       border: none;
-      padding: 11px 20px;
+      padding: 12px 24px;
       border-radius: 8px;
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       cursor: pointer;
       font-family: inherit;
-      white-space: nowrap;
+      transition: background 0.2s;
     }
+    .btn-primary:hover { background: #162d5a; }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    .powered {
+    /* ── Messages ── */
+    .success-msg { color: #16a34a; font-weight: 600; margin-top: 10px; font-size: 0.9rem; }
+    .error-msg   { color: #dc2626; font-weight: 600; margin-top: 10px; font-size: 0.9rem; }
+
+    /* ── Footer ── */
+    .footer {
       text-align: center;
       margin-top: 40px;
       font-size: 0.82rem;
       color: var(--muted);
     }
-    .powered a { color: var(--blue); text-decoration: none; font-weight: 600; }
+    .footer a { color: var(--blue); text-decoration: none; font-weight: 600; }
+    .footer-links a { color: #9ca3af; }
 
     @media (max-width: 500px) {
-      .notify-form { flex-direction: column; }
-      .mark-booked-row { flex-direction: column; }
+      .section-card { padding: 22px 18px; }
+      .hotel-card   { padding: 22px 18px; }
+      .booked-row   { flex-direction: column; }
     }
   </style>
 </head>
 <body>
 
+<!-- ── Nav ── -->
 <nav>
   <a href="/"><img src="logo.png" alt="TeamLodgr"/></a>
 </nav>
 
+<!-- ── Hero ── -->
 <div class="hero">
-  <div class="hero-badge">🏨 Your Team's Hotel</div>
-  <h1 id="hero-title">Hotel Selected for Your Group</h1>
-  <p>Book your room before they sell out</p>
+  <h1>Your Team's Hotel is Ready</h1>
+  <p class="hero-subtitle" id="hero-subtitle">Loading hotel...</p>
 </div>
 
 <div class="main">
 
-  <!-- Hotel Card -->
+  <!-- ── Hotel Card ── -->
   <div class="hotel-card" id="hotel-card">
     <div class="hotel-name" id="hotel-name">Loading...</div>
     <div class="hotel-meta" id="hotel-meta"></div>
@@ -281,61 +266,57 @@
     <a href="#" class="btn-book" id="book-btn">Book Your Room Now →</a>
   </div>
 
-  <!-- Booking Status Tracker -->
+  <!-- ── Already Booked? ── -->
+  <div class="section-card">
+    <h3>✅ Confirm Your Booking</h3>
+    <p>Let your team manager know you've secured your room.</p>
+    <div class="booked-row">
+      <input type="email" id="booked-email" placeholder="your@email.com"/>
+      <button class="btn-booked" onclick="markBooked()">I've Booked My Room</button>
+    </div>
+    <p id="booked-confirm" style="display:none;" class="success-msg">🎉 Marked as booked! Thanks for confirming.</p>
+    <p id="booked-error" style="display:none;" class="error-msg"></p>
+  </div>
+
+  <!-- ── Team Booking Status ── -->
   <div class="section-card" id="status-section" style="display:none;">
     <h3>📊 Team Booking Status</h3>
-    <div class="status-bar">
+    <div class="status-inner">
       <div class="status-bar-header">
         <div>
           <div class="status-count" id="status-count">— of —</div>
-          <div class="status-label">teammates have booked</div>
+          <div class="status-label">rooms booked</div>
         </div>
         <span class="urgency-tag urgency-ok" id="urgency-tag">On Track</span>
       </div>
       <div class="progress-track">
         <div class="progress-fill" id="progress-fill" style="width:0%"></div>
       </div>
-      <div style="font-size:0.82rem; color:var(--muted);" id="status-subtext">Loading team status...</div>
+      <div style="font-size:0.82rem; color:var(--muted);" id="status-subtext"></div>
     </div>
-
-    <p style="font-size:0.88rem; color:var(--muted); margin-bottom:0;">Already booked your room? Let your team know!</p>
-    <div class="mark-booked-row">
-      <input type="email" id="booked-email" placeholder="your@email.com"/>
-      <button class="btn-booked" onclick="markBooked()">✅ I've Booked My Room</button>
-    </div>
-    <p id="booked-confirm" style="display:none;" class="success-msg">🎉 Marked as booked! Thanks for confirming.</p>
-    <p id="booked-error" style="display:none;" class="error-msg"></p>
   </div>
 
-  <!-- Notify Your Team -->
-  <div class="section-card" id="invite-section">
-    <h3>📨 Notify Your Team</h3>
-    <p>Enter your team members' emails and we'll send them the booking link directly.</p>
+  <!-- ── Team Manager Section ── -->
+  <div class="section-card">
+    <span class="organizer-label">For Team Managers</span>
+    <h3>📨 Team Manager — Notify Your Players</h3>
+    <p class="section-sub">Enter your details and your team's emails. We'll send everyone the booking link with availability alerts.</p>
     <div class="field-group">
-      <input type="text" id="organizer-name" placeholder="Your name (organizer)"/>
-      <textarea id="team-emails" rows="3" placeholder="teammate1@company.com, teammate2@company.com, ..."></textarea>
+      <input type="text" id="organizer-name" placeholder="Your name"/>
+      <input type="email" id="organizer-email" placeholder="Your email (replies from players go here)"/>
+      <textarea id="team-emails" rows="3" placeholder="player1@team.com, player2@team.com, ..."></textarea>
     </div>
-    <button class="btn-primary" id="send-invites-btn" onclick="sendInvites()">Send Invites</button>
-    <p id="invite-confirm" style="display:none;" class="success-msg">✅ Invites sent! Your team has been notified.</p>
+    <button class="btn-primary" id="send-invites-btn" onclick="sendInvites()">Send Invites to Team</button>
+    <p id="invite-confirm" style="display:none;" class="success-msg">✅ Invites sent! Replies from players will go to your email.</p>
     <p id="invite-error" style="display:none;" class="error-msg"></p>
   </div>
 
-  <!-- Availability Alerts (legacy) -->
-  <div class="section-card">
-    <h3>🔔 Get Availability Alerts</h3>
-    <p>We'll email you if rooms are running low or sell out — so you don't miss out.</p>
-    <div class="notify-form">
-      <input type="email" id="notify-email" placeholder="your@email.com"/>
-      <button onclick="subscribeAlerts()">Notify Me</button>
-    </div>
-    <p id="notify-confirm" style="display:none;" class="success-msg">✅ You're on the list!</p>
-  </div>
-
-  <div class="powered">
+  <!-- ── Footer ── -->
+  <div class="footer">
     Powered by <a href="/">TeamLodgr</a> — Group hotel booking made simple<br/>
-    <span style="font-size:0.8rem; color:#9ca3af;">
-      <a href="/privacy.html" style="color:#9ca3af;">Privacy Policy</a> &nbsp;·&nbsp;
-      <a href="/terms.html" style="color:#9ca3af;">Terms of Service</a>
+    <span class="footer-links" style="font-size:0.8rem;">
+      <a href="/privacy.html">Privacy Policy</a> &nbsp;·&nbsp;
+      <a href="/terms.html">Terms of Service</a>
     </span>
   </div>
 
@@ -347,20 +328,18 @@
 
 <script>
   // ── URL params ────────────────────────────────────────────────────────────
-  const params = new URLSearchParams(window.location.search);
-  const hotelId    = params.get('hotel');
-  const hotelName  = decodeURIComponent(params.get('name') || 'Your Team Hotel');
-  const checkin    = params.get('checkin');
-  const checkout   = params.get('checkout');
-  const rooms      = parseInt(params.get('rooms') || '1', 10);
-  const city       = decodeURIComponent(params.get('city') || '');
-  const hotelUrl   = decodeURIComponent(params.get('url') || '');
+  const params    = new URLSearchParams(window.location.search);
+  const hotelId   = params.get('hotel');
+  const hotelName = decodeURIComponent(params.get('name') || 'Your Team Hotel');
+  const checkin   = params.get('checkin');
+  const checkout  = params.get('checkout');
+  const rooms     = parseInt(params.get('rooms') || '1', 10);
+  const city      = decodeURIComponent(params.get('city') || '');
+  const hotelUrl  = decodeURIComponent(params.get('url') || '');
 
   // share_token: prefer explicit param, then derive from URL, then generate fresh
   let shareToken = params.get('token');
   if (!shareToken) {
-    // Build a deterministic token from the key params so the same share URL always
-    // maps to the same booking row.
     const raw = [hotelId || hotelName, checkin, checkout, rooms, city].join('|');
     shareToken = btoa(raw).replace(/[^a-zA-Z0-9]/g, '').slice(0, 40);
   }
@@ -368,11 +347,11 @@
   const shareUrl = window.location.href;
 
   // ── State ─────────────────────────────────────────────────────────────────
-  let bookingId = null;  // UUID from group_bookings row
+  let bookingId = null;
 
   // ── Populate UI ───────────────────────────────────────────────────────────
-  document.getElementById('hotel-name').textContent = hotelName;
-  document.getElementById('hero-title').textContent = hotelName;
+  document.getElementById('hotel-name').textContent     = hotelName;
+  document.getElementById('hero-subtitle').textContent  = hotelName;
 
   if (checkin && checkout && rooms) {
     const ci = new Date(checkin).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -383,19 +362,14 @@
 
   // ── Save / get group booking in Supabase ──────────────────────────────────
   async function ensureBooking() {
-    // Try to find existing booking by share_token first
     const { data: existing } = await supabase
       .from('group_bookings')
       .select('id')
       .eq('share_token', shareToken)
       .maybeSingle();
 
-    if (existing) {
-      bookingId = existing.id;
-      return;
-    }
+    if (existing) { bookingId = existing.id; return; }
 
-    // Insert new booking
     const payload = {
       hotel_name:   hotelName,
       hotel_url:    hotelUrl || null,
@@ -412,26 +386,22 @@
       .select('id')
       .single();
 
-    if (error) {
-      console.error('Failed to save group booking:', error.message);
-    } else {
-      bookingId = data.id;
-    }
+    if (error) console.error('Failed to save group booking:', error.message);
+    else bookingId = data.id;
   }
 
   // ── Load live hotel data from API ─────────────────────────────────────────
   async function loadHotelData() {
     if (!hotelId) return;
     try {
-      const res = await fetch(`/api/hotel?id=${hotelId}&checkin=${checkin}&checkout=${checkout}&rooms=${rooms}`);
+      const res  = await fetch(`/api/hotel?id=${hotelId}&checkin=${checkin}&checkout=${checkout}&rooms=${rooms}`);
       const data = await res.json();
 
-      document.getElementById('avail-count').textContent = data.availableRooms;
-      document.getElementById('hotel-price').textContent = `$${data.pricePerNight}`;
-      document.getElementById('book-btn').href = data.bookingUrl;
+      document.getElementById('avail-count').textContent  = data.availableRooms;
+      document.getElementById('hotel-price').textContent  = `$${data.pricePerNight}`;
+      document.getElementById('book-btn').href            = data.bookingUrl;
 
-      const meta = document.getElementById('hotel-meta');
-      meta.innerHTML = `
+      document.getElementById('hotel-meta').innerHTML = `
         <span>⭐ ${data.rating || 'N/A'}</span>
         <span>📍 ${data.address || ''}</span>
         <span>🏨 via ${data.source}</span>
@@ -449,26 +419,26 @@
   // ── Booking status tracker ────────────────────────────────────────────────
   async function loadBookingStatus() {
     if (!bookingId) return;
-    document.getElementById('status-section').style.display = '';
 
     const { data: members, error } = await supabase
       .from('team_members')
       .select('id, booked_at')
       .eq('booking_id', bookingId);
 
-    if (error || !members) return;
+    if (error || !members || members.length === 0) return;
 
-    const total   = members.length;
-    const booked  = members.filter(m => m.booked_at).length;
-    const pct     = total > 0 ? Math.round((booked / rooms) * 100) : 0;
-    const cappedPct = Math.min(pct, 100);
+    // Only show status section when there are team members in the DB
+    document.getElementById('status-section').style.display = '';
 
-    document.getElementById('status-count').textContent = `${booked} of ${rooms}`;
-    document.getElementById('progress-fill').style.width = cappedPct + '%';
+    const booked     = members.filter(m => m.booked_at).length;
+    const pct        = Math.round((booked / rooms) * 100);
+    const cappedPct  = Math.min(pct, 100);
+    const remaining  = rooms - booked;
 
-    const remaining = rooms - booked;
+    document.getElementById('status-count').textContent    = `${booked} of ${rooms}`;
+    document.getElementById('progress-fill').style.width   = cappedPct + '%';
+
     let urgencyClass, urgencyText, subText;
-
     if (remaining <= 0) {
       urgencyClass = 'urgency-crit';
       urgencyText  = '🔴 All Filled!';
@@ -486,7 +456,7 @@
     }
 
     const tag = document.getElementById('urgency-tag');
-    tag.className = 'urgency-tag ' + urgencyClass;
+    tag.className   = 'urgency-tag ' + urgencyClass;
     tag.textContent = urgencyText;
     document.getElementById('status-subtext').textContent = subText;
   }
@@ -495,20 +465,19 @@
   async function markBooked() {
     const email = document.getElementById('booked-email').value.trim();
     document.getElementById('booked-confirm').style.display = 'none';
-    document.getElementById('booked-error').style.display = 'none';
+    document.getElementById('booked-error').style.display   = 'none';
 
     if (!email) {
-      document.getElementById('booked-error').textContent = 'Please enter your email.';
+      document.getElementById('booked-error').textContent   = 'Please enter your email.';
       document.getElementById('booked-error').style.display = 'block';
       return;
     }
     if (!bookingId) {
-      document.getElementById('booked-error').textContent = 'Booking not loaded yet — please wait a moment.';
+      document.getElementById('booked-error').textContent   = 'Booking not loaded yet — please wait a moment.';
       document.getElementById('booked-error').style.display = 'block';
       return;
     }
 
-    // Find or create team member row, then set booked_at
     const { data: existing } = await supabase
       .from('team_members')
       .select('id')
@@ -519,7 +488,6 @@
     let memberId = existing?.id;
 
     if (!memberId) {
-      // Insert new member row (they may not have been invited but still booked)
       const { data: inserted, error: insertErr } = await supabase
         .from('team_members')
         .insert({ booking_id: bookingId, email })
@@ -527,7 +495,7 @@
         .single();
 
       if (insertErr) {
-        document.getElementById('booked-error').textContent = 'Something went wrong. Please try again.';
+        document.getElementById('booked-error').textContent   = 'Something went wrong. Please try again.';
         document.getElementById('booked-error').style.display = 'block';
         return;
       }
@@ -540,14 +508,13 @@
       .eq('id', memberId);
 
     if (error) {
-      document.getElementById('booked-error').textContent = 'Could not update your status. Please try again.';
+      document.getElementById('booked-error').textContent   = 'Could not update your status. Please try again.';
       document.getElementById('booked-error').style.display = 'block';
       return;
     }
 
     document.getElementById('booked-confirm').style.display = 'block';
     document.getElementById('booked-email').value = '';
-    // Refresh status
     setTimeout(loadBookingStatus, 500);
   }
 
@@ -555,40 +522,38 @@
   async function sendInvites() {
     const rawEmails     = document.getElementById('team-emails').value;
     const organizerName = document.getElementById('organizer-name').value.trim();
+    const organizerEmail = document.getElementById('organizer-email').value.trim();
     const btn           = document.getElementById('send-invites-btn');
 
     document.getElementById('invite-confirm').style.display = 'none';
-    document.getElementById('invite-error').style.display = 'none';
+    document.getElementById('invite-error').style.display   = 'none';
 
     if (!rawEmails.trim()) {
-      document.getElementById('invite-error').textContent = 'Please enter at least one email address.';
+      document.getElementById('invite-error').textContent   = 'Please enter at least one team email address.';
       document.getElementById('invite-error').style.display = 'block';
       return;
     }
     if (!bookingId) {
-      document.getElementById('invite-error').textContent = 'Booking not ready yet — please wait a moment and try again.';
+      document.getElementById('invite-error').textContent   = 'Booking not ready yet — please wait a moment and try again.';
       document.getElementById('invite-error').style.display = 'block';
       return;
     }
 
     const emails = rawEmails.split(/[\s,;]+/).map(e => e.trim()).filter(e => e.includes('@'));
     if (emails.length === 0) {
-      document.getElementById('invite-error').textContent = 'No valid email addresses found.';
+      document.getElementById('invite-error').textContent   = 'No valid email addresses found.';
       document.getElementById('invite-error').style.display = 'block';
       return;
     }
 
-    btn.disabled = true;
+    btn.disabled    = true;
     btn.textContent = 'Sending...';
 
-    // Insert team members into Supabase (ignore duplicates via upsert-like approach)
-    const members = emails.map(email => ({ booking_id: bookingId, email }));
-
-    // Insert ignoring conflicts (Supabase will error on duplicates; we handle gracefully)
-    for (const member of members) {
+    // Insert team members into Supabase
+    for (const email of emails) {
       await supabase
         .from('team_members')
-        .insert(member)
+        .insert({ booking_id: bookingId, email })
         .then(({ error }) => {
           if (error && !error.message.includes('duplicate')) {
             console.warn('Insert team member error:', error.message);
@@ -596,7 +561,7 @@
         });
     }
 
-    // Call notify API
+    // Call notify API with organizerEmail for Reply-To
     try {
       const res = await fetch('/api/notify', {
         method: 'POST',
@@ -609,32 +574,24 @@
           checkin,
           checkout,
           shareUrl,
+          organizerName,
+          organizerEmail,
         }),
       });
 
       if (!res.ok) throw new Error(`API error ${res.status}`);
 
       document.getElementById('invite-confirm').style.display = 'block';
-      document.getElementById('team-emails').value = '';
+      document.getElementById('team-emails').value            = '';
       loadBookingStatus();
     } catch (e) {
       console.error('Notify API error:', e.message);
-      // Still show success for DB saves even if email fails
-      document.getElementById('invite-confirm').textContent = '✅ Team members saved! (Email delivery pending API setup.)';
+      document.getElementById('invite-confirm').textContent   = '✅ Team members saved! (Email delivery pending API setup.)';
       document.getElementById('invite-confirm').style.display = 'block';
     }
 
-    btn.disabled = false;
-    btn.textContent = 'Send Invites';
-  }
-
-  // ── Availability alerts (legacy) ──────────────────────────────────────────
-  function subscribeAlerts() {
-    const email = document.getElementById('notify-email').value;
-    if (!email) return;
-    // TODO: POST to /api/notify with email + hotelId
-    document.getElementById('notify-confirm').style.display = 'block';
-    document.getElementById('notify-email').value = '';
+    btn.disabled    = false;
+    btn.textContent = 'Send Invites to Team';
   }
 
   // ── Init ──────────────────────────────────────────────────────────────────
@@ -644,9 +601,8 @@
   }
 
   init();
-  // Refresh availability and status every 5 minutes
-  setInterval(loadHotelData, 300000);
-  setInterval(loadBookingStatus, 300000);
+  setInterval(loadHotelData,      300000);
+  setInterval(loadBookingStatus,  300000);
 </script>
 
 </body>

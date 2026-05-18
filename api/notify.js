@@ -106,7 +106,7 @@ module.exports = async (req, res) => {
           </div>
 
           <!-- CTA button -->
-          <a href="${playerLink}" style="display:block;background:#0d1b3e;color:#ffffff;text-decoration:none;text-align:center;font-size:17px;font-weight:700;padding:16px 24px;border-radius:8px;margin-bottom:28px;">Reserve Your Room →</a>
+
 
           ${providers.length > 0 ? `
           <!-- Provider table -->

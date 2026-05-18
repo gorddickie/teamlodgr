@@ -94,14 +94,118 @@
     }
     .btn-book:hover { background: var(--blue-light); }
 
-    .notify-card {
+    /* Section cards */
+    .section-card {
       background: white;
       border-radius: 16px;
       padding: 28px 32px;
       box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+      margin-bottom: 20px;
     }
-    .notify-card h3 { font-size: 1rem; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
-    .notify-card p { font-size: 0.88rem; color: var(--muted); margin-bottom: 16px; }
+    .section-card h3 { font-size: 1.05rem; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+    .section-card > p { font-size: 0.88rem; color: var(--muted); margin-bottom: 16px; }
+
+    /* Form fields */
+    .field-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+    .field-group input,
+    .field-group textarea {
+      padding: 11px 14px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      resize: vertical;
+    }
+    .field-group input:focus,
+    .field-group textarea:focus { border-color: var(--blue); }
+
+    .btn-primary {
+      background: var(--navy);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover { background: #162d5a; }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .success-msg { color: #16a34a; font-weight: 600; margin-top: 10px; font-size: 0.9rem; }
+    .error-msg { color: #dc2626; font-weight: 600; margin-top: 10px; font-size: 0.9rem; }
+
+    /* Booking status tracker */
+    .status-bar {
+      background: var(--gray);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+    }
+    .status-bar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .status-count { font-size: 1.3rem; font-weight: 900; color: var(--navy); }
+    .status-label { font-size: 0.85rem; color: var(--muted); }
+    .progress-track {
+      background: #e5e7eb;
+      border-radius: 100px;
+      height: 10px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 100px;
+      background: var(--blue);
+      transition: width 0.5s ease;
+    }
+    .progress-fill.urgent { background: #dc2626; }
+    .urgency-tag {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 50px;
+    }
+    .urgency-ok { background: #dcfce7; color: #16a34a; }
+    .urgency-warn { background: #fef9c3; color: #b45309; }
+    .urgency-crit { background: #fee2e2; color: #dc2626; }
+
+    /* Mark booked */
+    .mark-booked-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .mark-booked-row input {
+      flex: 1;
+      min-width: 200px;
+      padding: 10px 14px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+    }
+    .mark-booked-row input:focus { border-color: var(--blue); }
+    .btn-booked {
+      background: #16a34a;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .btn-booked:hover { background: #15803d; }
+
+    /* Legacy notify card kept as simple alert form */
     .notify-form { display: flex; gap: 10px; }
     .notify-form input {
       flex: 1;
@@ -136,6 +240,7 @@
 
     @media (max-width: 500px) {
       .notify-form { flex-direction: column; }
+      .mark-booked-row { flex-direction: column; }
     }
   </style>
 </head>
@@ -153,6 +258,7 @@
 
 <div class="main">
 
+  <!-- Hotel Card -->
   <div class="hotel-card" id="hotel-card">
     <div class="hotel-name" id="hotel-name">Loading...</div>
     <div class="hotel-meta" id="hotel-meta"></div>
@@ -175,14 +281,54 @@
     <a href="#" class="btn-book" id="book-btn">Book Your Room Now →</a>
   </div>
 
-  <div class="notify-card">
+  <!-- Booking Status Tracker -->
+  <div class="section-card" id="status-section" style="display:none;">
+    <h3>📊 Team Booking Status</h3>
+    <div class="status-bar">
+      <div class="status-bar-header">
+        <div>
+          <div class="status-count" id="status-count">— of —</div>
+          <div class="status-label">teammates have booked</div>
+        </div>
+        <span class="urgency-tag urgency-ok" id="urgency-tag">On Track</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+      <div style="font-size:0.82rem; color:var(--muted);" id="status-subtext">Loading team status...</div>
+    </div>
+
+    <p style="font-size:0.88rem; color:var(--muted); margin-bottom:0;">Already booked your room? Let your team know!</p>
+    <div class="mark-booked-row">
+      <input type="email" id="booked-email" placeholder="your@email.com"/>
+      <button class="btn-booked" onclick="markBooked()">✅ I've Booked My Room</button>
+    </div>
+    <p id="booked-confirm" style="display:none;" class="success-msg">🎉 Marked as booked! Thanks for confirming.</p>
+    <p id="booked-error" style="display:none;" class="error-msg"></p>
+  </div>
+
+  <!-- Notify Your Team -->
+  <div class="section-card" id="invite-section">
+    <h3>📨 Notify Your Team</h3>
+    <p>Enter your team members' emails and we'll send them the booking link directly.</p>
+    <div class="field-group">
+      <input type="text" id="organizer-name" placeholder="Your name (organizer)"/>
+      <textarea id="team-emails" rows="3" placeholder="teammate1@company.com, teammate2@company.com, ..."></textarea>
+    </div>
+    <button class="btn-primary" id="send-invites-btn" onclick="sendInvites()">Send Invites</button>
+    <p id="invite-confirm" style="display:none;" class="success-msg">✅ Invites sent! Your team has been notified.</p>
+    <p id="invite-error" style="display:none;" class="error-msg"></p>
+  </div>
+
+  <!-- Availability Alerts (legacy) -->
+  <div class="section-card">
     <h3>🔔 Get Availability Alerts</h3>
     <p>We'll email you if rooms are running low or sell out — so you don't miss out.</p>
     <div class="notify-form">
       <input type="email" id="notify-email" placeholder="your@email.com"/>
       <button onclick="subscribeAlerts()">Notify Me</button>
     </div>
-    <p id="notify-confirm" style="display:none; color:#16a34a; font-weight:600; margin-top:10px;">✅ You're on the list!</p>
+    <p id="notify-confirm" style="display:none;" class="success-msg">✅ You're on the list!</p>
   </div>
 
   <div class="powered">
@@ -195,25 +341,85 @@
 
 </div>
 
-<script>
-  const params = new URLSearchParams(window.location.search);
-  const hotelId = params.get('hotel');
-  const hotelName = decodeURIComponent(params.get('name') || 'Your Team Hotel');
-  const checkin = params.get('checkin');
-  const checkout = params.get('checkout');
-  const rooms = params.get('rooms');
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/supabase.js"></script>
 
-  // Populate from URL params
+<script>
+  // ── URL params ────────────────────────────────────────────────────────────
+  const params = new URLSearchParams(window.location.search);
+  const hotelId    = params.get('hotel');
+  const hotelName  = decodeURIComponent(params.get('name') || 'Your Team Hotel');
+  const checkin    = params.get('checkin');
+  const checkout   = params.get('checkout');
+  const rooms      = parseInt(params.get('rooms') || '1', 10);
+  const city       = decodeURIComponent(params.get('city') || '');
+  const hotelUrl   = decodeURIComponent(params.get('url') || '');
+
+  // share_token: prefer explicit param, then derive from URL, then generate fresh
+  let shareToken = params.get('token');
+  if (!shareToken) {
+    // Build a deterministic token from the key params so the same share URL always
+    // maps to the same booking row.
+    const raw = [hotelId || hotelName, checkin, checkout, rooms, city].join('|');
+    shareToken = btoa(raw).replace(/[^a-zA-Z0-9]/g, '').slice(0, 40);
+  }
+
+  const shareUrl = window.location.href;
+
+  // ── State ─────────────────────────────────────────────────────────────────
+  let bookingId = null;  // UUID from group_bookings row
+
+  // ── Populate UI ───────────────────────────────────────────────────────────
   document.getElementById('hotel-name').textContent = hotelName;
   document.getElementById('hero-title').textContent = hotelName;
 
   if (checkin && checkout && rooms) {
     const ci = new Date(checkin).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
     const co = new Date(checkout).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
-    document.getElementById('trip-details').innerHTML = `📅 ${ci} → ${co} &nbsp;|&nbsp; 🛏️ ${rooms} rooms requested`;
+    document.getElementById('trip-details').innerHTML =
+      `📅 ${ci} → ${co} &nbsp;|&nbsp; 🛏️ ${rooms} room${rooms !== 1 ? 's' : ''} requested`;
   }
 
-  // Load live hotel data from API
+  // ── Save / get group booking in Supabase ──────────────────────────────────
+  async function ensureBooking() {
+    // Try to find existing booking by share_token first
+    const { data: existing } = await supabase
+      .from('group_bookings')
+      .select('id')
+      .eq('share_token', shareToken)
+      .maybeSingle();
+
+    if (existing) {
+      bookingId = existing.id;
+      return;
+    }
+
+    // Insert new booking
+    const payload = {
+      hotel_name:   hotelName,
+      hotel_url:    hotelUrl || null,
+      city:         city || 'Unknown',
+      checkin:      checkin || new Date().toISOString().slice(0, 10),
+      checkout:     checkout || new Date().toISOString().slice(0, 10),
+      rooms_needed: rooms || 1,
+      share_token:  shareToken,
+    };
+
+    const { data, error } = await supabase
+      .from('group_bookings')
+      .insert(payload)
+      .select('id')
+      .single();
+
+    if (error) {
+      console.error('Failed to save group booking:', error.message);
+    } else {
+      bookingId = data.id;
+    }
+  }
+
+  // ── Load live hotel data from API ─────────────────────────────────────────
   async function loadHotelData() {
     if (!hotelId) return;
     try {
@@ -236,14 +442,193 @@
         document.getElementById('avail-status').classList.add('low');
       }
     } catch (e) {
-      console.log('API not connected yet');
+      console.log('Hotel API not connected yet');
     }
   }
 
-  loadHotelData();
-  // Refresh availability every 5 minutes
-  setInterval(loadHotelData, 300000);
+  // ── Booking status tracker ────────────────────────────────────────────────
+  async function loadBookingStatus() {
+    if (!bookingId) return;
+    document.getElementById('status-section').style.display = '';
 
+    const { data: members, error } = await supabase
+      .from('team_members')
+      .select('id, booked_at')
+      .eq('booking_id', bookingId);
+
+    if (error || !members) return;
+
+    const total   = members.length;
+    const booked  = members.filter(m => m.booked_at).length;
+    const pct     = total > 0 ? Math.round((booked / rooms) * 100) : 0;
+    const cappedPct = Math.min(pct, 100);
+
+    document.getElementById('status-count').textContent = `${booked} of ${rooms}`;
+    document.getElementById('progress-fill').style.width = cappedPct + '%';
+
+    const remaining = rooms - booked;
+    let urgencyClass, urgencyText, subText;
+
+    if (remaining <= 0) {
+      urgencyClass = 'urgency-crit';
+      urgencyText  = '🔴 All Filled!';
+      subText      = 'All requested rooms have been claimed.';
+      document.getElementById('progress-fill').classList.add('urgent');
+    } else if (remaining <= Math.ceil(rooms * 0.3)) {
+      urgencyClass = 'urgency-warn';
+      urgencyText  = '⚠️ Almost Full';
+      subText      = `Only ${remaining} room${remaining !== 1 ? 's' : ''} left to fill — book soon!`;
+      document.getElementById('progress-fill').classList.add('urgent');
+    } else {
+      urgencyClass = 'urgency-ok';
+      urgencyText  = '✅ On Track';
+      subText      = `${remaining} of ${rooms} rooms still need to be booked.`;
+    }
+
+    const tag = document.getElementById('urgency-tag');
+    tag.className = 'urgency-tag ' + urgencyClass;
+    tag.textContent = urgencyText;
+    document.getElementById('status-subtext').textContent = subText;
+  }
+
+  // ── Mark as booked ────────────────────────────────────────────────────────
+  async function markBooked() {
+    const email = document.getElementById('booked-email').value.trim();
+    document.getElementById('booked-confirm').style.display = 'none';
+    document.getElementById('booked-error').style.display = 'none';
+
+    if (!email) {
+      document.getElementById('booked-error').textContent = 'Please enter your email.';
+      document.getElementById('booked-error').style.display = 'block';
+      return;
+    }
+    if (!bookingId) {
+      document.getElementById('booked-error').textContent = 'Booking not loaded yet — please wait a moment.';
+      document.getElementById('booked-error').style.display = 'block';
+      return;
+    }
+
+    // Find or create team member row, then set booked_at
+    const { data: existing } = await supabase
+      .from('team_members')
+      .select('id')
+      .eq('booking_id', bookingId)
+      .eq('email', email)
+      .maybeSingle();
+
+    let memberId = existing?.id;
+
+    if (!memberId) {
+      // Insert new member row (they may not have been invited but still booked)
+      const { data: inserted, error: insertErr } = await supabase
+        .from('team_members')
+        .insert({ booking_id: bookingId, email })
+        .select('id')
+        .single();
+
+      if (insertErr) {
+        document.getElementById('booked-error').textContent = 'Something went wrong. Please try again.';
+        document.getElementById('booked-error').style.display = 'block';
+        return;
+      }
+      memberId = inserted.id;
+    }
+
+    const { error } = await supabase
+      .from('team_members')
+      .update({ booked_at: new Date().toISOString() })
+      .eq('id', memberId);
+
+    if (error) {
+      document.getElementById('booked-error').textContent = 'Could not update your status. Please try again.';
+      document.getElementById('booked-error').style.display = 'block';
+      return;
+    }
+
+    document.getElementById('booked-confirm').style.display = 'block';
+    document.getElementById('booked-email').value = '';
+    // Refresh status
+    setTimeout(loadBookingStatus, 500);
+  }
+
+  // ── Send team invites ─────────────────────────────────────────────────────
+  async function sendInvites() {
+    const rawEmails     = document.getElementById('team-emails').value;
+    const organizerName = document.getElementById('organizer-name').value.trim();
+    const btn           = document.getElementById('send-invites-btn');
+
+    document.getElementById('invite-confirm').style.display = 'none';
+    document.getElementById('invite-error').style.display = 'none';
+
+    if (!rawEmails.trim()) {
+      document.getElementById('invite-error').textContent = 'Please enter at least one email address.';
+      document.getElementById('invite-error').style.display = 'block';
+      return;
+    }
+    if (!bookingId) {
+      document.getElementById('invite-error').textContent = 'Booking not ready yet — please wait a moment and try again.';
+      document.getElementById('invite-error').style.display = 'block';
+      return;
+    }
+
+    const emails = rawEmails.split(/[\s,;]+/).map(e => e.trim()).filter(e => e.includes('@'));
+    if (emails.length === 0) {
+      document.getElementById('invite-error').textContent = 'No valid email addresses found.';
+      document.getElementById('invite-error').style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    // Insert team members into Supabase (ignore duplicates via upsert-like approach)
+    const members = emails.map(email => ({ booking_id: bookingId, email }));
+
+    // Insert ignoring conflicts (Supabase will error on duplicates; we handle gracefully)
+    for (const member of members) {
+      await supabase
+        .from('team_members')
+        .insert(member)
+        .then(({ error }) => {
+          if (error && !error.message.includes('duplicate')) {
+            console.warn('Insert team member error:', error.message);
+          }
+        });
+    }
+
+    // Call notify API
+    try {
+      const res = await fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingId,
+          shareToken,
+          members: emails.map(email => ({ email, name: '' })),
+          hotelName,
+          checkin,
+          checkout,
+          shareUrl,
+        }),
+      });
+
+      if (!res.ok) throw new Error(`API error ${res.status}`);
+
+      document.getElementById('invite-confirm').style.display = 'block';
+      document.getElementById('team-emails').value = '';
+      loadBookingStatus();
+    } catch (e) {
+      console.error('Notify API error:', e.message);
+      // Still show success for DB saves even if email fails
+      document.getElementById('invite-confirm').textContent = '✅ Team members saved! (Email delivery pending API setup.)';
+      document.getElementById('invite-confirm').style.display = 'block';
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Send Invites';
+  }
+
+  // ── Availability alerts (legacy) ──────────────────────────────────────────
   function subscribeAlerts() {
     const email = document.getElementById('notify-email').value;
     if (!email) return;
@@ -251,6 +636,17 @@
     document.getElementById('notify-confirm').style.display = 'block';
     document.getElementById('notify-email').value = '';
   }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  async function init() {
+    await ensureBooking();
+    await Promise.all([loadHotelData(), loadBookingStatus()]);
+  }
+
+  init();
+  // Refresh availability and status every 5 minutes
+  setInterval(loadHotelData, 300000);
+  setInterval(loadBookingStatus, 300000);
 </script>
 
 </body>

@@ -247,6 +247,7 @@
   <!-- ── Notify Form ── -->
   <div class="section-card">
     <div id="trip-details" style="margin-bottom:20px; font-size:0.95rem; color:var(--muted);"></div>
+    <div id="invite-form-fields">
     <p class="section-sub"><strong>Enter your team's emails below. Each player will receive a direct link to book their room.</strong></p>
     <div class="field-group">
       <input type="text" id="tournament-name" placeholder="Tournament or event name (e.g. 2026 Provincial Championships)"/>
@@ -255,7 +256,13 @@
       <textarea id="team-emails" rows="4" placeholder="Paste your team's emails in any format…"></textarea>
     </div>
     <button class="btn-primary" id="send-invites-btn" onclick="sendInvites()">Send Booking Link to Team →</button>
-    <p id="invite-confirm" style="display:none;" class="success-msg">✅ Sent! Each player will receive a link to book their room.</p>
+    </div>
+    <div id="invite-confirm" style="display:none; text-align:center; padding:20px 0;">
+      <div style="font-size:3rem; margin-bottom:12px;">✅</div>
+      <h3 style="color:#0d1b3e; font-size:1.3rem; margin-bottom:8px;">Invites Sent!</h3>
+      <p style="color:#6b7280; margin-bottom:6px;">Each player has been emailed a direct link to reserve their room.</p>
+      <p style="color:#6b7280; font-size:0.88rem;">Replies from players will go directly to your email.</p>
+    </div>
     <p id="invite-error" style="display:none;" class="error-msg"></p>
   </div>
 
@@ -552,6 +559,7 @@
       if (!res.ok) throw new Error(`API error ${res.status}`);
 
       document.getElementById('invite-confirm').style.display = 'block';
+      document.getElementById('invite-form-fields').style.display = 'none';
       document.getElementById('team-emails').value            = '';
       loadBookingStatus();
     } catch (e) {

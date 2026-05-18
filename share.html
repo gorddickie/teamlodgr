@@ -248,6 +248,7 @@
     <div id="trip-details" style="margin-bottom:20px; font-size:0.95rem; color:var(--muted);"></div>
     <p class="section-sub">Enter your team's emails below. Each player will receive a direct link to book their room.</p>
     <div class="field-group">
+      <input type="text" id="tournament-name" placeholder="Tournament or event name (e.g. 2026 Provincial Championships)"/>
       <input type="text" id="organizer-name" placeholder="Your name"/>
       <input type="email" id="organizer-email" placeholder="Your email (player replies go here)"/>
       <textarea id="team-emails" rows="4" placeholder="Paste your team's emails in any format…"></textarea>
@@ -482,6 +483,7 @@
   // ── Send team invites ─────────────────────────────────────────────────────
   async function sendInvites() {
     const rawEmails     = document.getElementById('team-emails').value;
+    const tournamentName = document.getElementById('tournament-name').value.trim();
     const organizerName = document.getElementById('organizer-name').value.trim();
     const organizerEmail = document.getElementById('organizer-email').value.trim();
     const btn           = document.getElementById('send-invites-btn');
@@ -535,6 +537,7 @@
           checkin,
           checkout,
           shareUrl,
+          tournamentName,
           organizerName,
           organizerEmail,
           bookingSite: currentBookingSite || 'Booking.com',

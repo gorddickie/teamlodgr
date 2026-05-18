@@ -69,6 +69,7 @@ module.exports = async (req, res) => {
                 </div>
                 <div style="background:white;padding:32px;border-radius:0 0 12px 12px;box-shadow:0 4px 24px rgba(0,0,0,0.1);">
                   <h2 style="color:#0d1b3e;margin-top:0;">Your team's hotel is ready to book!</h2>
+                  ${req.body.tournamentName ? `<div style="display:inline-block;background:#e8f0fd;color:#1a6fd4;font-weight:700;font-size:0.85rem;padding:4px 12px;border-radius:50px;margin-bottom:12px;">🏆 ${req.body.tournamentName}</div>` : ''}
                   <p style="color:#6b7280;margin-bottom:20px;">Hi ${name || 'there'},</p>
 
                   <!-- Hotel details box -->

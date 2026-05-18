@@ -213,7 +213,7 @@ function renderHotelCard(h, params) {
   const prop  = h.property;
   const rawPrice = prop.priceBreakdown?.grossPrice?.value;
   const nights = params.checkin && params.checkout ? Math.max(1, (new Date(params.checkout) - new Date(params.checkin)) / 86400000) : 1;
-  const pricePerRoom = rawPrice ? Math.round(rawPrice / (params.rooms || 1) / nights) : null;
+  const pricePerRoom = rawPrice ? Math.round(rawPrice / nights) : null;
   const price = pricePerRoom ? `$${pricePerRoom} CAD/night` : '';
   const rating= prop.reviewScore ? `${prop.reviewScore}/10` : '';
   const stars = prop.propertyClass ? '★'.repeat(Math.min(prop.propertyClass, 5)) : '';
@@ -324,7 +324,7 @@ async function checkBookingAvailability(hotelId, checkin, checkout, countryCode,
     // Available if not sold out and no explicit unavailable flag
     if (data.soldout !== 1) {
       const grossVal = data.product_price_breakdown?.gross_amount?.value;
-      const pricePerRoomPerNight = grossVal ? Math.round(grossVal / rooms / nights) : null;
+      const pricePerRoomPerNight = grossVal ? Math.round(grossVal / nights) : null;
       const price = pricePerRoomPerNight ? `$${pricePerRoomPerNight} CAD/night` : null;
       return { available: true, tier: TIERS[i], price };
     }

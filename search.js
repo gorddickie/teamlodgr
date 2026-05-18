@@ -379,7 +379,7 @@ async function loadProviderAvailability(h, params) {
         available: priceline.available,
         tier: priceline.tier,
         price: priceline.price,
-        url: `https://www.priceline.com/hotel/search?q=${encodeURIComponent(params.city)}&date_start=${params.checkin}&date_end=${params.checkout}&num_rooms=${params.rooms}`,
+        url: `https://www.priceline.com/hotel/search?q=${encodeURIComponent(h.property.name + ' ' + params.city)}&date_start=${params.checkin}&date_end=${params.checkout}&num_rooms=${params.rooms}&adults=2`,
       },
       {
         name: 'Agoda', icon: '🟢',
@@ -390,23 +390,19 @@ async function loadProviderAvailability(h, params) {
       },
       {
         name: 'Expedia', icon: '🟡', available: null, tier: null, price: null,
-        url: `https://www.expedia.ca/Hotel-Search?destination=${encodeURIComponent(params.city)}&startDate=${params.checkin}&endDate=${params.checkout}&rooms=${params.rooms}&adults=2`,
+        url: `https://www.expedia.ca/Hotel-Search?destination=${encodeURIComponent(h.property.name + ' ' + params.city)}&startDate=${params.checkin}&endDate=${params.checkout}&rooms=${params.rooms}&adults=2`,
       },
       {
         name: 'Hotels.com', icon: '🔴', available: null, tier: null, price: null,
-        url: `https://www.hotels.com/search.do?q-destination=${encodeURIComponent(params.city)}&q-check-in=${params.checkin}&q-check-out=${params.checkout}&q-rooms=${params.rooms}`,
+        url: `https://www.hotels.com/search.do?q-destination=${encodeURIComponent(h.property.name + ' ' + params.city)}&q-check-in=${params.checkin}&q-check-out=${params.checkout}&q-rooms=${params.rooms}`,
       },
       {
         name: 'Kayak',      icon: '🟠', available: null, tier: null, price: null,
-        url: `https://www.kayak.com/hotels/${encodeURIComponent(params.city)}/${params.checkin}/${params.checkout}/${params.rooms}rooms/`,
-      },
-      {
-        name: 'Agoda',      icon: '🟢', available: null, tier: null, price: null,
-        url: `https://www.agoda.com/search?city=${params.ufi}&checkIn=${params.checkin}&checkOut=${params.checkout}&rooms=${params.rooms}&adults=2`,
+        url: `https://www.kayak.com/hotels/${encodeURIComponent(params.city)}/${params.checkin}/${params.checkout}/${params.rooms}rooms/?q=${encodeURIComponent(h.property.name)}`,
       },
       {
         name: 'Trivago',    icon: '⚪', available: null, tier: null, price: null,
-        url: `https://www.trivago.ca/?search[destination]=${encodeURIComponent(params.city)}&search[arrivalDate]=${params.checkin}&search[departureDate]=${params.checkout}&search[roomsCount]=${params.rooms}`,
+        url: `https://www.trivago.ca/?search[destination]=${encodeURIComponent(h.property.name + ' ' + params.city)}&search[arrivalDate]=${params.checkin}&search[departureDate]=${params.checkout}&search[roomsCount]=${params.rooms}`,
       },
     ];
 

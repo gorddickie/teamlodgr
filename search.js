@@ -180,7 +180,8 @@ function fuzzyScore(a, b) {
 }
 
 // ── Tiered availability check for Booking.com ────────────────────────────────
-async function checkBookingAvailability(hotelId, checkin, checkout, countryCode) {
+async function checkBookingAvailability(hotelId, checkin, checkout, countryCode, rooms = 1) {
+  const nights = checkin && checkout ? Math.max(1, (new Date(checkout) - new Date(checkin)) / 86400000) : 1;
   // Query all tiers in parallel
   const results = await Promise.all(TIERS.map(tier =>
     fetch(
@@ -195,9 +196,9 @@ async function checkBookingAvailability(hotelId, checkin, checkout, countryCode)
     if (data.soldout === 1) return { available: false, tier: 0, price: null };
     // Available if not sold out and no explicit unavailable flag
     if (data.soldout !== 1) {
-      const price = data.product_price_breakdown?.gross_amount?.value
-        ? `$${Math.round(data.product_price_breakdown.gross_amount.value)} CAD`
-        : null;
+      const grossVal = data.product_price_breakdown?.gross_amount?.value;
+      const pricePerRoomPerNight = grossVal ? Math.round(grossVal / rooms / nights) : null;
+      const price = pricePerRoomPerNight ? `$${pricePerRoomPerNight} CAD/night` : null;
       return { available: true, tier: TIERS[i], price };
     }
   }
@@ -212,7 +213,7 @@ async function loadProviderAvailability(h, params) {
   try {
     // Run all providers in parallel
     const [bookingAvail, hbResult, plAvail, agodaAvail] = await Promise.allSettled([
-      checkBookingAvailability(h.hotel_id, params.checkin, params.checkout, countryCode),
+      checkBookingAvailability(h.hotel_id, params.checkin, params.checkout, countryCode, params.rooms || 1),
       fetch(`/api/hotelbeds?city=${encodeURIComponent(params.city)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=5&lat=${params.lat||''}&lng=${params.lng||''}`)
         .then(r => r.json()).catch(() => ({ hotels: [] })),
 

@@ -4,9 +4,4 @@
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/(.*)", "dest": "/$1" }
   ],
-  "_envVarsRequired": {
-    "RESEND_API_KEY": "Resend API key for sending team invite emails (get one at https://resend.com)",
-    "SUPABASE_SERVICE_ROLE_KEY": "Supabase service role key — used by api/notify.js to update team_members server-side"
-  },
-  "_note": "Set RESEND_API_KEY and SUPABASE_SERVICE_ROLE_KEY in Vercel Dashboard > Project > Settings > Environment Variables"
 }

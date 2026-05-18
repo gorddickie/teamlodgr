@@ -30,7 +30,7 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { bookingId, shareToken, members, hotelName, checkin, checkout, shareUrl } = req.body;
+  const { bookingId, shareToken, members, hotelName, checkin, checkout, shareUrl, baseUrl } = req.body;
 
   if (!bookingId || !members || !Array.isArray(members) || members.length === 0) {
     return res.status(400).json({ error: 'Missing required fields: bookingId, members' });
@@ -42,6 +42,10 @@ module.exports = async (req, res) => {
   for (const member of members) {
     const { email, name } = member;
     if (!email) continue;
+
+    // Build player booking link: /book.html?token=SHARE_TOKEN&email=ENCODED_EMAIL
+    const siteBase = baseUrl || shareUrl?.replace(/\/share\.html.*$/, '') || 'https://teamlodgr.com';
+    const playerLink = `${siteBase}/book.html?token=${encodeURIComponent(shareToken)}&email=${encodeURIComponent(email)}`;
 
     // Send email via Resend
     let emailSent = false;
@@ -68,7 +72,7 @@ module.exports = async (req, res) => {
                   <p style="color:#6b7280;">Hi ${name || 'there'},</p>
                   <p style="color:#1a1a2e;">Your team manager has selected <strong>${hotelName}</strong> for <strong>${checkin}</strong> → <strong>${checkout}</strong>.</p>
                   <p style="color:#dc2626;font-weight:600;">⚠️ Rooms are limited — book now before they sell out!</p>
-                  <a href="${shareUrl}" style="display:inline-block;background:#1a6fd4;color:white;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;margin:16px 0;">
+                  <a href="${playerLink}" style="display:inline-block;background:#1a6fd4;color:white;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;margin:16px 0;">
                     Book Your Room Now →
                   </a>
                   <p style="color:#9ca3af;font-size:0.85rem;margin-top:24px;">Sent via TeamLodgr — Group hotel booking made simple.</p>

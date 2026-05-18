@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TeamLodgr — Book Your Room</title>
+  <meta name="description" content="Your team's hotel is ready. Book your room before they sell out."/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0d1b3e;
+      --blue: #1a6fd4;
+      --blue-dark: #1458b0;
+      --white: #ffffff;
+      --gray: #f4f6fa;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --green: #16a34a;
+      --red: #dc2626;
+      --orange: #ea580c;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--gray);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Nav ── */
+    nav {
+      background: var(--navy);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+    }
+    nav img { height: 36px; }
+
+    /* ── Loading / Error states ── */
+    #loading, #error-state {
+      text-align: center;
+      padding: 80px 24px;
+      color: var(--muted);
+    }
+    #error-state { color: var(--red); }
+    #error-state h2 { font-size: 1.2rem; margin-bottom: 8px; }
+
+    /* ── Main card ── */
+    .page { max-width: 480px; margin: 0 auto; padding: 28px 20px 60px; }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 8px 40px rgba(13,27,62,0.12);
+      overflow: hidden;
+    }
+
+    /* Card header — navy gradient */
+    .card-header {
+      background: linear-gradient(135deg, var(--navy) 0%, #1a3a70 100%);
+      color: white;
+      padding: 28px 28px 24px;
+    }
+    .card-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 4px 12px;
+      margin-bottom: 14px;
+      color: #b0c8f0;
+      text-transform: uppercase;
+    }
+    .hotel-name {
+      font-size: clamp(1.35rem, 4vw, 1.75rem);
+      font-weight: 900;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .dates {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #b0c8f0;
+    }
+    .dates .arrow { color: rgba(255,255,255,0.4); }
+
+    /* Card body */
+    .card-body { padding: 28px; }
+
+    /* CTA button — the hero of the page */
+    .btn-book {
+      display: block;
+      width: 100%;
+      background: var(--blue);
+      color: white;
+      text-align: center;
+      padding: 18px 24px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      text-decoration: none;
+      letter-spacing: 0.01em;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+      box-shadow: 0 4px 20px rgba(26,111,212,0.4);
+      margin-bottom: 20px;
+    }
+    .btn-book:hover { background: var(--blue-dark); box-shadow: 0 6px 28px rgba(26,111,212,0.5); }
+    .btn-book:active { transform: scale(0.98); }
+    .btn-book.disabled {
+      background: #9ca3af;
+      box-shadow: none;
+      pointer-events: none;
+    }
+
+    /* Urgency / progress row */
+    .urgency-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .urgency-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: var(--orange);
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 20px;
+    }
+    .urgency-pill.sold-out {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: var(--red);
+    }
+    .progress-text {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* Progress bar */
+    .progress-track {
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), #3a8af0);
+      border-radius: 99px;
+      transition: width 0.6s ease;
+    }
+
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 0 0 24px;
+    }
+
+    /* Confirm section */
+    .confirm-label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+    .confirm-label strong { color: var(--text); }
+
+    .input-group { margin-bottom: 12px; }
+    .input-group input {
+      width: 100%;
+      border: 1.5px solid #d1d5db;
+      border-radius: 9px;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: var(--text);
+      background: white;
+      transition: border-color 0.15s;
+      outline: none;
+    }
+    .input-group input:focus { border-color: var(--blue); }
+
+    .btn-confirm {
+      display: block;
+      width: 100%;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 9px;
+      padding: 13px 20px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn-confirm:hover { background: #15803d; }
+    .btn-confirm:active { transform: scale(0.98); }
+    .btn-confirm:disabled { background: #9ca3af; cursor: not-allowed; }
+
+    /* Success state */
+    .success-msg {
+      display: none;
+      text-align: center;
+      padding: 16px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      color: var(--green);
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+    .success-msg.show { display: block; }
+
+    .error-msg {
+      font-size: 0.82rem;
+      color: var(--red);
+      margin-top: 8px;
+      display: none;
+    }
+    .error-msg.show { display: block; }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    footer a { color: var(--muted); text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/"><img src="/logo.png" alt="TeamLodgr"/></a>
+</nav>
+
+<div id="loading">Loading your booking...</div>
+<div id="error-state" style="display:none">
+  <h2>Link not found</h2>
+  <p>This booking link may have expired or is invalid.</p>
+</div>
+
+<div class="page" id="main-content" style="display:none">
+  <div class="card">
+
+    <!-- Header: hotel name + dates -->
+    <div class="card-header">
+      <div class="card-badge">🏒 Your Team's Hotel</div>
+      <div class="hotel-name" id="hotel-name">Loading...</div>
+      <div class="dates">
+        <span id="checkin-date">—</span>
+        <span class="arrow">→</span>
+        <span id="checkout-date">—</span>
+      </div>
+    </div>
+
+    <div class="card-body">
+
+      <!-- THE button — dominant, above everything else -->
+      <a id="btn-book" href="#" target="_blank" rel="noopener" class="btn-book disabled">
+        Book Your Room Now →
+      </a>
+
+      <!-- Urgency + progress — brief, below button -->
+      <div class="urgency-row">
+        <span class="urgency-pill" id="urgency-pill">⚡ Loading...</span>
+        <span class="progress-text" id="progress-text"></span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+
+      <hr class="divider"/>
+
+      <!-- Confirm booked section -->
+      <p class="confirm-label"><strong>Done booking?</strong> Let your team manager know.</p>
+      <div class="input-group">
+        <input type="email" id="email-input" placeholder="Your email address" autocomplete="email"/>
+      </div>
+      <button class="btn-confirm" id="btn-confirm" onclick="markBooked()">
+        ✅ I've Booked My Room
+      </button>
+      <div class="success-msg" id="success-msg">🎉 Your team manager has been notified!</div>
+      <div class="error-msg" id="error-msg">Couldn't find your email on this booking. Double-check and try again.</div>
+
+    </div>
+  </div>
+</div>
+
+<footer>
+  <a href="/privacy.html">Privacy</a> &nbsp;·&nbsp; <a href="/terms.html">Terms</a>
+</footer>
+
+<script>
+  const SUPABASE_URL = 'https://ehgaopxzfcfrqpupctts.supabase.co';
+  const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoZ2FvcHh6ZmNmcnFwdXBjdHRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMDM0ODMsImV4cCI6MjA5NDY3OTQ4M30.LPLHW7n7mb7SD1LTbnG3wpkHpF5e8ZrHsNL5tn2osy0';
+
+  let bookingId = null;
+
+  function sbFetch(path) {
+    return fetch(`${SUPABASE_URL}/rest/v1${path}`, {
+      headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` }
+    }).then(r => r.json());
+  }
+
+  function fmtDate(d) {
+    if (!d) return '—';
+    const dt = new Date(d + 'T12:00:00Z');
+    return dt.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  async function init() {
+    const params = new URLSearchParams(location.search);
+    const token = params.get('token');
+    const email = params.get('email');
+
+    if (email) {
+      document.getElementById('email-input').value = decodeURIComponent(email);
+    }
+
+    if (!token) { showError(); return; }
+
+    try {
+      // Load group booking
+      const bookings = await sbFetch(
+        `/group_bookings?share_token=eq.${encodeURIComponent(token)}&limit=1&select=id,hotel_name,hotel_url,checkin_date,checkout_date,rooms_needed`
+      );
+      if (!bookings || bookings.length === 0) { showError(); return; }
+      const b = bookings[0];
+      bookingId = b.id;
+
+      // Load team members for progress
+      const members = await sbFetch(
+        `/team_members?booking_id=eq.${bookingId}&select=booked_at`
+      );
+      const totalMembers = members.length;
+      const bookedCount = members.filter(m => m.booked_at).length;
+      const remaining = Math.max(0, b.rooms_needed - bookedCount);
+
+      // Populate UI
+      document.getElementById('hotel-name').textContent = b.hotel_name || 'Your Hotel';
+      document.getElementById('checkin-date').textContent = fmtDate(b.checkin_date);
+      document.getElementById('checkout-date').textContent = fmtDate(b.checkout_date);
+
+      const btn = document.getElementById('btn-book');
+      if (b.hotel_url) {
+        btn.href = b.hotel_url;
+        btn.classList.remove('disabled');
+      }
+
+      // Urgency pill
+      const pill = document.getElementById('urgency-pill');
+      if (remaining === 0) {
+        pill.textContent = '✅ All rooms filled';
+        pill.classList.add('sold-out');
+      } else {
+        pill.textContent = `⚡ ${remaining} room${remaining === 1 ? '' : 's'} left`;
+      }
+
+      // Progress
+      const pct = totalMembers > 0 ? Math.round((bookedCount / b.rooms_needed) * 100) : 0;
+      document.getElementById('progress-fill').style.width = Math.min(pct, 100) + '%';
+      document.getElementById('progress-text').textContent =
+        `${bookedCount} of ${b.rooms_needed} booked`;
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('main-content').style.display = 'block';
+
+    } catch (e) {
+      console.error(e);
+      showError();
+    }
+  }
+
+  function showError() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error-state').style.display = 'block';
+  }
+
+  async function markBooked() {
+    const email = document.getElementById('email-input').value.trim();
+    const btn = document.getElementById('btn-confirm');
+    const successMsg = document.getElementById('success-msg');
+    const errorMsg = document.getElementById('error-msg');
+
+    if (!email || !bookingId) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    errorMsg.classList.remove('show');
+
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/team_members?booking_id=eq.${bookingId}&email=eq.${encodeURIComponent(email)}`,
+        {
+          method: 'PATCH',
+          headers: {
+            apikey: ANON_KEY,
+            Authorization: `Bearer ${ANON_KEY}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=representation',
+          },
+          body: JSON.stringify({ booked_at: new Date().toISOString() }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok || !data || data.length === 0) {
+        throw new Error('no match');
+      }
+      btn.style.display = 'none';
+      document.getElementById('input-group') && (document.getElementById('input-group').style.display = 'none');
+      successMsg.classList.add('show');
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = "✅ I've Booked My Room";
+      errorMsg.classList.add('show');
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>

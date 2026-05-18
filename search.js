@@ -300,7 +300,7 @@ async function loadProviderAvailability(h, params) {
             ${p.available ? `✅ At least ${p.tier} rooms available` : '<span class="check-site">Check site</span>'}
           </span>
           <span class="provider-price">${p.price || '—'}</span>
-          <a href="${p.url}" target="_blank" class="btn-book-sm">Book →</a>
+
         </div>
       `).join('')}
       ${visible.length === 0 ? '<p style="padding:16px;color:#6b7280;font-size:0.88rem;">No confirmed availability found. Use the Book buttons above to check sites directly.</p>' : ''}

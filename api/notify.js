@@ -61,7 +61,7 @@ module.exports = async (req, res) => {
             from: 'TeamLodgr <bookings@teamlodgr.com>',
             reply_to: req.body.organizerEmail || undefined,
             to: [email],
-            subject: `Your team has selected ${hotelName} — Book your room now`,
+            subject: req.body.tournamentName ? `Hotel Selected for ${req.body.tournamentName}` : `Hotel Selected for Your Team — ${hotelName}`,
             html: `
               <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;background:#f4f6fa;padding:32px;">
                 <div style="background:#0d1b3e;padding:20px 32px;border-radius:12px 12px 0 0;">

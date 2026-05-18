@@ -244,13 +244,15 @@ function renderHotelCard(h, params) {
         <div class="provider-loading"><div class="spinner-sm"></div> Checking availability across booking sites...</div>
       </div>
       <div class="share-row">
-        <button class="btn-copy-share" onclick="openSharePage('${window.location.origin}/share.html?hotel=${h.hotel_id}&name=${encodeURIComponent(prop.name)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}&photo=${encodeURIComponent(photo||'')}&providers=${encodeURIComponent(JSON.stringify(providers.filter(p=>p.available).map(p=>({name:p.name,price:p.price,url:p.url}))))}', this)">
+        <button class="btn-copy-share" onclick="openSharePage(buildShareUrl('${h.hotel_id}','${encodeURIComponent(prop.name)}','${params.checkin}','${params.checkout}','${params.rooms}','${encodeURIComponent(photo||'')}',shareProviders_${h.hotel_id}), this)">
           🔗 Share with Team
         </button>
       </div>
     </div>
   `;
   resultsGrid.appendChild(card);
+  // Store provider data for share URL building
+  window['shareProviders_' + h.hotel_id] = providers.filter(p => p.available).map(p => ({ name: p.name, price: p.price, url: p.url }));
 }
 
 // ── Tiered availability check for Priceline ─────────────────────────────────
@@ -441,6 +443,13 @@ async function loadProviderAvailability(h, params) {
 function formatDate(d) {
   if (!d) return '';
   return new Date(d + 'T00:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric' });
+}
+
+function buildShareUrl(hotelId, name, checkin, checkout, rooms, photo, providers) {
+  const base = window.location.origin + '/share.html';
+  const p = new URLSearchParams({ hotel: hotelId, name: decodeURIComponent(name), checkin, checkout, rooms, photo: decodeURIComponent(photo) });
+  if (providers && providers.length) p.set('providers', JSON.stringify(providers));
+  return base + '?' + p.toString();
 }
 
 function openSharePage(url, btn) {

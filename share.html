@@ -257,11 +257,13 @@
     </div>
     <button class="btn-primary" id="send-invites-btn" onclick="sendInvites()">Send Booking Link to Team →</button>
     </div>
-    <div id="invite-confirm" style="display:none; text-align:center; padding:20px 0;">
-      <div style="font-size:3rem; margin-bottom:12px;">✅</div>
-      <h3 style="color:#0d1b3e; font-size:1.3rem; margin-bottom:8px;">Invites Sent!</h3>
-      <p style="color:#6b7280; margin-bottom:6px;">Each player has been emailed a direct link to reserve their room.</p>
-      <p style="color:#6b7280; font-size:0.88rem;">Replies from players will go directly to your email.</p>
+    <div id="invite-confirm" style="display:none; padding:10px 0;">
+      <div style="text-align:center; margin-bottom:20px;">
+        <div style="font-size:2.5rem; margin-bottom:8px;">✅</div>
+        <h3 style="color:#0d1b3e; font-size:1.3rem; margin-bottom:6px;">Invites Sent!</h3>
+        <p style="color:#6b7280; font-size:0.9rem;">Replies from players will go directly to your email.</p>
+      </div>
+      <div id="invite-summary" style="background:#f4f6fa; border-radius:10px; padding:16px;"></div>
     </div>
     <p id="invite-error" style="display:none;" class="error-msg"></p>
   </div>
@@ -560,7 +562,18 @@
 
       document.getElementById('invite-confirm').style.display = 'block';
       document.getElementById('invite-form-fields').style.display = 'none';
-      document.getElementById('team-emails').value            = '';
+      // Build summary
+      const sentEmails = emails;
+      const tName = document.getElementById('tournament-name').value.trim();
+      document.getElementById('invite-summary').innerHTML = `
+        ${tName ? `<div style="font-weight:700;color:#0d1b3e;margin-bottom:10px;">🏆 ${tName}</div>` : ''}
+        <div style="font-size:0.88rem;color:#6b7280;margin-bottom:10px;">🏨 ${hotelName} &nbsp;|&nbsp; 📅 ${checkin} → ${checkout}</div>
+        <div style="font-size:0.85rem;font-weight:700;color:#0d1b3e;margin-bottom:8px;">📧 Sent to ${sentEmails.length} player${sentEmails.length !== 1 ? 's' : ''}:</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          ${sentEmails.map(e => `<span style="background:white;border:1px solid #e5e7eb;border-radius:50px;padding:3px 10px;font-size:0.82rem;color:#374151;">${e}</span>`).join('')}
+        </div>
+      `;
+      document.getElementById('team-emails').value = '';
       loadBookingStatus();
     } catch (e) {
       console.error('Notify API error:', e.message);

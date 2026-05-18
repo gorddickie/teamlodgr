@@ -428,7 +428,7 @@ async function loadProviderAvailability(h, params) {
           <span class="provider-rooms ${p.available ? 'avail' : 'unknown'}">
             ${p.available ? `✅ At least ${p.tier} rooms available` : '<span class="check-site">Check site</span>'}
           </span>
-          <span class="provider-price">${p.price || '—'}</span>
+          <span class="provider-price">${p.price || '<span style="color:#9ca3af;font-size:0.82rem;">See site</span>'}</span>
 
         </div>
       `).join('')}

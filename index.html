@@ -447,7 +447,7 @@
       </div>
       <div class="field">
         <label>Check-In</label>
-        <input type="date" id="checkin" required/>
+        <input type="date" id="checkin" required onchange="autoSetCheckout(this)"/>
       </div>
       <div class="field">
         <label>Check-Out</label>
@@ -830,5 +830,18 @@
 </footer>
 
 <script src="search.js"></script>
+<script>
+  function autoSetCheckout(checkinInput) {
+    const checkin = new Date(checkinInput.value);
+    if (!checkinInput.value) return;
+    const checkout = new Date(checkin);
+    checkout.setDate(checkout.getDate() + 1);
+    const checkoutInput = document.getElementById('checkout');
+    checkoutInput.min = checkout.toISOString().split('T')[0];
+    if (!checkoutInput.value || checkoutInput.value <= checkinInput.value) {
+      checkoutInput.value = checkout.toISOString().split('T')[0];
+    }
+  }
+</script>
 </body>
 </html>

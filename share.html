@@ -303,7 +303,10 @@
     const ci = new Date(checkin).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
     const co = new Date(checkout).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
     document.getElementById('trip-details').innerHTML =
-      `📅 ${ci} → ${co} &nbsp;|&nbsp; 🛏️ ${rooms} room${rooms !== 1 ? 's' : ''} requested`;
+      `<div style="background:#f4f6fa;border-radius:10px;padding:14px 16px;margin-bottom:4px;">
+        <div style="font-size:1.1rem;font-weight:800;color:#0d1b3e;margin-bottom:6px;">${hotelName}</div>
+        <div style="font-size:0.9rem;color:#6b7280;">📅 ${ci} → ${co} &nbsp;|&nbsp; 🛏️ ${rooms} room${rooms !== 1 ? 's' : ''} needed</div>
+      </div>`;
   }
 
   // ── Save / get group booking in Supabase ──────────────────────────────────

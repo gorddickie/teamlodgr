@@ -365,14 +365,14 @@ async function loadProviderAvailability(h, params) {
         available: booking.available,
         tier: booking.tier,
         price: booking.price,
-        url: `https://www.booking.com/searchresults.html?hotel_ids=${h.hotel_id}&checkin=${params.checkin}&checkout=${params.checkout}&no_rooms=${params.rooms}&group_adults=2&selected_currency=CAD`,
+        url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(h.property.name + ' ' + params.city)}&checkin_year=${params.checkin.split('-')[0]}&checkin_month=${parseInt(params.checkin.split('-')[1])}&checkin_monthday=${parseInt(params.checkin.split('-')[2])}&checkout_year=${params.checkout.split('-')[0]}&checkout_month=${parseInt(params.checkout.split('-')[1])}&checkout_monthday=${parseInt(params.checkout.split('-')[2])}&no_rooms=${params.rooms}&group_adults=2&selected_currency=CAD`,
       },
       {
         name: 'Hotelbeds', icon: '🟤',
         available: hbTier >= 5,
         tier: hbTier,
         price: hbPrice,
-        url: `https://www.booking.com/searchresults.html?hotel_ids=${h.hotel_id}&checkin=${params.checkin}&checkout=${params.checkout}&no_rooms=${params.rooms}&group_adults=2&selected_currency=CAD`,
+        url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(h.property.name + ' ' + params.city)}&checkin_year=${params.checkin.split('-')[0]}&checkin_month=${parseInt(params.checkin.split('-')[1])}&checkin_monthday=${parseInt(params.checkin.split('-')[2])}&checkout_year=${params.checkout.split('-')[0]}&checkout_month=${parseInt(params.checkout.split('-')[1])}&checkout_monthday=${parseInt(params.checkout.split('-')[2])}&no_rooms=${params.rooms}&group_adults=2&selected_currency=CAD`,
       },
       {
         name: 'Priceline', icon: '🟣',

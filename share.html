@@ -310,11 +310,11 @@
     const ci = new Date(checkin).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
     const co = new Date(checkout).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
     document.getElementById('trip-details').innerHTML =
-      `<div style="background:#f4f6fa;border-radius:12px;overflow:hidden;margin-bottom:4px;">
-        ${hotelPhoto ? `<img src="${hotelPhoto}" alt="${hotelName}" style="width:100%;height:180px;object-fit:cover;display:block;" onerror="this.style.display='none'"/>` : ''}
-        <div style="padding:14px 16px;">
-          <div style="font-size:1.15rem;font-weight:800;color:#0d1b3e;margin-bottom:6px;">${hotelName}</div>
-          <div style="font-size:0.9rem;color:#6b7280;">📅 ${ci} → ${co} &nbsp;|&nbsp; 🛏️ ${rooms} room${rooms !== 1 ? 's' : ''} needed</div>
+      `<div style="background:#f4f6fa;border-radius:12px;overflow:hidden;margin-bottom:4px;display:flex;align-items:center;gap:14px;padding:12px 14px;">
+        ${hotelPhoto ? `<img src="${hotelPhoto}" alt="${hotelName}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;flex-shrink:0;" onerror="this.style.display='none'"/>` : ''}
+        <div>
+          <div style="font-size:1.05rem;font-weight:800;color:#0d1b3e;margin-bottom:4px;">${hotelName}</div>
+          <div style="font-size:0.88rem;color:#6b7280;">📅 ${ci} → ${co} &nbsp;|&nbsp; 🛏️ ${rooms} room${rooms !== 1 ? 's' : ''} needed</div>
         </div>
       </div>`;
   }

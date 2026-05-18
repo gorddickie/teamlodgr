@@ -250,9 +250,9 @@ function renderHotelCard(h, params) {
       </div>
     </div>
   `;
+  // Store provider data for share URL building (set before appending)
+  window['shareProviders_' + h.hotel_id] = [];
   resultsGrid.appendChild(card);
-  // Store provider data for share URL building
-  window['shareProviders_' + h.hotel_id] = providers.filter(p => p.available).map(p => ({ name: p.name, price: p.price, url: p.url }));
 }
 
 // ── Tiered availability check for Priceline ─────────────────────────────────
@@ -412,6 +412,8 @@ async function loadProviderAvailability(h, params) {
 
     // Only show providers with confirmed availability
     const visible = providers.filter(p => p.available === true);
+    // Update share providers once availability is known
+    window['shareProviders_' + h.hotel_id] = visible.map(p => ({ name: p.name, price: p.price, url: p.url }));
 
     container.innerHTML = `
       <div class="providers-header">

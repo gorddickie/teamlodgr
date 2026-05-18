@@ -365,14 +365,14 @@ async function loadProviderAvailability(h, params) {
         available: booking.available,
         tier: booking.tier,
         price: booking.price,
-        url: `https://www.booking.com/hotel/${countryCode}/${h.hotel_id}.html?checkin=${params.checkin}&checkout=${params.checkout}&no_rooms=${params.rooms}&group_adults=2`,
+        url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(h.property.name)}&checkin=${params.checkin}&checkout=${params.checkout}&no_rooms=${params.rooms}&group_adults=2&selected_currency=CAD`,
       },
       {
         name: 'Hotelbeds', icon: '🟤',
         available: hbTier >= 5,
         tier: hbTier,
         price: hbPrice,
-        url: `https://www.booking.com/hotel/${countryCode}/${h.hotel_id}.html?checkin=${params.checkin}&checkout=${params.checkout}&no_rooms=${params.rooms}`,
+        url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(h.property.name)}&checkin=${params.checkin}&checkout=${params.checkout}&no_rooms=${params.rooms}&group_adults=2&selected_currency=CAD`,
       },
       {
         name: 'Priceline', icon: '🟣',

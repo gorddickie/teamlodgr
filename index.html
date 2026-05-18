@@ -31,7 +31,7 @@
     nav {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
       padding: 18px 40px;
       background: var(--white);
       border-bottom: 1px solid #e5e7eb;
@@ -474,12 +474,20 @@
 <body>
 
 <!-- NAV -->
+<nav>
+  <a href="#" class="logo">
+    <img src="logo.png" alt="TeamLodgr" style="height:44px; width:auto;"/>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#sports">Sports</a></li>
+    <li><a href="#search" class="nav-cta">Book Now</a></li>
+  </ul>
+</nav>
+
 <!-- HERO -->
 <section class="hero">
-  <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:24px;">
-    <img src="logo.png" alt="TeamLodgr" style="height:44px; width:auto;"/>
-    <span style="color:rgba(255,255,255,0.85); font-size:0.95rem; font-weight:600;">Built for Sports Teams & Groups</span>
-  </div>
   <h1>Hotel Booking for Your <span>Entire Team</span> — In Minutes</h1>
   <p>Search hundreds of hotels, find the best group availability, and share one link. Your teammates book their own rooms. Simple.</p>
 

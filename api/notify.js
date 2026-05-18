@@ -54,7 +54,7 @@ module.exports = async (req, res) => {
             Authorization: `Bearer ${resendApiKey}`,
           },
           body: JSON.stringify({
-            from: 'TeamLodgr <noreply@teamlodgr.com>',
+            from: 'TeamLodgr <bookings@teamlodgr.com>',
             reply_to: req.body.organizerEmail || undefined,
             to: [email],
             subject: `Your team has selected ${hotelName} — Book your room now`,

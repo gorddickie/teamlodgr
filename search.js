@@ -116,7 +116,7 @@ function renderHotelCard(h, params) {
         <div class="provider-loading"><div class="spinner-sm"></div> Checking availability across booking sites...</div>
       </div>
       <div class="share-row">
-        <button class="btn-copy-share" onclick="copyShareLink('${window.location.origin}/share.html?hotel=${h.hotel_id}&name=${encodeURIComponent(prop.name)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}', this)">
+        <button class="btn-copy-share" onclick="openSharePage('${window.location.origin}/share.html?hotel=${h.hotel_id}&name=${encodeURIComponent(prop.name)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}', this)">
           🔗 Share with Team
         </button>
       </div>
@@ -312,6 +312,11 @@ async function loadProviderAvailability(h, params) {
 function formatDate(d) {
   if (!d) return '';
   return new Date(d + 'T00:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric' });
+}
+
+function openSharePage(url, btn) {
+  btn.textContent = '✅ Opening...';
+  window.location.href = url;
 }
 
 function copyShareLink(url, btn) {

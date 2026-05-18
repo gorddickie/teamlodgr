@@ -65,7 +65,7 @@ module.exports = async (req, res) => {
             html: `
               <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;background:white;padding:32px;">
                 <div style="padding:0 0 20px 0;border-bottom:2px solid #0d1b3e;margin-bottom:24px;">
-                  <h1 style="color:#0d1b3e;font-size:1.4rem;margin:0;">🏨 TeamLodgr</h1>
+                  <img src="https://www.teamlodgr.com/logo.png" alt="TeamLodgr" style="height:44px;width:auto;"/>
                 </div>
                 <div>
                   <h2 style="color:#0d1b3e;margin-top:0;">Hotel accommodation confirmed for your team</h2>

@@ -68,7 +68,7 @@ module.exports = async (req, res) => {
                   <h1 style="color:white;font-size:1.4rem;margin:0;">🏨 TeamLodgr</h1>
                 </div>
                 <div style="background:white;padding:32px;border-radius:0 0 12px 12px;box-shadow:0 4px 24px rgba(0,0,0,0.1);">
-                  <h2 style="color:#0d1b3e;margin-top:0;">Your team's hotel is ready to book!</h2>
+                  <h2 style="color:#0d1b3e;margin-top:0;">Hotel accommodation confirmed for your team</h2>
                   ${req.body.tournamentName ? `<div style="display:inline-block;background:#e8f0fd;color:#1a6fd4;font-weight:700;font-size:0.85rem;padding:4px 12px;border-radius:50px;margin-bottom:12px;">🏆 ${req.body.tournamentName}</div>` : ''}
                   <p style="color:#6b7280;margin-bottom:20px;">Hi ${name || 'there'},</p>
 
@@ -108,13 +108,13 @@ module.exports = async (req, res) => {
                     </table>
                   </div>
 
-                  <p style="color:#dc2626;font-weight:600;margin-bottom:16px;">⚡ Rooms are limited — book before they sell out!</p>
+                  <p style="color:#1a6fd4;font-weight:600;margin-bottom:16px;">Please secure your room as soon as possible — availability is limited for group bookings.</p>
 
                   <a href="${playerLink}" style="display:block;background:#1a6fd4;color:white;padding:16px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:1.05rem;text-align:center;margin-bottom:24px;">
-                    Book Your Room Now →
+                    Reserve Your Room →
                   </a>
 
-                  <p style="color:#9ca3af;font-size:0.82rem;">Sent via TeamLodgr — Group hotel booking made simple. Reply to this email to contact your team manager.</p>
+                  <p style="color:#9ca3af;font-size:0.82rem;">You received this because your team manager added you to a group hotel booking on TeamLodgr. Reply to this email to reach your team manager directly.</p>
                 </div>
               </div>
             `,

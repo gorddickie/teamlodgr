@@ -111,13 +111,13 @@ module.exports = async (req, res) => {
           ${providers.length > 0 ? `
           <!-- Provider table -->
           <div style="margin-bottom:28px;">
-            <div style="font-size:13px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">Also available on:</div>
+            <div style="font-size:13px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Book your room:</div>
             <table width="100%" cellpadding="0" cellspacing="0">
               ${providers.map((p, i) => `
               <tr style="${i > 0 ? 'border-top:1px solid #f3f4f6;' : ''}">
                 <td style="padding:10px 0;font-size:15px;color:#111827;font-weight:600;">${p.name}</td>
-                <td style="padding:10px 0;font-size:15px;color:#374151;text-align:center;">${p.price || '—'}</td>
-                <td style="padding:10px 0;text-align:right;"><a href="${p.url}" style="color:#1a6fd4;font-size:15px;font-weight:600;text-decoration:none;">Book</a></td>
+                <td style="padding:10px 0;font-size:14px;color:#374151;text-align:center;">${p.price || ''}</td>
+                <td style="padding:10px 0;text-align:right;"><a href="${p.url}" style="display:inline-block;background:#0d1b3e;color:white;font-size:13px;font-weight:700;text-decoration:none;padding:8px 16px;border-radius:6px;">Book Now</a></td>
               </tr>`).join('')}
             </table>
           </div>` : ''}

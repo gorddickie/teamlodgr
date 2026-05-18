@@ -379,7 +379,7 @@ async function loadProviderAvailability(h, params) {
         available: priceline.available,
         tier: priceline.tier,
         price: priceline.price,
-        url: `https://www.priceline.com/hotel/search?q=${encodeURIComponent(h.property.name + ' ' + params.city)}&date_start=${params.checkin}&date_end=${params.checkout}&num_rooms=${params.rooms}&adults=2`,
+        url: `https://www.priceline.com/search?q=${encodeURIComponent(h.property.name + ', ' + params.city)}&type=hotel&check_in=${params.checkin}&check_out=${params.checkout}&rooms=${params.rooms}&adults=2`,
       },
       {
         name: 'Agoda', icon: '🟢',

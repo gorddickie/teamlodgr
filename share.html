@@ -356,8 +356,12 @@
       .select('id')
       .single();
 
-    if (error) console.error('Failed to save group booking:', error.message);
-    else bookingId = data.id;
+    if (error) {
+      console.error('Failed to save group booking:', JSON.stringify(error));
+      // Show error in UI so we can debug
+      document.getElementById('invite-error').textContent = 'DB error: ' + error.message;
+      document.getElementById('invite-error').style.display = 'block';
+    } else bookingId = data.id;
   }
 
   // ── Load live hotel data from API ─────────────────────────────────────────

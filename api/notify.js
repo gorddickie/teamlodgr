@@ -63,11 +63,11 @@ module.exports = async (req, res) => {
             to: [email],
             subject: req.body.tournamentName ? `Hotel Selected for ${req.body.tournamentName}` : `Hotel Selected for Your Team — ${hotelName}`,
             html: `
-              <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;background:#f4f6fa;padding:32px;">
-                <div style="background:#0d1b3e;padding:20px 32px;border-radius:12px 12px 0 0;">
-                  <h1 style="color:white;font-size:1.4rem;margin:0;">🏨 TeamLodgr</h1>
+              <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;background:white;padding:32px;">
+                <div style="padding:0 0 20px 0;border-bottom:2px solid #0d1b3e;margin-bottom:24px;">
+                  <h1 style="color:#0d1b3e;font-size:1.4rem;margin:0;">🏨 TeamLodgr</h1>
                 </div>
-                <div style="background:white;padding:32px;border-radius:0 0 12px 12px;box-shadow:0 4px 24px rgba(0,0,0,0.1);">
+                <div>
                   <h2 style="color:#0d1b3e;margin-top:0;">Hotel accommodation confirmed for your team</h2>
                   ${req.body.tournamentName ? `<div style="display:inline-block;background:#e8f0fd;color:#1a6fd4;font-weight:700;font-size:0.85rem;padding:4px 12px;border-radius:50px;margin-bottom:12px;">🏆 ${req.body.tournamentName}</div>` : ''}
                   <p style="color:#6b7280;margin-bottom:20px;">Hi ${name || 'there'},</p>

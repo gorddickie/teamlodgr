@@ -295,6 +295,9 @@
 
   // ── State ─────────────────────────────────────────────────────────────────
   let bookingId = null;
+  let currentBookingSite = null;
+  let currentRoomsAvailable = null;
+  let currentPricePerNight = null;
 
   // ── Populate UI ───────────────────────────────────────────────────────────
   document.getElementById('hero-subtitle').textContent  = hotelName;
@@ -532,6 +535,10 @@
           shareUrl,
           organizerName,
           organizerEmail,
+          bookingSite: currentBookingSite || 'Booking.com',
+          roomsAvailable: currentRoomsAvailable || null,
+          roomsNeeded: rooms,
+          pricePerNight: currentPricePerNight || null,
         }),
       });
 

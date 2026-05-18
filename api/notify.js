@@ -68,14 +68,39 @@ module.exports = async (req, res) => {
                   <h1 style="color:white;font-size:1.4rem;margin:0;">🏨 TeamLodgr</h1>
                 </div>
                 <div style="background:white;padding:32px;border-radius:0 0 12px 12px;box-shadow:0 4px 24px rgba(0,0,0,0.1);">
-                  <h2 style="color:#0d1b3e;margin-top:0;">Your team has selected a hotel!</h2>
-                  <p style="color:#6b7280;">Hi ${name || 'there'},</p>
-                  <p style="color:#1a1a2e;">Your team manager has selected <strong>${hotelName}</strong> for <strong>${checkin}</strong> → <strong>${checkout}</strong>.</p>
-                  <p style="color:#dc2626;font-weight:600;">⚠️ Rooms are limited — book now before they sell out!</p>
-                  <a href="${playerLink}" style="display:inline-block;background:#1a6fd4;color:white;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;margin:16px 0;">
+                  <h2 style="color:#0d1b3e;margin-top:0;">Your team's hotel is ready to book!</h2>
+                  <p style="color:#6b7280;margin-bottom:20px;">Hi ${name || 'there'},</p>
+
+                  <!-- Hotel details box -->
+                  <div style="background:#f4f6fa;border-radius:10px;padding:20px;margin-bottom:20px;">
+                    <div style="font-size:1.15rem;font-weight:800;color:#0d1b3e;margin-bottom:12px;">${hotelName}</div>
+                    <table style="width:100%;border-collapse:collapse;">
+                      <tr>
+                        <td style="padding:6px 0;color:#6b7280;font-size:0.88rem;">📅 Dates</td>
+                        <td style="padding:6px 0;font-weight:600;color:#1a1a2e;font-size:0.88rem;">${checkin} → ${checkout}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:6px 0;color:#6b7280;font-size:0.88rem;">🏨 Booking site</td>
+                        <td style="padding:6px 0;font-weight:600;color:#1a1a2e;font-size:0.88rem;">${req.body.bookingSite || 'Booking.com'}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:6px 0;color:#6b7280;font-size:0.88rem;">🛏️ Rooms available</td>
+                        <td style="padding:6px 0;font-weight:600;color:#1a1a2e;font-size:0.88rem;">${req.body.roomsAvailable || req.body.roomsNeeded || '—'} rooms</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:6px 0;color:#6b7280;font-size:0.88rem;">💰 Estimated price</td>
+                        <td style="padding:6px 0;font-weight:600;color:#1a6fd4;font-size:0.88rem;">${req.body.pricePerNight ? '$' + req.body.pricePerNight + ' CAD/night' : 'See booking site'}</td>
+                      </tr>
+                    </table>
+                  </div>
+
+                  <p style="color:#dc2626;font-weight:600;margin-bottom:16px;">⚡ Rooms are limited — book before they sell out!</p>
+
+                  <a href="${playerLink}" style="display:block;background:#1a6fd4;color:white;padding:16px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:1.05rem;text-align:center;margin-bottom:24px;">
                     Book Your Room Now →
                   </a>
-                  <p style="color:#9ca3af;font-size:0.85rem;margin-top:24px;">Sent via TeamLodgr — Group hotel booking made simple.</p>
+
+                  <p style="color:#9ca3af;font-size:0.82rem;">Sent via TeamLodgr — Group hotel booking made simple. Reply to this email to contact your team manager.</p>
                 </div>
               </div>
             `,

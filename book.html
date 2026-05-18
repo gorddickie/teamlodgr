@@ -341,7 +341,7 @@
     try {
       // Load group booking
       const bookings = await sbFetch(
-        `/group_bookings?share_token=eq.${encodeURIComponent(token)}&limit=1&select=id,hotel_name,hotel_url,checkin_date,checkout_date,rooms_needed`
+        `/group_bookings?share_token=eq.${encodeURIComponent(token)}&limit=1&select=id,hotel_name,hotel_url,checkin,checkout,rooms_needed`
       );
       if (!bookings || bookings.length === 0) { showError(); return; }
       const b = bookings[0];
@@ -357,14 +357,13 @@
 
       // Populate UI
       document.getElementById('hotel-name').textContent = b.hotel_name || 'Your Hotel';
-      document.getElementById('checkin-date').textContent = fmtDate(b.checkin_date);
-      document.getElementById('checkout-date').textContent = fmtDate(b.checkout_date);
+      document.getElementById('checkin-date').textContent = fmtDate(b.checkin);
+      document.getElementById('checkout-date').textContent = fmtDate(b.checkout);
 
       const btn = document.getElementById('btn-book');
-      if (b.hotel_url) {
-        btn.href = b.hotel_url;
-        btn.classList.remove('disabled');
-      }
+      const bookUrl = b.hotel_url || `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(b.hotel_name)}&checkin_year=${b.checkin.split('-')[0]}&checkin_month=${parseInt(b.checkin.split('-')[1])}&checkin_monthday=${parseInt(b.checkin.split('-')[2])}&checkout_year=${b.checkout.split('-')[0]}&checkout_month=${parseInt(b.checkout.split('-')[1])}&checkout_monthday=${parseInt(b.checkout.split('-')[2])}&no_rooms=1&group_adults=2&selected_currency=CAD`;
+      btn.href = bookUrl;
+      btn.classList.remove('disabled');
 
       // Urgency pill
       const pill = document.getElementById('urgency-pill');

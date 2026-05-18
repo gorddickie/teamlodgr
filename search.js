@@ -445,7 +445,7 @@ function formatDate(d) {
 
 function buildShareUrl(hotelId, name, checkin, checkout, rooms, photo, providers) {
   const base = window.location.origin + '/share.html';
-  const p = new URLSearchParams({ hotel: hotelId, name: decodeURIComponent(name), checkin, checkout, rooms, photo: decodeURIComponent(photo) });
+  const p = new URLSearchParams({ hotel: hotelId, name: decodeURIComponent(name), checkin, checkout, rooms, photo: decodeURIComponent(photo), city: currentParams.city || '' });
   if (providers && providers.length) p.set('providers', JSON.stringify(providers));
   return base + '?' + p.toString();
 }

@@ -314,7 +314,7 @@
 
   // ── Save / get group booking in Supabase ──────────────────────────────────
   async function ensureBooking() {
-    const { data: existing } = await supabase
+    const { data: existing } = await db
       .from('group_bookings')
       .select('id')
       .eq('share_token', shareToken)
@@ -332,7 +332,7 @@
       share_token:  shareToken,
     };
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('group_bookings')
       .insert(payload)
       .select('id')
@@ -376,7 +376,7 @@
   async function loadBookingStatus() {
     if (!bookingId) return;
 
-    const { data: members, error } = await supabase
+    const { data: members, error } = await db
       .from('team_members')
       .select('id, booked_at')
       .eq('booking_id', bookingId);
@@ -434,7 +434,7 @@
       return;
     }
 
-    const { data: existing } = await supabase
+    const { data: existing } = await db
       .from('team_members')
       .select('id')
       .eq('booking_id', bookingId)
@@ -444,7 +444,7 @@
     let memberId = existing?.id;
 
     if (!memberId) {
-      const { data: inserted, error: insertErr } = await supabase
+      const { data: inserted, error: insertErr } = await db
         .from('team_members')
         .insert({ booking_id: bookingId, email })
         .select('id')
@@ -458,7 +458,7 @@
       memberId = inserted.id;
     }
 
-    const { error } = await supabase
+    const { error } = await db
       .from('team_members')
       .update({ booked_at: new Date().toISOString() })
       .eq('id', memberId);
@@ -507,7 +507,7 @@
 
     // Insert team members into Supabase
     for (const email of emails) {
-      await supabase
+      await db
         .from('team_members')
         .insert({ booking_id: bookingId, email })
         .then(({ error }) => {

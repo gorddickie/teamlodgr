@@ -238,7 +238,7 @@ function renderHotelCard(h, params) {
         const hLat = prop.latitude || prop.lat;
         const hLng = prop.longitude || prop.lng || prop.lon;
         const km = haversineKm(params.venueLat, params.venueLng, hLat, hLng);
-        return `<div><span class="distance-badge">📍 ${km < 1 ? (km*1000).toFixed(0)+' m' : km.toFixed(1)+' km'} from ${params.venueName}</span></div>`;
+        return `<div><span class="distance-badge">📍 ${km < 1 ? (km*1000).toFixed(0)+' meters' : km.toFixed(1)+' km'} from ${params.venueName}</span></div>`;
       })() : ''}
       <div class="providers-table" id="providers-${h.hotel_id}">
         <div class="provider-loading"><div class="spinner-sm"></div> Checking availability across booking sites...</div>

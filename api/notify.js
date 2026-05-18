@@ -55,6 +55,7 @@ module.exports = async (req, res) => {
           },
           body: JSON.stringify({
             from: 'TeamLodgr <noreply@teamlodgr.com>',
+            reply_to: req.body.organizerEmail || undefined,
             to: [email],
             subject: `Your team has selected ${hotelName} — Book your room now`,
             html: `

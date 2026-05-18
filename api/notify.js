@@ -63,75 +63,34 @@ module.exports = async (req, res) => {
             to: [email],
             subject: req.body.tournamentName ? `Hotel Selected for ${req.body.tournamentName}` : `Hotel Selected for Your Team — ${hotelName}`,
             html: (() => {
-                const fmtDate = (iso) => {
-                  if (!iso) return '';
-                  const [y, m, d] = iso.split('-').map(Number);
-                  return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-                };
-                const checkinFmt = fmtDate(checkin);
-                const checkoutFmt = fmtDate(checkout);
-                const roomCount = req.body.roomsNeeded;
                 const organizerName = req.body.organizerName || 'your team manager';
                 const tournament = req.body.tournamentName;
-                const providers = req.body.providers || [];
                 return `
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hotel Booking</title></head>
-<body style="margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f2f5;padding:24px 0;">
-    <tr><td align="center">
-      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden;">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:40px 20px;background:#ffffff;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;">
 
-        <!-- Header -->
-        <tr><td style="padding:24px 28px 20px;border-bottom:2px solid #0d1b3e;">
-          <img src="https://www.teamlodgr.com/logo.png" alt="TeamLodgr" height="40" style="display:block;height:40px;width:auto;">
-        </td></tr>
-
-        <!-- Body -->
-        <tr><td style="padding:28px 28px 0;">
-
-          ${tournament ? `
-          <!-- Tournament badge -->
-          <div style="display:inline-block;background:#0d1b3e;color:#ffffff;font-size:13px;font-weight:700;padding:6px 14px;border-radius:50px;margin-bottom:20px;">🏆 ${tournament}</div>
-          ` : ''}
-
-          <p style="margin:0 0 24px;color:#374151;font-size:16px;">Hi ${name || 'there'},</p>
-
-          <!-- Hotel summary card -->
-          <div style="border:1px solid #e5e7eb;border-radius:10px;padding:20px;margin-bottom:24px;">
-            <div style="font-size:22px;font-weight:800;color:#0d1b3e;margin-bottom:10px;line-height:1.2;">${hotelName}</div>
-            <div style="font-size:15px;color:#374151;margin-bottom:8px;">📅 ${checkinFmt} → ${checkoutFmt}</div>
-            ${roomCount ? `<div style="font-size:15px;color:#374151;">🛏️ ${roomCount} rooms reserved for your team</div>` : ''}
-          </div>
-
-          <!-- CTA button -->
-
-
-          ${providers.length > 0 ? `
-          <!-- Provider table -->
-          <div style="margin-bottom:28px;">
-            <div style="font-size:13px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Book your room:</div>
-            <table width="100%" cellpadding="0" cellspacing="0">
-              ${providers.map((p, i) => `
-              <tr style="${i > 0 ? 'border-top:1px solid #f3f4f6;' : ''}">
-                <td style="padding:10px 0;font-size:15px;color:#111827;font-weight:600;">${p.name}</td>
-                <td style="padding:10px 0;font-size:14px;color:#374151;text-align:center;">${p.price || ''}</td>
-                <td style="padding:10px 0;text-align:right;"><a href="${p.url}" style="display:inline-block;background:#0d1b3e;color:white;font-size:13px;font-weight:700;text-decoration:none;padding:8px 16px;border-radius:6px;">Book Now</a></td>
-              </tr>`).join('')}
-            </table>
-          </div>` : ''}
-
-        </td></tr>
-
-        <!-- Footer -->
-        <tr><td style="padding:20px 28px 28px;border-top:1px solid #f3f4f6;">
-          <p style="margin:0 0 6px;font-size:13px;color:#9ca3af;">You received this because ${organizerName} added you to a group hotel booking.</p>
-          <p style="margin:0;font-size:13px;color:#9ca3af;">Reply to this email to reach them directly.</p>
-        </td></tr>
-
-      </table>
+    <!-- Logo -->
+    <tr><td style="padding-bottom:28px;border-bottom:2px solid #0d1b3e;">
+      <img src="https://www.teamlodgr.com/logo.png" alt="TeamLodgr" height="40" style="display:block;height:40px;width:auto;">
     </td></tr>
+
+    <!-- Message -->
+    <tr><td style="padding:32px 0 28px;">
+      <p style="margin:0 0 20px;font-size:17px;color:#111827;line-height:1.5;">
+        A hotel has been selected for
+        ${tournament ? `<strong>${tournament}</strong>` : 'your team'}.
+      </p>
+      <a href="${playerLink}" style="display:block;background:#0d1b3e;color:#ffffff;text-decoration:none;text-align:center;font-size:18px;font-weight:700;padding:18px 24px;border-radius:8px;">Click Here to Book</a>
+    </td></tr>
+
+    <!-- Footer -->
+    <tr><td style="padding-top:20px;border-top:1px solid #e5e7eb;">
+      <p style="margin:0;font-size:13px;color:#9ca3af;">Sent by ${organizerName} via TeamLodgr. Reply to reach them directly.</p>
+    </td></tr>
+
   </table>
 </body>
 </html>

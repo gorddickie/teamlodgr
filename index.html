@@ -169,12 +169,14 @@
       margin-bottom: 28px;
       font-size: 0.95rem;
     }
-    .search-grid {
+    /* Two-row search form */
+    .search-row {
       display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr;
       gap: 12px;
-      align-items: end;
+      margin-bottom: 12px;
     }
+    .search-row-1 { grid-template-columns: 3fr 2fr; }
+    .search-row-2 { grid-template-columns: 1fr 1fr 1fr; }
     .field label {
       display: block;
       font-size: 0.8rem;
@@ -398,34 +400,7 @@
     footer .footer-logo span { color: var(--blue-light); }
     footer p { margin-top: 8px; }
 
-    /* VENUE TOGGLE */
-    .search-mode-toggle {
-      display: flex;
-      background: #f0f4f8;
-      border-radius: 50px;
-      padding: 4px;
-      gap: 0;
-      width: fit-content;
-      margin-bottom: 20px;
-      border: 1.5px solid #d1d5db;
-    }
-    .toggle-btn {
-      background: none;
-      border: none;
-      padding: 8px 20px;
-      border-radius: 50px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: var(--muted);
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.2s, color 0.2s;
-      white-space: nowrap;
-    }
-    .toggle-btn.active {
-      background: var(--blue);
-      color: var(--white);
-    }
+
     .venue-dropdown {
       position: absolute;
       top: calc(100% + 4px);
@@ -491,7 +466,7 @@
       .nav-links { display: none; }
       .hero { padding: 60px 20px; }
       .search-section { padding: 40px 20px; }
-      .search-grid { grid-template-columns: 1fr; }
+      .search-row-1, .search-row-2 { grid-template-columns: 1fr; }
       .how-section, .features-section, .sports-section, .stats-section, .cta-section { padding: 60px 20px; }
     }
   </style>
@@ -527,27 +502,21 @@
   <form class="search-card" id="search-form">
     <h2>Find Hotels for Your Group</h2>
     <p>Enter your trip details and we'll find the top hotels with enough rooms for everyone.</p>
-    <div class="search-grid">
-      <div class="field" style="position:relative;">
-        <div class="search-mode-toggle" id="mode-toggle">
-          <button type="button" class="toggle-btn active" id="btn-city" onclick="switchMode('city')">📍 By City</button>
-          <button type="button" class="toggle-btn" id="btn-venue" onclick="switchMode('venue')">🏒 Near a Venue</button>
-        </div>
-        <!-- City mode -->
-        <div id="city-field">
-          <label>Destination City</label>
-          <input type="text" id="city" placeholder="e.g. Halifax, NS"/>
-        </div>
-        <!-- Venue mode -->
-        <div id="venue-field" style="display:none;">
-          <label>Venue / Arena</label>
-          <div style="position:relative;">
-            <input type="text" id="venue-input" placeholder="e.g. Scotiabank Arena, Bell Centre, Rogers Place" autocomplete="off"/>
-            <div class="venue-dropdown" id="venue-dropdown" style="display:none;"></div>
-          </div>
-          <div id="venue-selected" style="display:none; margin-top:8px;"></div>
-        </div>
+    <!-- Row 1: City + Venue -->
+    <div class="search-row search-row-1">
+      <div class="field">
+        <label>Destination City</label>
+        <input type="text" id="city" placeholder="e.g. Halifax, NS" required/>
       </div>
+      <div class="field" style="position:relative;">
+        <label>Near a Venue <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;">(optional)</span></label>
+        <input type="text" id="venue-input" placeholder="e.g. Scotiabank Arena" autocomplete="off"/>
+        <div class="venue-dropdown" id="venue-dropdown" style="display:none;"></div>
+        <div id="venue-selected" style="display:none; margin-top:6px;"></div>
+      </div>
+    </div>
+    <!-- Row 2: Dates + Rooms -->
+    <div class="search-row search-row-2">
       <div class="field">
         <label>Check-In</label>
         <input type="date" id="checkin" required onchange="autoSetCheckout(this)"/>
@@ -561,9 +530,7 @@
         <input type="number" id="rooms" min="2" placeholder="e.g. 10" required/>
       </div>
     </div>
-    <div style="margin-top: 16px;">
-      <button class="btn-search" type="submit">Search Hotels →</button>
-    </div>
+    <button class="btn-search" type="submit" style="margin-top:4px;">Search Hotels →</button>
   </form>
 </section>
 

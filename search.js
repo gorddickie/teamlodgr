@@ -13,8 +13,7 @@ const TIERS = [20, 10, 5]; // Check highest first
 let pricelineCache = {}; // Cache Priceline city results to avoid repeat calls
 
 let currentParams = {};
-let venueMode = false; // true when searching near a venue
-let selectedVenue = null; // { name, lat, lng }
+let selectedVenue = null; // { name, lat, lng } — set when user picks a venue
 
 // ── Venue search (Nominatim) ─────────────────────────────────────────────────
 let nominatimTimer = null;
@@ -27,7 +26,9 @@ function initVenueSearch() {
     clearTimeout(nominatimTimer);
     const q = input.value.trim();
     if (q.length < 3) { dropdown.style.display = 'none'; return; }
-    nominatimTimer = setTimeout(() => fetchVenueSuggestions(q), 400);
+    const city = (document.getElementById('city')?.value || '').trim();
+    const query = city ? `${q} ${city}` : q;
+    nominatimTimer = setTimeout(() => fetchVenueSuggestions(query), 400);
   });
 
   input.addEventListener('blur', () => {
@@ -96,18 +97,6 @@ function clearVenue() {
   input.focus();
 }
 
-// ── Mode switcher ─────────────────────────────────────────────────────────────
-function switchMode(mode) {
-  venueMode = (mode === 'venue');
-  document.getElementById('city-field').style.display = venueMode ? 'none' : 'block';
-  document.getElementById('venue-field').style.display = venueMode ? 'block' : 'none';
-  document.getElementById('btn-city').classList.toggle('active', !venueMode);
-  document.getElementById('btn-venue').classList.toggle('active', venueMode);
-  // Update required
-  const cityInput = document.getElementById('city');
-  if (cityInput) cityInput.required = !venueMode;
-}
-
 // ── Haversine distance (km) ───────────────────────────────────────────────────
 function haversineKm(lat1, lng1, lat2, lng2) {
   const R = 6371;
@@ -131,13 +120,12 @@ if (searchForm) {
   searchForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const city    = venueMode ? '' : document.getElementById('city').value.trim();
+    const city    = document.getElementById('city').value.trim();
     const checkin = document.getElementById('checkin').value;
     const checkout= document.getElementById('checkout').value;
     const rooms   = parseInt(document.getElementById('rooms').value);
 
-    if (venueMode && !selectedVenue) { alert('Please select a venue from the suggestions.'); return; }
-    if (!venueMode && !city) { alert('Please fill in all fields.'); return; }
+    if (!city) { alert('Please enter a destination city.'); return; }
     if (!checkin || !checkout || !rooms) { alert('Please fill in all fields.'); return; }
 
     currentParams = { city, checkin, checkout, rooms };
@@ -159,9 +147,9 @@ if (searchForm) {
       currentParams.searchType = dest.search_type;
       currentParams.lat        = dest.latitude || dest.lat || null;
       currentParams.lng        = dest.longitude || dest.lng || null;
-      if (venueMode && selectedVenue) {
-        currentParams.lat = selectedVenue.lat;
-        currentParams.lng = selectedVenue.lng;
+      if (selectedVenue) {
+        currentParams.venueLat  = selectedVenue.lat;
+        currentParams.venueLng  = selectedVenue.lng;
         currentParams.venueName = selectedVenue.name;
       }
 
@@ -176,12 +164,7 @@ if (searchForm) {
 
       // Hotel search
       loadingEl.innerHTML = '<div class="spinner"></div> Finding hotels with availability...';
-      let hotelSearchUrl;
-      if (venueMode && currentParams.lat && currentParams.lng) {
-        hotelSearchUrl = `https://${BOOKING_HOST}/api/v1/hotels/searchHotels?latitude=${currentParams.lat}&longitude=${currentParams.lng}&arrival_date=${checkin}&departure_date=${checkout}&adults=2&room_qty=5&currency_code=CAD&sort_by=popularity`;
-      } else {
-        hotelSearchUrl = `https://${BOOKING_HOST}/api/v1/hotels/searchHotels?dest_id=${dest.dest_id}&search_type=${dest.search_type}&arrival_date=${checkin}&departure_date=${checkout}&adults=2&room_qty=5&currency_code=CAD&sort_by=popularity`;
-      }
+      const hotelSearchUrl = `https://${BOOKING_HOST}/api/v1/hotels/searchHotels?dest_id=${dest.dest_id}&search_type=${dest.search_type}&arrival_date=${checkin}&departure_date=${checkout}&adults=2&room_qty=5&currency_code=CAD&sort_by=popularity`;
       const searchRes  = await fetch(hotelSearchUrl, { headers: HEADERS_BOOKING });
       const searchData = await searchRes.json();
       const hotels     = searchData.data?.hotels?.slice(0, 5);
@@ -189,22 +172,22 @@ if (searchForm) {
 
       loadingEl.style.display = 'none';
 
-      // Sort by distance when in venue mode
+      // Sort by distance if a venue was selected
       let hotelsToShow = hotels;
-      if (venueMode && currentParams.lat && currentParams.lng) {
+      if (currentParams.venueLat && currentParams.venueLng) {
         hotelsToShow = hotels.slice().sort((a, b) => {
           const aLat = a.property.latitude || a.property.lat;
           const aLng = a.property.longitude || a.property.lng || a.property.lon;
           const bLat = b.property.latitude || b.property.lat;
           const bLng = b.property.longitude || b.property.lng || b.property.lon;
           if (!aLat || !bLat) return 0;
-          return haversineKm(currentParams.lat, currentParams.lng, aLat, aLng) -
-                 haversineKm(currentParams.lat, currentParams.lng, bLat, bLng);
+          return haversineKm(currentParams.venueLat, currentParams.venueLng, aLat, aLng) -
+                 haversineKm(currentParams.venueLat, currentParams.venueLng, bLat, bLng);
         });
       }
 
-      const locationLabel = venueMode && currentParams.venueName
-        ? `near <strong>${currentParams.venueName}</strong>`
+      const locationLabel = currentParams.venueName
+        ? `near <strong>${currentParams.venueName}</strong>, ${city}`
         : `in <strong>${city}</strong>`;
 
       resultsGrid.innerHTML = `
@@ -251,10 +234,10 @@ function renderHotelCard(h, params) {
         <span>📍 ${params.venueName || params.city}</span>
         ${price ? `<span>From ${price}</span>` : ''}
       </div>
-      ${params.venueName && (prop.latitude || prop.lat) ? (() => {
+      ${params.venueLat && (prop.latitude || prop.lat) ? (() => {
         const hLat = prop.latitude || prop.lat;
         const hLng = prop.longitude || prop.lng || prop.lon;
-        const km = haversineKm(params.lat, params.lng, hLat, hLng);
+        const km = haversineKm(params.venueLat, params.venueLng, hLat, hLng);
         return `<div><span class="distance-badge">📍 ${km < 1 ? (km*1000).toFixed(0)+' m' : km.toFixed(1)+' km'} from ${params.venueName}</span></div>`;
       })() : ''}
       <div class="providers-table" id="providers-${h.hotel_id}">

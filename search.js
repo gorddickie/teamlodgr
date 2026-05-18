@@ -92,7 +92,10 @@ if (searchForm) {
 // ── Hotel card skeleton ───────────────────────────────────────────────────────
 function renderHotelCard(h, params) {
   const prop  = h.property;
-  const price = prop.priceBreakdown?.grossPrice?.value ? `$${Math.round(prop.priceBreakdown.grossPrice.value)} CAD/night` : '';
+  const rawPrice = prop.priceBreakdown?.grossPrice?.value;
+  const nights = params.checkin && params.checkout ? Math.max(1, (new Date(params.checkout) - new Date(params.checkin)) / 86400000) : 1;
+  const pricePerRoom = rawPrice ? Math.round(rawPrice / (params.rooms || 1) / nights) : null;
+  const price = pricePerRoom ? `$${pricePerRoom} CAD/night` : '';
   const rating= prop.reviewScore ? `${prop.reviewScore}/10` : '';
   const stars = prop.propertyClass ? '★'.repeat(Math.min(prop.propertyClass, 5)) : '';
   const photo = prop.photoUrls?.[0] || '';

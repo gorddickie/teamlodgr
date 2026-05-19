@@ -339,13 +339,14 @@
     if (existing) { bookingId = existing.id; return; }
 
     const payload = {
-      hotel_name:   hotelName,
-      hotel_url:    hotelUrl || null,
-      city:         city || 'Unknown',
-      checkin:      checkin || new Date().toISOString().slice(0, 10),
-      checkout:     checkout || new Date().toISOString().slice(0, 10),
-      rooms_needed: rooms || 1,
-      share_token:  shareToken,
+      hotel_name:    hotelName,
+      hotel_url:     hotelUrl || null,
+      city:          city || 'Unknown',
+      checkin:       checkin || new Date().toISOString().slice(0, 10),
+      checkout:      checkout || new Date().toISOString().slice(0, 10),
+      rooms_needed:  rooms || 1,
+      share_token:   shareToken,
+      affiliate_code: hotelId || null,  // Booking.com hotel_id for live availability
     };
 
     const { data, error } = await db

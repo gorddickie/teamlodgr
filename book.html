@@ -53,6 +53,7 @@
       border-radius: 20px;
       box-shadow: 0 8px 40px rgba(13,27,62,0.12);
       overflow: hidden;
+      margin-bottom: 16px;
     }
 
     /* Card header — navy gradient */
@@ -93,6 +94,123 @@
     /* Card body */
     .card-body { padding: 28px; }
 
+    /* ── Availability search card ── */
+    .avail-card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 8px 40px rgba(13,27,62,0.12);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .avail-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px 14px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .avail-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--navy);
+    }
+    .avail-timestamp {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    /* Spinner */
+    .spinner-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 24px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .spinner {
+      width: 20px; height: 20px;
+      border: 3px solid #e5e7eb;
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Urgency badge */
+    .urgency-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 20px;
+      margin: 0 24px 16px;
+    }
+    .urgency-ok   { background: #dcfce7; color: #16a34a; }
+    .urgency-low  { background: #fff7ed; color: var(--orange); }
+    .urgency-sold { background: #fef2f2; color: var(--red); }
+
+    /* Provider row */
+    .provider-row {
+      display: flex;
+      align-items: center;
+      padding: 14px 24px;
+      border-bottom: 1px solid #f3f4f6;
+      gap: 12px;
+    }
+    .provider-row:last-child { border-bottom: none; }
+    .provider-logo {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--navy);
+      min-width: 90px;
+    }
+    .provider-price {
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: var(--text);
+      flex: 1;
+    }
+    .provider-price small {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .btn-provider {
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn-provider:hover { background: var(--blue-dark); }
+    .btn-provider.secondary {
+      background: transparent;
+      color: var(--blue);
+      border: 1.5px solid var(--blue);
+    }
+    .btn-provider.secondary:hover { background: #eff6ff; }
+
+    /* No availability state */
+    .no-avail {
+      padding: 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .no-avail .icon { font-size: 2rem; margin-bottom: 8px; }
+
     /* CTA button — the hero of the page */
     .btn-book {
       display: block;
@@ -118,7 +236,7 @@
       pointer-events: none;
     }
 
-    /* Urgency / progress row */
+    /* Urgency + progress row */
     .urgency-row {
       display: flex;
       align-items: center;
@@ -259,9 +377,9 @@
 </div>
 
 <div class="page" id="main-content" style="display:none">
-  <div class="card">
 
-    <!-- Header: hotel name + dates -->
+  <!-- Hotel info card -->
+  <div class="card">
     <div class="card-header">
       <div class="card-badge">🏒 Your Team's Hotel</div>
       <div class="hotel-name" id="hotel-name">Loading...</div>
@@ -273,13 +391,7 @@
     </div>
 
     <div class="card-body">
-
-      <!-- THE button — dominant, above everything else -->
-      <a id="btn-book" href="#" target="_blank" rel="noopener" class="btn-book disabled">
-        Book Your Room Now →
-      </a>
-
-      <!-- Urgency + progress — brief, below button -->
+      <!-- Urgency + progress — team booking status -->
       <div class="urgency-row">
         <span class="urgency-pill" id="urgency-pill">⚡ Loading...</span>
         <span class="progress-text" id="progress-text"></span>
@@ -287,10 +399,56 @@
       <div class="progress-track">
         <div class="progress-fill" id="progress-fill" style="width:0%"></div>
       </div>
+    </div>
+  </div>
 
-      <hr class="divider"/>
+  <!-- Live availability card -->
+  <div class="avail-card" id="avail-card">
+    <div class="avail-header">
+      <span class="avail-title">🔍 Live Availability</span>
+      <span class="avail-timestamp" id="avail-timestamp"></span>
+    </div>
 
-      <!-- Confirm booked section -->
+    <!-- Spinner shown while searching -->
+    <div class="spinner-wrap" id="avail-spinner">
+      <div class="spinner"></div>
+      Searching for availability…
+    </div>
+
+    <!-- Results shown after search -->
+    <div id="avail-results" style="display:none">
+      <!-- Urgency badge -->
+      <div id="avail-urgency" class="urgency-badge urgency-ok" style="display:none"></div>
+
+      <!-- Provider rows injected by JS -->
+      <div id="provider-list"></div>
+    </div>
+
+    <!-- No availability fallback -->
+    <div id="avail-none" style="display:none" class="no-avail">
+      <div class="icon">😔</div>
+      <strong>No rooms found on Booking.com</strong><br/>
+      Try one of the alternative booking sites below.
+    </div>
+
+    <!-- Error fallback -->
+    <div id="avail-error" style="display:none" class="no-avail">
+      <div class="icon">⚠️</div>
+      <strong>Couldn't load live pricing</strong><br/>
+      Use the links below to search directly.
+    </div>
+
+    <!-- Alternative providers always shown -->
+    <div id="alt-providers" style="display:none">
+      <div style="padding: 6px 24px 4px; font-size: 0.78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Also available on</div>
+      <div id="alt-provider-list"></div>
+    </div>
+  </div>
+
+  <!-- Confirm booked card -->
+  <div class="card">
+    <div class="card-body">
+      <hr class="divider" style="margin-top:0;"/>
       <p class="confirm-label"><strong>Done booking?</strong> Let your team manager know.</p>
       <div class="input-group">
         <input type="email" id="email-input" placeholder="Your email address" autocomplete="email"/>
@@ -300,26 +458,25 @@
       </button>
       <div class="success-msg" id="success-msg">🎉 Your team manager has been notified!</div>
       <div class="error-msg" id="error-msg">Couldn't find your email on this booking. Double-check and try again.</div>
-
     </div>
   </div>
+
 </div>
 
 <footer>
   <a href="/privacy.html">Privacy</a> &nbsp;·&nbsp; <a href="/terms.html">Terms</a>
 </footer>
 
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/supabase.js"></script>
+
 <script>
-  const SUPABASE_URL = 'https://ehgaopxzfcfrqpupctts.db.co';
-  const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoZ2FvcHh6ZmNmcnFwdXBjdHRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMDM0ODMsImV4cCI6MjA5NDY3OTQ4M30.LPLHW7n7mb7SD1LTbnG3wpkHpF5e8ZrHsNL5tn2osy0';
+  const RAPIDAPI_KEY  = '3173251728msha891fafe5abe622p17d02fjsn272b51fed579';
+  const RAPIDAPI_HOST = 'booking-com15.p.rapidapi.com';
 
-  let bookingId = null;
-
-  function sbFetch(path) {
-    return fetch(`${SUPABASE_URL}/rest/v1${path}`, {
-      headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` }
-    }).then(r => r.json());
-  }
+  let bookingId   = null;
+  let bookingData = null;
 
   function fmtDate(d) {
     if (!d) return '—';
@@ -327,10 +484,141 @@
     return dt.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
+  function nightsBetween(checkin, checkout) {
+    const a = new Date(checkin), b = new Date(checkout);
+    return Math.max(1, Math.round((b - a) / 86400000));
+  }
+
+  function bookingComUrl(hotelId, checkin, checkout) {
+    if (!checkin || !checkout) return `https://www.booking.com/hotel/en/${hotelId}.html`;
+    const [cy, cm, cd] = checkin.split('-');
+    const [oy, om, od] = checkout.split('-');
+    return `https://www.booking.com/hotel/en/${hotelId}.html?checkin_year=${cy}&checkin_month=${parseInt(cm)}&checkin_monthday=${parseInt(cd)}&checkout_year=${oy}&checkout_month=${parseInt(om)}&checkout_monthday=${parseInt(od)}&no_rooms=1&group_adults=2&selected_currency=CAD`;
+  }
+
+  function buildAltUrl(site, hotelName, checkin, checkout) {
+    const name = encodeURIComponent(hotelName);
+    if (!checkin || !checkout) {
+      switch(site) {
+        case 'expedia':    return `https://www.expedia.ca/Hotels/search?q=${name}`;
+        case 'hotels.com': return `https://www.hotels.com/search.do?q-destination=${name}`;
+        case 'agoda':      return `https://www.agoda.com/search?q=${name}`;
+      }
+    }
+    const [cy, cm, cd] = checkin.split('-');
+    const [oy, om, od] = checkout.split('-');
+    switch(site) {
+      case 'expedia':
+        return `https://www.expedia.ca/Hotels/search?q=${name}&startDate=${checkin}&endDate=${checkout}&rooms=1&adults=2`;
+      case 'hotels.com':
+        return `https://www.hotels.com/search.do?q-destination=${name}&q-check-in=${cy}-${cm}-${cd}&q-check-out=${oy}-${om}-${od}&q-rooms=1&q-adults-per-room=1`;
+      case 'agoda':
+        return `https://www.agoda.com/search?q=${name}&checkIn=${checkin}&checkOut=${checkout}&rooms=1&adults=2`;
+    }
+  }
+
+  async function searchAvailability(b) {
+    const hotelId  = b.affiliate_code;  // Booking.com hotel ID stored here
+    const checkin  = b.checkin;
+    const checkout = b.checkout;
+    const nights   = nightsBetween(checkin, checkout);
+
+    const altProviders = [
+      { id: 'expedia',    label: 'Expedia' },
+      { id: 'hotels.com', label: 'Hotels.com' },
+      { id: 'agoda',      label: 'Agoda' },
+    ];
+
+    // Show alt providers right away (they're always available)
+    const altList = document.getElementById('alt-provider-list');
+    altProviders.forEach(p => {
+      const url = buildAltUrl(p.id, b.hotel_name, checkin, checkout);
+      altList.innerHTML += `
+        <div class="provider-row">
+          <span class="provider-logo">${p.label}</span>
+          <span class="provider-price"><small>Search & compare</small></span>
+          <a href="${url}" target="_blank" rel="noopener" class="btn-provider secondary">Search →</a>
+        </div>`;
+    });
+    document.getElementById('alt-providers').style.display = '';
+
+    // If no hotel_id, skip the live query
+    if (!hotelId) {
+      document.getElementById('avail-spinner').style.display = 'none';
+      document.getElementById('avail-error').style.display = '';
+      return;
+    }
+
+    try {
+      const url = new URL(`https://${RAPIDAPI_HOST}/api/v1/hotels/getHotelDetails`);
+      url.searchParams.set('hotel_id',      hotelId);
+      url.searchParams.set('arrival_date',  checkin);
+      url.searchParams.set('departure_date',checkout);
+      url.searchParams.set('adults',        '2');
+      url.searchParams.set('room_qty',      '1');
+      url.searchParams.set('currency_code', 'CAD');
+      url.searchParams.set('languagecode',  'en-us');
+
+      const res  = await fetch(url.toString(), {
+        headers: {
+          'x-rapidapi-host': RAPIDAPI_HOST,
+          'x-rapidapi-key':  RAPIDAPI_KEY,
+        }
+      });
+      const json = await res.json();
+      const data = json.data || {};
+
+      document.getElementById('avail-spinner').style.display = 'none';
+      document.getElementById('avail-results').style.display = '';
+      document.getElementById('avail-timestamp').textContent =
+        'as of ' + new Date().toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' });
+
+      const soldOut      = data.soldout === 1;
+      const roomsAvail   = data.rooms_available ?? null;
+      const grossTotal   = data.product_price_breakdown?.gross_amount?.value ?? null;
+      const perNight     = grossTotal ? Math.round(grossTotal / nights) : null;
+      const isLow        = !soldOut && roomsAvail !== null && roomsAvail < 5;
+
+      // Urgency badge
+      const badge = document.getElementById('avail-urgency');
+      badge.style.display = '';
+      if (soldOut) {
+        badge.className   = 'urgency-badge urgency-sold';
+        badge.textContent = '⚠️ Sold out on Booking.com — try alternatives below';
+      } else if (isLow) {
+        badge.className   = 'urgency-badge urgency-low';
+        badge.textContent = `⚠️ Low availability — only ${roomsAvail} room${roomsAvail === 1 ? '' : 's'} left`;
+      } else {
+        badge.className   = 'urgency-badge urgency-ok';
+        badge.textContent = '✅ Rooms available';
+      }
+
+      if (soldOut) {
+        document.getElementById('avail-none').style.display = '';
+      } else {
+        const providerList = document.getElementById('provider-list');
+        const bookUrl = bookingComUrl(hotelId, checkin, checkout);
+        providerList.innerHTML = `
+          <div class="provider-row">
+            <span class="provider-logo">Booking.com</span>
+            <span class="provider-price">
+              ${perNight ? `$${perNight} CAD<small>/night</small>` : '<small>Check site for price</small>'}
+            </span>
+            <a href="${bookUrl}" target="_blank" rel="noopener" class="btn-provider">Book Now →</a>
+          </div>`;
+      }
+
+    } catch (err) {
+      console.error('Availability fetch failed:', err);
+      document.getElementById('avail-spinner').style.display = 'none';
+      document.getElementById('avail-error').style.display   = '';
+    }
+  }
+
   async function init() {
     const params = new URLSearchParams(location.search);
-    const token = params.get('token');
-    const email = params.get('email');
+    const token  = params.get('token');
+    const email  = params.get('email');
 
     if (email) {
       document.getElementById('email-input').value = decodeURIComponent(email);
@@ -339,49 +627,51 @@
     if (!token) { showError(); return; }
 
     try {
-      // Load group booking
-      const bookings = await sbFetch(
-        `/group_bookings?share_token=eq.${encodeURIComponent(token)}&limit=1&select=id,hotel_name,hotel_url,checkin,checkout,rooms_needed`
-      );
-      if (!bookings || bookings.length === 0) { showError(); return; }
-      const b = bookings[0];
+      // Load group booking via shared Supabase client
+      const { data: bookings, error } = await db
+        .from('group_bookings')
+        .select('id,hotel_name,hotel_url,affiliate_code,checkin,checkout,rooms_needed')
+        .eq('share_token', token)
+        .limit(1);
+
+      if (error || !bookings || bookings.length === 0) { showError(); return; }
+      const b   = bookings[0];
       bookingId = b.id;
+      bookingData = b;
 
       // Load team members for progress
-      const members = await sbFetch(
-        `/team_members?booking_id=eq.${bookingId}&select=booked_at`
-      );
-      const totalMembers = members.length;
-      const bookedCount = members.filter(m => m.booked_at).length;
-      const remaining = Math.max(0, b.rooms_needed - bookedCount);
+      const { data: members } = await db
+        .from('team_members')
+        .select('booked_at')
+        .eq('booking_id', bookingId);
 
-      // Populate UI
-      document.getElementById('hotel-name').textContent = b.hotel_name || 'Your Hotel';
-      document.getElementById('checkin-date').textContent = fmtDate(b.checkin);
+      const totalMembers = (members || []).length;
+      const bookedCount  = (members || []).filter(m => m.booked_at).length;
+      const remaining    = Math.max(0, b.rooms_needed - bookedCount);
+
+      // Populate hotel info
+      document.getElementById('hotel-name').textContent    = b.hotel_name || 'Your Hotel';
+      document.getElementById('checkin-date').textContent  = fmtDate(b.checkin);
       document.getElementById('checkout-date').textContent = fmtDate(b.checkout);
 
-      const btn = document.getElementById('btn-book');
-      const bookUrl = b.hotel_url || `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(b.hotel_name)}&checkin_year=${b.checkin.split('-')[0]}&checkin_month=${parseInt(b.checkin.split('-')[1])}&checkin_monthday=${parseInt(b.checkin.split('-')[2])}&checkout_year=${b.checkout.split('-')[0]}&checkout_month=${parseInt(b.checkout.split('-')[1])}&checkout_monthday=${parseInt(b.checkout.split('-')[2])}&no_rooms=1&group_adults=2&selected_currency=CAD`;
-      btn.href = bookUrl;
-      btn.classList.remove('disabled');
-
-      // Urgency pill
+      // Team progress pill
       const pill = document.getElementById('urgency-pill');
       if (remaining === 0) {
         pill.textContent = '✅ All rooms filled';
         pill.classList.add('sold-out');
       } else {
-        pill.textContent = `⚡ ${remaining} room${remaining === 1 ? '' : 's'} left`;
+        pill.textContent = `⚡ ${remaining} room${remaining === 1 ? '' : 's'} still needed`;
       }
-
-      // Progress
-      const pct = totalMembers > 0 ? Math.round((bookedCount / b.rooms_needed) * 100) : 0;
+      const pct = b.rooms_needed > 0 ? Math.round((bookedCount / b.rooms_needed) * 100) : 0;
       document.getElementById('progress-fill').style.width = Math.min(pct, 100) + '%';
-      document.getElementById('progress-text').textContent =
-        `${bookedCount} of ${b.rooms_needed} booked`;
+      document.getElementById('progress-text').textContent = `${bookedCount} of ${b.rooms_needed} booked`;
 
-      document.getElementById('loading').style.display = 'none';
+      // Show main content
+      document.getElementById('loading').style.display      = 'none';
       document.getElementById('main-content').style.display = 'block';
+
+      // Start live availability search
+      searchAvailability(b);
 
     } catch (e) {
       console.error(e);
@@ -390,45 +680,36 @@
   }
 
   function showError() {
-    document.getElementById('loading').style.display = 'none';
+    document.getElementById('loading').style.display    = 'none';
     document.getElementById('error-state').style.display = 'block';
   }
 
   async function markBooked() {
-    const email = document.getElementById('email-input').value.trim();
-    const btn = document.getElementById('btn-confirm');
+    const email     = document.getElementById('email-input').value.trim();
+    const btn       = document.getElementById('btn-confirm');
     const successMsg = document.getElementById('success-msg');
-    const errorMsg = document.getElementById('error-msg');
+    const errorMsg  = document.getElementById('error-msg');
 
     if (!email || !bookingId) return;
 
-    btn.disabled = true;
+    btn.disabled    = true;
     btn.textContent = 'Saving...';
     errorMsg.classList.remove('show');
 
     try {
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/team_members?booking_id=eq.${bookingId}&email=eq.${encodeURIComponent(email)}`,
-        {
-          method: 'PATCH',
-          headers: {
-            apikey: ANON_KEY,
-            Authorization: `Bearer ${ANON_KEY}`,
-            'Content-Type': 'application/json',
-            Prefer: 'return=representation',
-          },
-          body: JSON.stringify({ booked_at: new Date().toISOString() }),
-        }
-      );
-      const data = await res.json();
-      if (!res.ok || !data || data.length === 0) {
-        throw new Error('no match');
-      }
+      const { data, error } = await db
+        .from('team_members')
+        .update({ booked_at: new Date().toISOString() })
+        .eq('booking_id', bookingId)
+        .eq('email', email)
+        .select();
+
+      if (error || !data || data.length === 0) throw new Error('no match');
+
       btn.style.display = 'none';
-      document.getElementById('input-group') && (document.getElementById('input-group').style.display = 'none');
       successMsg.classList.add('show');
     } catch (e) {
-      btn.disabled = false;
+      btn.disabled    = false;
       btn.textContent = "✅ I've Booked My Room";
       errorMsg.classList.add('show');
     }

@@ -213,7 +213,8 @@ function renderHotelCard(h, params) {
   const prop  = h.property;
   const rawPrice = prop.priceBreakdown?.grossPrice?.value;
   const nights = params.checkin && params.checkout ? Math.max(1, (new Date(params.checkout) - new Date(params.checkin)) / 86400000) : 1;
-  const pricePerRoom = rawPrice ? Math.round(rawPrice / nights) : null;
+  const rooms = params.rooms ? Math.max(1, parseInt(params.rooms)) : 1;
+  const pricePerRoom = rawPrice ? Math.round(rawPrice / nights / rooms) : null;
   const price = pricePerRoom ? `$${pricePerRoom} CAD/night` : '';
   const rating= prop.reviewScore ? `${prop.reviewScore}/10` : '';
   const stars = prop.propertyClass ? '★'.repeat(Math.min(prop.propertyClass, 5)) : '';

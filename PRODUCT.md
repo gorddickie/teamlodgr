@@ -1,11 +1,11 @@
 # TeamLodgr — Product Reference
 
 ## What It Does
-Group hotel booking for sports teams. A Team Manager searches for hotels, picks the best option, and shares a link. Each Team Member books their own room through their preferred booking site — dates and hotel are pre-filled.
+Group hotel booking for sports teams. A Organizer searches for hotels, picks the best option, and shares a link. Each Team Member books their own room through their preferred booking site — dates and hotel are pre-filled.
 
 ## User Types
 
-### 🧑‍💼 Team Manager
+### 🧑‍💼 Organizer
 - Searches for hotels by city, dates, and number of rooms needed
 - Picks the best hotel from the results
 - Sends invite links to team members via email
@@ -14,7 +14,7 @@ Group hotel booking for sports teams. A Team Manager searches for hotels, picks 
 - Identified by `organizer_email` — no account required
 
 ### 👤 Team Member
-- Receives an email invite link from the Team Manager
+- Receives an email invite link from the Organizer
 - Lands on TeamLodgr share page — sees the hotel, dates, and booking options
 - Clicks through to book their own 1 room on their preferred provider (Booking.com, Hotels.com, etc.) with dates pre-filled
 - Clicks "I've Booked" to mark themselves as booked and notify other team members

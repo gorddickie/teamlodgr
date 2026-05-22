@@ -222,9 +222,96 @@
     .footer a { color: var(--blue); text-decoration: none; font-weight: 600; }
     .footer-links a { color: #9ca3af; }
 
+    /* ── Provider booking buttons ── */
+    .book-your-room {
+      background: white;
+      border-radius: 16px;
+      padding: 28px 32px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+      margin-bottom: 24px;
+    }
+    .book-your-room h2 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+    .book-your-room .sub {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .hotel-summary {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--gray);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 20px;
+    }
+    .hotel-summary img {
+      width: 72px;
+      height: 72px;
+      object-fit: cover;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .hotel-summary-name {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 4px;
+    }
+    .hotel-summary-dates {
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .provider-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--gray);
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 10px;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+      cursor: pointer;
+    }
+    .provider-btn:hover {
+      border-color: var(--blue);
+      background: #f0f5ff;
+    }
+    .provider-btn-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .provider-btn-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--navy);
+    }
+    .provider-btn-price {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .provider-btn-action {
+      background: var(--blue);
+      color: white;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 7px 16px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
     @media (max-width: 500px) {
       .section-card { padding: 22px 18px; }
       .hotel-card   { padding: 22px 18px; }
+      .book-your-room { padding: 22px 18px; }
       .booked-row   { flex-direction: column; }
     }
   </style>
@@ -238,11 +325,19 @@
 
 <!-- ── Hero ── -->
 <div class="hero">
-  <h1>Notify Your Team</h1>
+  <h1 id="hero-title">Your Team Hotel</h1>
   <p class="hero-subtitle" id="hero-subtitle" style="display:none;"></p>
 </div>
 
 <div class="main">
+
+  <!-- ── Book Your Room (team member view) ── -->
+  <div class="book-your-room" id="book-your-room" style="display:none;">
+    <h2>🛏️ Book Your Room</h2>
+    <p class="sub">Your organizer has picked this hotel. Click your preferred site to book — dates are pre-filled, just for you.</p>
+    <div class="hotel-summary" id="book-hotel-summary"></div>
+    <div id="book-providers"></div>
+  </div>
 
   <!-- ── Notify Form ── -->
   <div class="section-card">
@@ -312,12 +407,61 @@
   let currentProviders = [];
   try { currentProviders = JSON.parse(decodeURIComponent(params.get('providers') || '[]')); } catch(e) { currentProviders = []; }
 
-  // ── Populate UI ───────────────────────────────────────────────────────────
-  document.getElementById('hero-subtitle').textContent  = hotelName;
+  // ── Fix provider URLs: rewrite to 1 room per person ──────────────────────
+  function fixProviderUrl(p) {
+    let url = p.url || '';
+    // Hotels.com: q-rooms=N → q-rooms=1
+    url = url.replace(/q-rooms=\d+/, 'q-rooms=1');
+    // Kayak: /Nrooms/ → /1rooms/
+    url = url.replace(/\/\d+rooms\//, '/1rooms/');
+    // Trivago: roomsCount=N → roomsCount=1
+    url = url.replace(/roomsCount=\d+/, 'roomsCount=1');
+    // Expedia: &rooms=N → &rooms=1
+    url = url.replace(/([?&]rooms)=\d+/, '$1=1');
+    // Booking.com: no_rooms=N → no_rooms=1
+    url = url.replace(/no_rooms=\d+/, 'no_rooms=1');
+    // room_qty=N → room_qty=1
+    url = url.replace(/room_qty=\d+/, 'room_qty=1');
+    return { ...p, url };
+  }
+  const providers1Room = currentProviders.map(fixProviderUrl);
 
+  // ── Populate UI ───────────────────────────────────────────────────────────
+  document.getElementById('hero-subtitle').textContent = hotelName;
+
+  const ci = checkin  ? new Date(checkin  + 'T00:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+  const co = checkout ? new Date(checkout + 'T00:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+
+  // ── Show booking options for team members ─────────────────────────────────
+  if (providers1Room.length > 0) {
+    document.getElementById('hero-title').textContent = '🏨 Book Your Room';
+    document.getElementById('book-your-room').style.display = 'block';
+
+    document.getElementById('book-hotel-summary').innerHTML = `
+      ${hotelPhoto ? `<img src="${hotelPhoto}" alt="${hotelName}" onerror="this.style.display='none'"/>` : ''}
+      <div>
+        <div class="hotel-summary-name">${hotelName}</div>
+        <div class="hotel-summary-dates">📅 ${ci} → ${co} &nbsp;·&nbsp; ${city}</div>
+      </div>
+    `;
+
+    const providerIcons = { 'Booking.com': '🔵', 'Hotels.com': '🔴', 'Expedia': '🟡', 'Priceline': '🟢', 'Agoda': '🟠', 'Kayak': '🟠', 'Trivago': '⚪' };
+    document.getElementById('book-providers').innerHTML = providers1Room.map(p => `
+      <a href="${p.url}" target="_blank" rel="noopener" class="provider-btn">
+        <div class="provider-btn-left">
+          <span style="font-size:1.4rem;">${providerIcons[p.name] || '🏨'}</span>
+          <div>
+            <div class="provider-btn-name">${p.name}</div>
+            ${p.price ? `<div class="provider-btn-price">${p.price}/night</div>` : ''}
+          </div>
+        </div>
+        <span class="provider-btn-action">Book 1 Room →</span>
+      </a>
+    `).join('');
+  }
+
+  // ── Trip details summary (organizer section) ───────────────────────────────
   if (checkin && checkout && rooms) {
-    const ci = new Date(checkin).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
-    const co = new Date(checkout).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
     document.getElementById('trip-details').innerHTML =
       `<div style="background:#f4f6fa;border-radius:12px;overflow:hidden;margin-bottom:4px;display:flex;align-items:center;gap:14px;padding:12px 14px;">
         ${hotelPhoto ? `<img src="${hotelPhoto}" alt="${hotelName}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;flex-shrink:0;" onerror="this.style.display='none'"/>` : ''}

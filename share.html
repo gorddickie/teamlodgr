@@ -412,6 +412,10 @@
     let url = p.url || '';
     // Hotels.com: q-rooms=N → q-rooms=1
     url = url.replace(/q-rooms=\d+/, 'q-rooms=1');
+    // Hotels.com: wrap with CJ affiliate tracking
+    if (p.name === 'Hotels.com' && url.includes('hotels.com')) {
+      url = 'https://www.dpbolvw.net/click-7635804-1702763?url=' + encodeURIComponent(url);
+    }
     // Kayak: /Nrooms/ → /1rooms/
     url = url.replace(/\/\d+rooms\//, '/1rooms/');
     // Trivago: roomsCount=N → roomsCount=1

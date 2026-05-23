@@ -394,7 +394,7 @@ async function loadProviderAvailability(h, params) {
         url: `https://www.expedia.ca/Hotel-Search?destination=${encodeURIComponent(h.property.name + ' ' + params.city)}&startDate=${params.checkin}&endDate=${params.checkout}&rooms=${params.rooms}&adults=2`,
       },
       {
-        name: 'Hotels.com', icon: '🔴', available: null, tier: null, price: null,
+        name: 'Hotels.com', icon: '🔴', available: true, tier: null, price: null,
         url: `https://www.hotels.com/search.do?q-destination=${encodeURIComponent(h.property.name + ' ' + params.city)}&q-check-in=${params.checkin}&q-check-out=${params.checkout}&q-rooms=${params.rooms}`,
       },
       {

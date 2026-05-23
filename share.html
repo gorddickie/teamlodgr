@@ -436,8 +436,9 @@
   const ci = checkin  ? new Date(checkin  + 'T00:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
   const co = checkout ? new Date(checkout + 'T00:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
 
-  // ── Show booking options for team members ─────────────────────────────────
-  if (providers1Room.length > 0) {
+  // ── Show booking options for team members (only when arriving via email link) ──
+  const isTeamMember = params.get('email') || params.get('member');
+  if (isTeamMember && providers1Room.length > 0) {
     document.getElementById('hero-title').textContent = '🏨 Book Your Room';
     document.getElementById('book-your-room').style.display = 'block';
 

@@ -214,7 +214,7 @@ function renderHotelCard(h, params) {
   const rawPrice = prop.priceBreakdown?.grossPrice?.value;
   const nights = params.checkin && params.checkout ? Math.max(1, (new Date(params.checkout) - new Date(params.checkin)) / 86400000) : 1;
   const rooms = params.rooms ? Math.max(1, parseInt(params.rooms)) : 1;
-  const pricePerRoom = rawPrice ? Math.round(rawPrice / nights / rooms) : null;
+  const pricePerRoom = rawPrice ? Math.round(rawPrice / nights / 5) : null; // search uses room_qty=5
   const price = pricePerRoom ? `$${pricePerRoom} CAD/night` : '';
   const rating= prop.reviewScore ? `${prop.reviewScore}/10` : '';
   const stars = prop.propertyClass ? '★'.repeat(Math.min(prop.propertyClass, 5)) : '';
@@ -423,7 +423,7 @@ async function loadProviderAvailability(h, params) {
         <div class="provider-row ${p.available ? 'has-count' : ''}">
           <span class="provider-name">${p.icon} ${p.name}</span>
           <span class="provider-rooms ${p.available ? 'avail' : 'unknown'}">
-            ${p.available ? `✅ At least ${p.tier} rooms available` : '<span class="check-site">Check site</span>'}
+            ${p.available ? (p.tier ? `✅ At least ${p.tier} rooms available` : '✅ Available') : '<span class="check-site">Check site</span>'}
           </span>
           <span class="provider-price">${p.price || '<span style="color:#9ca3af;font-size:0.82rem;">See site</span>'}</span>
 

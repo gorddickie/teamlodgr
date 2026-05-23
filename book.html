@@ -501,7 +501,7 @@
     if (!checkin || !checkout) {
       switch(site) {
         case 'expedia':    return `https://www.expedia.ca/Hotels/search?q=${name}`;
-        case 'hotels.com': return `https://www.hotels.com/search.do?q-destination=${name}`;
+        case 'hotels.com': return `https://www.dpbolvw.net/click-7635804-1702763?url=${encodeURIComponent('https://www.hotels.com/search.do?q-destination=' + name)}`;
         case 'agoda':      return `https://www.agoda.com/search?q=${name}`;
       }
     }
@@ -510,8 +510,10 @@
     switch(site) {
       case 'expedia':
         return `https://www.expedia.ca/Hotels/search?q=${name}&startDate=${checkin}&endDate=${checkout}&rooms=1&adults=2`;
-      case 'hotels.com':
-        return `https://www.hotels.com/search.do?q-destination=${name}&q-check-in=${cy}-${cm}-${cd}&q-check-out=${oy}-${om}-${od}&q-rooms=1&q-adults-per-room=1`;
+      case 'hotels.com': {
+        const hotelsUrl = `https://www.hotels.com/search.do?q-destination=${name}&q-check-in=${cy}-${cm}-${cd}&q-check-out=${oy}-${om}-${od}&q-rooms=1&q-adults-per-room=1`;
+        return `https://www.dpbolvw.net/click-7635804-1702763?url=${encodeURIComponent(hotelsUrl)}`;
+      }
       case 'agoda':
         return `https://www.agoda.com/search?q=${name}&checkIn=${checkin}&checkOut=${checkout}&rooms=1&adults=2`;
     }

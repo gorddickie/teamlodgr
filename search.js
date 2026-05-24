@@ -131,17 +131,14 @@ if (searchForm) {
     currentParams = { city, checkin, checkout, rooms };
 
     resultsSection.style.display = 'block';
-    loadingEl.style.display = 'flex';
     resultsGrid.innerHTML = '';
-    resultsSection.scrollIntoView({ behavior: 'smooth' });
-    // Reset steps
-    ['step-dest','step-hotels','step-prices'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) { el.classList.remove('active','done'); el.style.opacity='0.35'; }
-    });
-    const stepActive = id => { const el=document.getElementById(id); if(el){el.style.opacity='1';el.classList.add('active');} };
-    const stepDone   = id => { const el=document.getElementById(id); if(el){el.classList.remove('active');el.classList.add('done');} };
-    stepActive('step-dest');
+    const overlay = document.getElementById('search-overlay');
+    const overlayTitle = document.getElementById('overlay-title');
+    const overlaySub   = document.getElementById('overlay-sub');
+    if (overlay) overlay.classList.add('active');
+    const stepActive = (msg, sub) => { if(overlayTitle) overlayTitle.textContent = msg; if(overlaySub && sub) overlaySub.textContent = sub; };
+    const stepDone   = () => {};
+    stepActive('Finding hotels with availability...', 'Searching Booking.com, Agoda, Hotels.com and more');
 
     try {
       // Destination lookup
@@ -160,7 +157,7 @@ if (searchForm) {
         currentParams.venueName = selectedVenue.name;
       }
 
-      stepDone('step-dest'); stepActive('step-hotels');
+      stepActive('Finding hotels with availability...', 'Checking room availability for your group size');
       // Fetch Priceline + Agoda location IDs — wait for both before proceeding
       pricelineCache = {};
       const [plLoc, agodaLoc] = await Promise.allSettled([
@@ -171,14 +168,14 @@ if (searchForm) {
       if (agodaLoc.status === 'fulfilled') { const p = agodaLoc.value.places?.find(p => p.typeId === 1); if (p) currentParams.agodaCityId = p.id; }
 
       // Hotel search
-      stepDone('step-hotels'); stepActive('step-prices');
+      stepActive('Checking prices across providers...', 'Getting the best rates from Booking.com, Agoda and more');
       const hotelSearchUrl = `https://${BOOKING_HOST}/api/v1/hotels/searchHotels?dest_id=${dest.dest_id}&search_type=${dest.search_type}&arrival_date=${checkin}&departure_date=${checkout}&adults=2&room_qty=5&currency_code=CAD&sort_by=popularity`;
       const searchRes  = await fetch(hotelSearchUrl, { headers: HEADERS_BOOKING });
       const searchData = await searchRes.json();
       const hotels     = searchData.data?.hotels?.slice(0, 5);
       if (!hotels?.length) { showError('No hotels found. Try different dates or city.'); return; }
 
-      stepDone('step-prices');
+      if (overlay) overlay.classList.remove('active');
       loadingEl.style.display = 'none';
 
       // Sort by distance if a venue was selected
@@ -493,6 +490,8 @@ function copyShareLink(url, btn) {
 }
 
 function showError(msg) {
+  const overlay = document.getElementById('search-overlay');
+  if (overlay) overlay.classList.remove('active');
   loadingEl.style.display = 'none';
   resultsGrid.innerHTML = `<p style="color:#e74c3c;padding:20px 0;font-weight:600;">${msg}</p>`;
 }

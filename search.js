@@ -132,9 +132,16 @@ if (searchForm) {
 
     resultsSection.style.display = 'block';
     loadingEl.style.display = 'flex';
-    loadingEl.innerHTML = '<div class="spinner"></div> Searching hotels in ' + city + '...';
     resultsGrid.innerHTML = '';
     resultsSection.scrollIntoView({ behavior: 'smooth' });
+    // Reset steps
+    ['step-dest','step-hotels','step-prices'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.classList.remove('active','done'); el.style.opacity='0.35'; }
+    });
+    const stepActive = id => { const el=document.getElementById(id); if(el){el.style.opacity='1';el.classList.add('active');} };
+    const stepDone   = id => { const el=document.getElementById(id); if(el){el.classList.remove('active');el.classList.add('done');} };
+    stepActive('step-dest');
 
     try {
       // Destination lookup
@@ -153,6 +160,7 @@ if (searchForm) {
         currentParams.venueName = selectedVenue.name;
       }
 
+      stepDone('step-dest'); stepActive('step-hotels');
       // Fetch Priceline + Agoda location IDs — wait for both before proceeding
       pricelineCache = {};
       const [plLoc, agodaLoc] = await Promise.allSettled([
@@ -163,13 +171,14 @@ if (searchForm) {
       if (agodaLoc.status === 'fulfilled') { const p = agodaLoc.value.places?.find(p => p.typeId === 1); if (p) currentParams.agodaCityId = p.id; }
 
       // Hotel search
-      loadingEl.innerHTML = '<div class="spinner"></div> Finding hotels with availability...';
+      stepDone('step-hotels'); stepActive('step-prices');
       const hotelSearchUrl = `https://${BOOKING_HOST}/api/v1/hotels/searchHotels?dest_id=${dest.dest_id}&search_type=${dest.search_type}&arrival_date=${checkin}&departure_date=${checkout}&adults=2&room_qty=5&currency_code=CAD&sort_by=popularity`;
       const searchRes  = await fetch(hotelSearchUrl, { headers: HEADERS_BOOKING });
       const searchData = await searchRes.json();
       const hotels     = searchData.data?.hotels?.slice(0, 5);
       if (!hotels?.length) { showError('No hotels found. Try different dates or city.'); return; }
 
+      stepDone('step-prices');
       loadingEl.style.display = 'none';
 
       // Sort by distance if a venue was selected

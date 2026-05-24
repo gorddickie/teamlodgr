@@ -532,9 +532,15 @@
   <div style="max-width:960px; margin:0 auto;">
     <h2 style="font-size:1.4rem; font-weight:800; color:#0d1b3e; margin-bottom:8px;">Top Hotels for Your Group</h2>
     <p style="color:#6b7280; margin-bottom:28px; font-size:0.95rem;">Showing hotels with enough rooms for your entire team. Pick one and share the link.</p>
-    <div id="loading" style="display:flex; align-items:center; gap:12px; color:#6b7280; padding:40px 0;">
-      <div style="width:24px;height:24px;border:3px solid #1a6fd4;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-      Searching across Expedia, Booking.com, Kayak and more...
+    <div id="loading" style="display:none; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; text-align:center;">
+      <div style="width:52px;height:52px;border:5px solid #e0e7ef;border-top-color:#1a6fd4;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:24px;"></div>
+      <div id="loading-title" style="font-size:1.15rem;font-weight:700;color:#0d1b3e;margin-bottom:8px;">Searching for hotels...</div>
+      <div id="loading-sub" style="font-size:0.9rem;color:#6b7280;">Checking availability across Booking.com, Agoda, Hotels.com and more</div>
+      <div id="loading-steps" style="margin-top:20px;display:flex;flex-direction:column;gap:8px;width:100%;max-width:320px;">
+        <div class="load-step" id="step-dest">🔍 Looking up destination...</div>
+        <div class="load-step" id="step-hotels" style="opacity:0.35;">🏨 Finding available hotels...</div>
+        <div class="load-step" id="step-prices" style="opacity:0.35;">💰 Checking prices across providers...</div>
+      </div>
     </div>
     <div id="results-grid"></div>
   </div>
@@ -542,6 +548,9 @@
 
 <style>
   @keyframes spin { to { transform: rotate(360deg); } }
+  .load-step { font-size:0.88rem; color:#374151; background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:10px 16px; text-align:left; transition: opacity 0.4s, border-color 0.3s; }
+  .load-step.active { opacity:1 !important; border-color:#1a6fd4; color:#1a6fd4; font-weight:600; }
+  .load-step.done { opacity:1 !important; color:#16a34a; border-color:#bbf7d0; }
   .hotel-card {
     background: white;
     border-radius: 16px;

@@ -46,3 +46,12 @@ Group hotel booking for sports teams. A Organizer searches for hotels, picks the
 - Hotels.com (1702763): applied May 21, 2026
 - Expedia Canada (5261370): applied May 21, 2026
 - Each provider deeplink uses `rooms=1` for individual team member booking
+
+
+## Next Steps (as of May 24, 2026)
+- [ ] Sign up for **Rakuten Advertising** (rakuten.com/publish) — needed for Marriott + Hilton affiliate links
+- [ ] Apply to **Marriott** affiliate program on Rakuten
+- [ ] Apply to **Hilton** affiliate program on Rakuten
+- [ ] Apply to **Booking.com** on CJ — opens June 1, 2026
+- [ ] Build "I've Booked ✅" button on book.html + /api/booked.js
+- [ ] Check Expedia Canada CJ approval status

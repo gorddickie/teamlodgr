@@ -131,7 +131,7 @@ if (searchForm) {
     currentParams = { city, checkin, checkout, rooms };
 
     resultsSection.style.display = 'block';
-    resultsSection.scrollIntoView({ behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     // Hide nav + search form so organizer can focus on results
     const mainNav = document.getElementById('main-nav');
     if (mainNav) mainNav.style.display = 'none';
@@ -447,7 +447,7 @@ function renderSerpHotelCard(h, params) {
         const km = haversineKm(params.venueLat, params.venueLng, h.lat, h.lng);
         return `<div><span class="distance-badge">📍 ${km < 1 ? (km*1000).toFixed(0)+' meters' : km.toFixed(1)+' km'} from ${params.venueName}</span></div>`;
       })() : ''}
-      <div id="team-banner-${hotelId}" style="margin-bottom:12px;padding:10px 14px;background:#f9fafb;border-radius:8px;font-size:0.9rem;color:#6b7280;">⏳ Checking room availability for your team...</div>
+      <div id="team-banner-${hotelId}" style="margin-bottom:12px;padding:10px 14px;background:#f9fafb;border-radius:8px;font-size:0.9rem;color:#6b7280;" class="checking-pulse">⏳ Checking room availability for your team...</div>
       <div class="providers-table" id="providers-table-${hotelId}" style="display:none;">
         <div class="providers-header">
           <span>Booking Site</span><span>Availability</span><span>Price/night</span>
@@ -485,6 +485,7 @@ function renderSerpHotelCard(h, params) {
       } else {
         // Sufficient rooms confirmed — show table + banner
         if (tableEl) tableEl.style.display = '';
+        if (banner) banner.classList.remove('checking-pulse');
         if (banner) {
           const parts = [];
           if (avail.bookingRooms > 0) parts.push(`Booking.com: ${avail.bookingRooms}`);

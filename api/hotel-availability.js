@@ -46,21 +46,17 @@ module.exports = async (req, res) => {
 
     const hotelId = match.hotel_id;
 
-    // Step 4: Check tiered availability
-    const results = await Promise.all(TIERS.map(tier =>
-      fetch(
-        `https://${BOOKING_HOST}/api/v1/hotels/getHotelDetails?hotel_id=${hotelId}&arrival_date=${checkin}&departure_date=${checkout}&adults=2&room_qty=${tier}&currency_code=CAD&languagecode=en-us`,
-        { headers: HEADERS }
-      ).then(r => r.json()).catch(() => null)
-    ));
+    // Step 4: Check availability at 20 rooms (highest tier)
+    const detailRes = await fetch(
+      `https://${BOOKING_HOST}/api/v1/hotels/getHotelDetails?hotel_id=${hotelId}&arrival_date=${checkin}&departure_date=${checkout}&adults=2&room_qty=20&currency_code=CAD&languagecode=en-us`,
+      { headers: HEADERS }
+    ).then(r => r.json()).catch(() => null);
 
-    for (let i = 0; i < TIERS.length; i++) {
-      const data = results[i]?.data;
-      if (!data) continue;
-      if (data.soldout === 1) return res.json({ available: false, rooms: 0 });
-      const roomsAvail = data.rooms_available ?? null;
-      return res.json({ available: true, tier: TIERS[i], rooms: roomsAvail, hotelId });
-    }
+    const data = detailRes?.data;
+    if (!data) return res.json({ available: false, rooms: null });
+    if (data.soldout === 1) return res.json({ available: false, rooms: 0 });
+    const roomsAvail = data.rooms_available ?? null;
+    return res.json({ available: true, tier: 20, rooms: roomsAvail, hotelId });
 
     return res.json({ available: false, rooms: null });
 

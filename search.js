@@ -447,6 +447,7 @@ function renderSerpHotelCard(h, params) {
   fetch(`/api/hotel-availability?name=${encodeURIComponent(h.name)}&city=${encodeURIComponent(params.city)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}`)
     .then(r => r.json())
     .then(avail => {
+      console.log('[Availability]', h.name, avail);
       providers.forEach(p => {
         const el = document.getElementById(`avail-${hotelId}-${p.name.replace(/\s/g,'')}`);
         if (!el) return;

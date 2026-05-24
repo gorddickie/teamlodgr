@@ -413,7 +413,6 @@ function renderSerpHotelCard(h, params) {
     { name: 'Hotels.com',  icon: '🔴', price: price, url: hotelsUrl },
     { name: 'Expedia',     icon: '🟡', price: price, url: expediaUrl },
     { name: 'Agoda',       icon: '🟢', price: null,  url: agodaUrl  },
-    { name: 'Kayak',       icon: '🟠', price: null,  url: kayakUrl  },
   ];
   if (brandUrl) providers.unshift({ name: 'Book Direct', icon: '🏨', price: price, url: brandUrl });
 
@@ -456,7 +455,7 @@ function renderSerpHotelCard(h, params) {
           <div class="provider-row has-count">
             <span class="provider-name">${p.icon} ${p.name}</span>
             <span class="provider-rooms avail" id="avail-${hotelId}-${p.name.replace(/\s/g,'')}">⏳</span>
-            <span class="provider-price">${p.price || '<span style="color:#9ca3af;font-size:0.82rem;">See site</span>'}</span>
+            <span class="provider-price">${p.price || ''}</span>
           </div>
         `).join('')}
       </div>

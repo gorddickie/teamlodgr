@@ -30,7 +30,7 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { bookingId, shareToken, members, hotelName, checkin, checkout, shareUrl, baseUrl } = req.body;
+  const { bookingId, shareToken, members, hotelName, hotelPhoto, checkin, checkout, shareUrl, baseUrl } = req.body;
 
   if (!bookingId || !members || !Array.isArray(members) || members.length === 0) {
     return res.status(400).json({ error: 'Missing required fields: bookingId, members' });
@@ -79,11 +79,14 @@ module.exports = async (req, res) => {
 
     <!-- Message -->
     <tr><td style="padding:32px 0 28px;">
-      <p style="margin:0 0 20px;font-size:17px;color:#111827;line-height:1.5;">
+      ${hotelPhoto ? `<img src="${hotelPhoto}" alt="${hotelName || 'Hotel'}" style="display:block;width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-bottom:20px;">` : ''}
+      <p style="margin:0 0 8px;font-size:17px;color:#111827;line-height:1.5;">
         A hotel has been selected for
         ${tournament ? `<strong>${tournament}</strong>` : 'your team'}.
       </p>
-      <a href="${playerLink}" style="display:block;background:#0d1b3e;color:#ffffff;text-decoration:none;text-align:center;font-size:18px;font-weight:700;padding:18px 24px;border-radius:8px;">Click Here to Book</a>
+      ${hotelName ? `<p style="margin:0 0 8px;font-size:22px;font-weight:700;color:#0d1b3e;">${hotelName}</p>` : ''}
+      ${checkin && checkout ? `<p style="margin:0 0 20px;font-size:15px;color:#6b7280;">📅 ${checkin} → ${checkout}</p>` : ''}
+      <a href="${playerLink}" style="display:block;background:#0d1b3e;color:#ffffff;text-decoration:none;text-align:center;font-size:18px;font-weight:700;padding:18px 24px;border-radius:8px;">Book Your Room</a>
     </td></tr>
 
     <!-- Footer -->

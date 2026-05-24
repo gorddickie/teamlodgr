@@ -21,7 +21,6 @@ module.exports = async (req, res) => {
     currency:      'CAD',
     gl:            'ca',
     hl:            'en',
-    property_types: '11,12,13,14,18,19,20', // hotels, motels, resorts, inns only
     api_key:       apiKey,
   });
 

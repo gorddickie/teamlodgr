@@ -572,6 +572,7 @@
       const data = json.data || {};
 
       document.getElementById('avail-spinner').style.display = 'none';
+      document.getElementById('avail-error').style.display   = 'none';
       document.getElementById('avail-results').style.display = '';
       document.getElementById('avail-timestamp').textContent =
         'as of ' + new Date().toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' });

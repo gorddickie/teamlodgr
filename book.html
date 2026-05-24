@@ -472,8 +472,19 @@
 <script src="/supabase.js"></script>
 
 <script>
-  const RAPIDAPI_KEY  = '3173251728msha891fafe5abe622p17d02fjsn272b51fed579';
-  const RAPIDAPI_HOST = 'booking-com15.p.rapidapi.com';
+  const RAPIDAPI_KEY      = '3173251728msha891fafe5abe622p17d02fjsn272b51fed579';
+  const RAPIDAPI_HOST     = 'booking-com15.p.rapidapi.com';
+  const AGODA_HOST        = 'agoda-com.p.rapidapi.com';
+  const HEADERS_BOOKING   = { 'x-rapidapi-host': RAPIDAPI_HOST, 'x-rapidapi-key': RAPIDAPI_KEY };
+  const HEADERS_AGODA     = { 'x-rapidapi-host': AGODA_HOST,    'x-rapidapi-key': RAPIDAPI_KEY };
+
+  function fuzzyScore(a, b) {
+    const norm = s => (s||'').toLowerCase().replace(/\b(hotel|the|inn|suites|suite|resort|and|by|at)\b/g,'').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+    const wa = norm(a).split(' ').filter(w=>w.length>2);
+    const wb = norm(b).split(' ').filter(w=>w.length>2);
+    if (!wa.length || !wb.length) return 0;
+    return Math.round((wa.filter(w=>wb.includes(w)).length / Math.max(wa.length,wb.length))*100);
+  }
 
   let bookingId   = null;
   let bookingData = null;
@@ -521,44 +532,13 @@
   }
 
   async function searchAvailability(b) {
-    const hotelId  = b.affiliate_code;  // Booking.com hotel ID stored here
+    const hotelId  = b.affiliate_code;
     const checkin  = b.checkin;
     const checkout = b.checkout;
+    const city     = b.city;
+    const hotelName = b.hotel_name;
     const nights   = nightsBetween(checkin, checkout);
 
-    // Use saved providers from original search (with prices), or fall back to defaults
-    const savedProviders = b.providers || [];
-    const altList = document.getElementById('alt-provider-list');
-
-    if (savedProviders.length > 0) {
-      savedProviders.forEach(p => {
-        altList.innerHTML += `
-          <div class="provider-row">
-            <span class="provider-logo">${p.name}</span>
-            <span class="provider-price">${p.price ? `<strong>${p.price}</strong><small>/night</small>` : ''}</span>
-            <a href="${p.url}" target="_blank" rel="noopener" class="btn-provider">Book Now →</a>
-          </div>`;
-      });
-    } else {
-      // Fallback if no providers saved
-      const defaults = [
-        { label: 'Expedia',    id: 'expedia' },
-        { label: 'Hotels.com', id: 'hotels.com' },
-        { label: 'Agoda',      id: 'agoda' },
-      ];
-      defaults.forEach(p => {
-        const url = buildAltUrl(p.id, b.hotel_name, checkin, checkout);
-        altList.innerHTML += `
-          <div class="provider-row">
-            <span class="provider-logo">${p.label}</span>
-            <span class="provider-price"></span>
-            <a href="${url}" target="_blank" rel="noopener" class="btn-provider">Book Now →</a>
-          </div>`;
-      });
-    }
-    document.getElementById('alt-providers').style.display = '';
-
-    // If no hotel_id, skip the live query
     if (!hotelId) {
       document.getElementById('avail-spinner').style.display = 'none';
       document.getElementById('avail-error').style.display = '';
@@ -566,23 +546,38 @@
     }
 
     try {
-      const url = new URL(`https://${RAPIDAPI_HOST}/api/v1/hotels/getHotelDetails`);
-      url.searchParams.set('hotel_id',      hotelId);
-      url.searchParams.set('arrival_date',  checkin);
-      url.searchParams.set('departure_date',checkout);
-      url.searchParams.set('adults',        '2');
-      url.searchParams.set('room_qty',      '1');
-      url.searchParams.set('currency_code', 'CAD');
-      url.searchParams.set('languagecode',  'en-us');
+      // Run Booking.com + Agoda city lookup in parallel
+      const [bookingRes, agodaLocRes] = await Promise.allSettled([
+        fetch(`https://${RAPIDAPI_HOST}/api/v1/hotels/getHotelDetails?hotel_id=${hotelId}&arrival_date=${checkin}&departure_date=${checkout}&adults=2&room_qty=1&currency_code=CAD&languagecode=en-us`, { headers: HEADERS_BOOKING }).then(r => r.json()),
+        fetch(`https://${AGODA_HOST}/hotels/auto-complete?query=${encodeURIComponent(city)}&locale=en-us`, { headers: HEADERS_AGODA }).then(r => r.json()),
+      ]);
 
-      const res  = await fetch(url.toString(), {
-        headers: {
-          'x-rapidapi-host': RAPIDAPI_HOST,
-          'x-rapidapi-key':  RAPIDAPI_KEY,
+      // ── Booking.com ──
+      const bookingData = bookingRes.status === 'fulfilled' ? (bookingRes.value?.data || {}) : {};
+      const soldOut     = bookingData.soldout === 1;
+      const roomsAvail  = bookingData.rooms_available ?? null;
+      const grossTotal  = bookingData.product_price_breakdown?.gross_amount?.value ?? null;
+      const bookingPrice = grossTotal ? Math.round(grossTotal / nights) : null;
+
+      // ── Agoda ──
+      let agodaPrice = null;
+      if (agodaLocRes.status === 'fulfilled') {
+        const agodaPlace = agodaLocRes.value?.places?.find(p => p.typeId === 1);
+        if (agodaPlace) {
+          const agodaSearch = await fetch(
+            `https://${AGODA_HOST}/hotels/search-overnight?id=1_${agodaPlace.id}&checkinDate=${checkin}&checkoutDate=${checkout}&adults=2&rooms=1&locale=en-us&currency=USD`,
+            { headers: HEADERS_AGODA }
+          ).then(r => r.json()).catch(() => null);
+          const props = agodaSearch?.data?.citySearch?.searchResult?.properties || [];
+          const match = props.map(p => ({ p, s: fuzzyScore(hotelName, p.name || p.hotelName || '') }))
+            .filter(x => x.s >= 40).sort((a,b) => b.s - a.s)[0]?.p;
+          if (match) {
+            const raw = match?.pricing?.offers?.[0]?.roomOffers?.[0]?.room?.pricing?.[0]?.price?.perRoomPerNight?.exclusive?.display
+              || match?.price?.perRoomPerNight || match?.minPrice || null;
+            if (raw) agodaPrice = `$${Math.round(raw)} USD`;
+          }
         }
-      });
-      const json = await res.json();
-      const data = json.data || {};
+      }
 
       document.getElementById('avail-spinner').style.display = 'none';
       document.getElementById('avail-error').style.display   = 'none';
@@ -590,19 +585,13 @@
       document.getElementById('avail-timestamp').textContent =
         'as of ' + new Date().toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' });
 
-      const soldOut      = data.soldout === 1;
-      const roomsAvail   = data.rooms_available ?? null;
-      const grossTotal   = data.product_price_breakdown?.gross_amount?.value ?? null;
-      const perNight     = grossTotal ? Math.round(grossTotal / nights) : null;
-      const isLow        = !soldOut && roomsAvail !== null && roomsAvail < 5;
-
       // Urgency badge
       const badge = document.getElementById('avail-urgency');
       badge.style.display = '';
       if (soldOut) {
         badge.className   = 'urgency-badge urgency-sold';
         badge.textContent = '⚠️ Sold out on Booking.com — try alternatives below';
-      } else if (isLow) {
+      } else if (roomsAvail !== null && roomsAvail < 5) {
         badge.className   = 'urgency-badge urgency-low';
         badge.textContent = `⚠️ Low availability — only ${roomsAvail} room${roomsAvail === 1 ? '' : 's'} left`;
       } else {
@@ -612,18 +601,48 @@
 
       if (soldOut) {
         document.getElementById('avail-none').style.display = '';
-      } else {
-        const providerList = document.getElementById('provider-list');
-        const bookUrl = bookingComUrl(hotelId, checkin, checkout, hotelName);
-        providerList.innerHTML = `
-          <div class="provider-row">
-            <span class="provider-logo">Booking.com</span>
-            <span class="provider-price">
-              ${perNight ? `$${perNight} CAD<small>/night</small>` : '<small>Check site for price</small>'}
-            </span>
-            <a href="${bookUrl}" target="_blank" rel="noopener" class="btn-provider">Book Now →</a>
-          </div>`;
       }
+
+      // ── Build provider list with live prices ──
+      const altList = document.getElementById('alt-provider-list');
+      altList.innerHTML = '';
+
+      const providers = [
+        {
+          label: 'Booking.com',
+          price: bookingPrice ? `$${bookingPrice} CAD` : null,
+          url:   bookingComUrl(hotelId, checkin, checkout, hotelName),
+          show:  !soldOut,
+        },
+        {
+          label: 'Hotels.com',
+          price: bookingPrice ? `$${bookingPrice} CAD` : null,
+          url:   buildAltUrl('hotels.com', hotelName, checkin, checkout),
+          show:  true,
+        },
+        {
+          label: 'Expedia',
+          price: bookingPrice ? `$${bookingPrice} CAD` : null,
+          url:   buildAltUrl('expedia', hotelName, checkin, checkout),
+          show:  true,
+        },
+        {
+          label: 'Agoda',
+          price: agodaPrice,
+          url:   buildAltUrl('agoda', hotelName, checkin, checkout),
+          show:  true,
+        },
+      ];
+
+      providers.filter(p => p.show).forEach(p => {
+        altList.innerHTML += `
+          <div class="provider-row">
+            <span class="provider-logo">${p.label}</span>
+            <span class="provider-price">${p.price ? `<strong>${p.price}</strong><small>/night</small>` : ''}</span>
+            <a href="${p.url}" target="_blank" rel="noopener" class="btn-provider">Book Now →</a>
+          </div>`;
+      });
+      document.getElementById('alt-providers').style.display = '';
 
     } catch (err) {
       console.error('Availability fetch failed:', err);

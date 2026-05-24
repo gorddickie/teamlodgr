@@ -164,7 +164,11 @@ if (searchForm) {
       const [agodaLoc] = await Promise.allSettled([
         fetch(`https://${AGODA_HOST}/hotels/auto-complete?query=${encodeURIComponent(city)}&locale=en-us`, { headers: HEADERS_AGODA }).then(r => r.json())
       ]);
-      if (agodaLoc.status === 'fulfilled') { const p = agodaLoc.value.places?.find(p => p.typeId === 1); if (p) currentParams.agodaCityId = p.id; }
+      if (agodaLoc.status === 'fulfilled') {
+        console.log('[Agoda autocomplete]', JSON.stringify(agodaLoc.value?.places?.slice(0,3)));
+        const p = agodaLoc.value.places?.find(p => p.typeId === 1) || agodaLoc.value.places?.[0];
+        if (p) { currentParams.agodaCityId = p.id; currentParams.agodaPlaceType = p.typeId; console.log('[Agoda] using place:', p.id, 'typeId:', p.typeId, 'name:', p.name); }
+      }
 
       // Hotel search
       stepActive('Checking prices across providers...', 'Getting the best rates from Booking.com, Agoda and more');
@@ -294,7 +298,7 @@ async function checkAgodaAvailability(hotelName, checkin, checkout, cityId) {
   if (!cityId) return { available: false, tier: 0, price: null };
   for (const tier of TIERS) {
     const r = await fetch(
-      `https://${AGODA_HOST}/hotels/search-overnight?id=1_${cityId}&checkinDate=${checkin}&checkoutDate=${checkout}&adults=2&rooms=${tier}&locale=en-us&currency=USD`,
+      `https://${AGODA_HOST}/hotels/search-overnight?id=${cityId}&checkinDate=${checkin}&checkoutDate=${checkout}&adults=2&rooms=${tier}&locale=en-us&currency=USD`,
       { headers: HEADERS_AGODA }
     ).then(r => r.json()).catch(() => null);
     const total = r?.data?.citySearch?.searchResult?.searchInfo?.totalAvailableHotelsWithoutFilter || 0;

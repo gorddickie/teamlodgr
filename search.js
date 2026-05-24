@@ -132,9 +132,11 @@ if (searchForm) {
 
     resultsSection.style.display = 'block';
     resultsSection.scrollIntoView({ behavior: 'smooth' });
-    // Hide nav so organizer can focus on results
+    // Hide nav + search form so organizer can focus on results
     const mainNav = document.getElementById('main-nav');
     if (mainNav) mainNav.style.display = 'none';
+    const searchSection = document.getElementById('search');
+    if (searchSection) searchSection.style.display = 'none';
     resultsGrid.innerHTML = '';
     const overlay = document.getElementById('search-overlay');
     const overlayTitle = document.getElementById('overlay-title');
@@ -164,10 +166,9 @@ if (searchForm) {
         : `in <strong>${city}</strong>`;
 
       resultsGrid.innerHTML = `
-        <div class="results-summary">
-          Hotels ${locationLabel} &nbsp;·&nbsp;
-          ${formatDate(checkin)} → ${formatDate(checkout)} &nbsp;·&nbsp;
-          <strong>${rooms} rooms needed</strong>
+        <div class="results-summary" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <span>Hotels ${locationLabel} &nbsp;·&nbsp; ${formatDate(checkin)} → ${formatDate(checkout)} &nbsp;·&nbsp; <strong>${rooms} rooms needed</strong></span>
+          <button onclick="location.reload()" style="background:none;border:1px solid #d1d5db;border-radius:6px;padding:6px 14px;font-size:0.85rem;cursor:pointer;color:#374151;">&#8592; New Search</button>
         </div>
       `;
 

@@ -447,6 +447,18 @@ function renderSerpHotelCard(h, params) {
         return `<div><span class="distance-badge">📍 ${km < 1 ? (km*1000).toFixed(0)+' meters' : km.toFixed(1)+' km'} from ${params.venueName}</span></div>`;
       })() : ''}
       <div id="team-banner-${hotelId}" style="margin-bottom:12px;padding:10px 14px;background:#f9fafb;border-radius:8px;font-size:0.9rem;color:#6b7280;">⏳ Checking room availability for your team...</div>
+      <div class="providers-table">
+        <div class="providers-header">
+          <span>Booking Site</span><span>Availability</span><span>Price/night</span>
+        </div>
+        ${providers.map(p => `
+          <div class="provider-row has-count">
+            <span class="provider-name">${p.icon} ${p.name}</span>
+            <span class="provider-rooms avail" id="avail-${hotelId}-${p.name.replace(/\s/g,'')}">⏳</span>
+            <span class="provider-price">${p.price || '<span style="color:#9ca3af;font-size:0.82rem;">See site</span>'}</span>
+          </div>
+        `).join('')}
+      </div>
       <div class="share-row">
         <button class="btn-copy-share" onclick="openSharePage(buildShareUrl('${hotelId}','${encodeURIComponent(h.name)}','${params.checkin}','${params.checkout}','${params.rooms}','${encodeURIComponent(h.photo||'')}',${JSON.stringify(shareProviders)}), this)">
           🔗 Share with Team

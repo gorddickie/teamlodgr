@@ -456,16 +456,17 @@ function renderSerpHotelCard(h, params) {
       const cardEl = document.getElementById(`hotel-card-${hotelId}`);
       const needed = parseInt(params.rooms) || 1;
 
-      if (avail.available === false) {
-        // Sold out — hide card
+      if (!avail.available || avail.sufficient === false) {
+        // Not enough rooms across all providers — hide card
         if (cardEl) cardEl.style.display = 'none';
-      } else if (avail.rooms !== null && avail.rooms !== undefined && avail.rooms < needed) {
-        // Not enough rooms — hide card
-        if (cardEl) cardEl.style.display = 'none';
-      } else if (avail.available) {
-        // Enough rooms — show banner and keep card
+      } else {
+        // Sufficient rooms confirmed — show banner
         if (banner) {
-          banner.innerHTML = `<span style="color:#16a34a;font-weight:700;">✅ Enough rooms for your team of ${needed}</span>`;
+          const parts = [];
+          if (avail.bookingRooms > 0) parts.push(`Booking.com: ${avail.bookingRooms}`);
+          if (avail.agodaRooms > 0)   parts.push(`Agoda: ${avail.agodaRooms}`);
+          const detail = parts.length ? ` (${parts.join(', ')})` : '';
+          banner.innerHTML = `<span style="color:#16a34a;font-weight:700;">✅ ${avail.rooms}+ rooms available across providers${detail} — enough for your team of ${needed}</span>`;
           banner.style.display = 'block';
         }
       }

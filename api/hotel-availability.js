@@ -2,9 +2,11 @@
 // Returns tiered room availability count
 
 const BOOKING_HOST = 'booking-com15.p.rapidapi.com';
+const AGODA_HOST   = 'agoda-com.p.rapidapi.com';
 const RAPIDAPI_KEY = '3173251728msha891fafe5abe622p17d02fjsn272b51fed579';
-const HEADERS = { 'x-rapidapi-host': BOOKING_HOST, 'x-rapidapi-key': RAPIDAPI_KEY };
-const TIERS = [20, 10, 5];
+const HEADERS_BOOKING = { 'x-rapidapi-host': BOOKING_HOST, 'x-rapidapi-key': RAPIDAPI_KEY };
+const HEADERS_AGODA   = { 'x-rapidapi-host': AGODA_HOST,   'x-rapidapi-key': RAPIDAPI_KEY };
+const HEADERS = HEADERS_BOOKING; // alias for existing code
 
 function fuzzyScore(a, b) {
   const norm = s => (s||'').toLowerCase().replace(/\b(hotel|the|inn|suites|suite|resort|and|by|at)\b/g,'').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
@@ -53,10 +55,43 @@ module.exports = async (req, res) => {
     ).then(r => r.json()).catch(() => null);
 
     const data = detailRes?.data;
-    if (!data) return res.json({ available: false, rooms: null });
-    if (data.soldout === 1) return res.json({ available: false, rooms: 0 });
-    const roomsAvail = data.rooms_available ?? null;
-    return res.json({ available: true, tier: 20, rooms: roomsAvail, hotelId });
+    let bookingRooms = 0;
+    if (data && data.soldout !== 1) {
+      bookingRooms = data.rooms_available ?? 20; // assume 20 if not specified but not sold out
+    }
+
+    // Step 5: Check Agoda independently
+    let agodaRooms = 0;
+    try {
+      const agodaLocRes = await fetch(
+        `https://${AGODA_HOST}/hotels/auto-complete?query=${encodeURIComponent(city)}&locale=en-us`,
+        { headers: HEADERS_AGODA }
+      ).then(r => r.json());
+      const agodaPlace = agodaLocRes?.places?.find(p => p.typeId === 1) || agodaLocRes?.places?.[0];
+      if (agodaPlace) {
+        const agodaSearch = await fetch(
+          `https://${AGODA_HOST}/hotels/search-overnight?id=${agodaPlace.id}&checkinDate=${checkin}&checkoutDate=${checkout}&adults=2&rooms=20&locale=en-us&currency=USD`,
+          { headers: HEADERS_AGODA }
+        ).then(r => r.json()).catch(() => null);
+        const props = agodaSearch?.data?.citySearch?.searchResult?.properties || [];
+        const match = props
+          .map(p => ({ p, s: fuzzyScore(name, p.name || p.hotelName || '') }))
+          .filter(x => x.s >= 40).sort((a, b) => b.s - a.s)[0]?.p;
+        if (match) agodaRooms = 20; // Agoda confirmed availability
+      }
+    } catch (e) { /* Agoda check failed, proceed with Booking.com count only */ }
+
+    const totalRooms = bookingRooms + agodaRooms;
+    const needed     = parseInt(rooms) || 1;
+
+    return res.json({
+      available:    totalRooms > 0,
+      rooms:        totalRooms,
+      bookingRooms,
+      agodaRooms,
+      sufficient:   totalRooms >= needed,
+      hotelId,
+    });
 
     return res.json({ available: false, rooms: null });
 

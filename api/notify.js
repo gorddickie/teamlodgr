@@ -81,7 +81,7 @@ module.exports = async (req, res) => {
     <tr><td style="padding:32px 0 28px;">
       ${hotelPhoto ? `<img src="${hotelPhoto}" alt="${hotelName || 'Hotel'}" style="display:block;width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-bottom:20px;">` : ''}
       <p style="margin:0 0 8px;font-size:17px;color:#111827;line-height:1.5;">
-        A hotel has been selected for
+        <strong>${organizerName}</strong> has selected a hotel for
         ${tournament ? `<strong>${tournament}</strong>` : 'your team'}.
       </p>
       ${hotelName ? `<p style="margin:0 0 8px;font-size:22px;font-weight:700;color:#0d1b3e;">${hotelName}</p>` : ''}

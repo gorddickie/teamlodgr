@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
 
   const params = new URLSearchParams({
     engine:        'google_hotels',
-    q:             city,
+    q:             city + ' hotel',
     check_in_date: checkin,
     check_out_date: checkout,
     adults:        '2',
@@ -21,6 +21,7 @@ module.exports = async (req, res) => {
     currency:      'CAD',
     gl:            'ca',
     hl:            'en',
+    property_types: '11,12,13,14,18,19,20', // hotels, motels, resorts, inns only
     api_key:       apiKey,
   });
 

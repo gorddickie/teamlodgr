@@ -148,12 +148,12 @@ if (searchForm) {
 
     try {
       // ── SerpApi Google Hotels search ─────────────────────────────────────
-      stepActive('Finding hotels with availability...', 'Searching Google Hotels for group-friendly options');
+      stepActive('Searching for hotels in ' + city + '...', 'Looking up hotels with enough rooms for your group');
       const serpRes  = await fetch(`/api/hotels-search?city=${encodeURIComponent(city)}&checkin=${checkin}&checkout=${checkout}&rooms=${rooms}`);
       const serpData = await serpRes.json();
       if (!serpData.hotels?.length) { showError('No hotels found. Try different dates or city.'); return; }
 
-      stepActive('Checking prices across providers...', 'Getting the best rates from Booking.com, Hotels.com and more');
+      stepActive('Found some options! Checking prices...', 'Getting the best rates from Booking.com, Hotels.com, Agoda and more');
 
       // Map SerpApi results into the same format the rest of the code expects
       const hotels = serpData.hotels;

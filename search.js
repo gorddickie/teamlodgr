@@ -142,7 +142,46 @@ if (searchForm) {
     stepActive('Finding hotels with availability...', 'Searching Booking.com, Agoda, Hotels.com and more');
 
     try {
-      // Destination lookup
+      // ── SerpApi Google Hotels search ─────────────────────────────────────
+      stepActive('Finding hotels with availability...', 'Searching Google Hotels for group-friendly options');
+      const serpRes  = await fetch(`/api/hotels-search?city=${encodeURIComponent(city)}&checkin=${checkin}&checkout=${checkout}&rooms=${rooms}`);
+      const serpData = await serpRes.json();
+      if (!serpData.hotels?.length) { showError('No hotels found. Try different dates or city.'); return; }
+
+      stepActive('Checking prices across providers...', 'Getting the best rates from Booking.com, Hotels.com and more');
+
+      // Map SerpApi results into the same format the rest of the code expects
+      const hotels = serpData.hotels;
+
+      loadingEl.style.display = 'none';
+      if (overlay) overlay.classList.remove('active');
+
+      const locationLabel = currentParams.venueName
+        ? `near <strong>${currentParams.venueName}</strong>, ${city}`
+        : `in <strong>${city}</strong>`;
+
+      resultsGrid.innerHTML = `
+        <div class="results-summary">
+          Hotels ${locationLabel} &nbsp;·&nbsp;
+          ${formatDate(checkin)} → ${formatDate(checkout)} &nbsp;·&nbsp;
+          <strong>${rooms} rooms needed</strong>
+        </div>
+      `;
+
+      // Sort by distance to venue if selected
+      let hotelsToShow = hotels;
+      if (currentParams.venueLat && currentParams.venueLng) {
+        hotelsToShow = hotels.slice().sort((a, b) => {
+          if (!a.lat || !b.lat) return 0;
+          return haversineKm(currentParams.venueLat, currentParams.venueLng, a.lat, a.lng) -
+                 haversineKm(currentParams.venueLat, currentParams.venueLng, b.lat, b.lng);
+        });
+      }
+
+      for (const h of hotelsToShow) renderSerpHotelCard(h, currentParams);
+      return; // SerpApi path complete
+
+      // ── Legacy Booking.com destination lookup (fallback) ──────────────────
       const destRes  = await fetch(`https://${BOOKING_HOST}/api/v1/hotels/searchDestination?query=${encodeURIComponent(city)}`, { headers: HEADERS_BOOKING });
       const destData = await destRes.json();
       const dest     = destData.data?.[0];
@@ -175,16 +214,16 @@ if (searchForm) {
       const hotelSearchUrl = `https://${BOOKING_HOST}/api/v1/hotels/searchHotels?dest_id=${dest.dest_id}&search_type=${dest.search_type}&arrival_date=${checkin}&departure_date=${checkout}&adults=2&room_qty=5&currency_code=CAD&sort_by=popularity`;
       const searchRes  = await fetch(hotelSearchUrl, { headers: HEADERS_BOOKING });
       const searchData = await searchRes.json();
-      const hotels     = searchData.data?.hotels?.slice(0, 5);
-      if (!hotels?.length) { showError('No hotels found. Try different dates or city.'); return; }
+      const legacyHotels = searchData.data?.hotels?.slice(0, 5);
+      if (!legacyHotels?.length) { showError('No hotels found. Try different dates or city.'); return; }
 
       if (overlay) overlay.classList.remove('active');
       loadingEl.style.display = 'none';
 
       // Sort by distance if a venue was selected
-      let hotelsToShow = hotels;
+      let legacyHotelsToShow = legacyHotels;
       if (currentParams.venueLat && currentParams.venueLng) {
-        hotelsToShow = hotels.slice().sort((a, b) => {
+        legacyHotelsToShow = legacyHotels.slice().sort((a, b) => {
           const aLat = a.property.latitude || a.property.lat;
           const aLng = a.property.longitude || a.property.lng || a.property.lon;
           const bLat = b.property.latitude || b.property.lat;
@@ -195,20 +234,20 @@ if (searchForm) {
         });
       }
 
-      const locationLabel = currentParams.venueName
+      const legacyLocationLabel = currentParams.venueName
         ? `near <strong>${currentParams.venueName}</strong>, ${city}`
         : `in <strong>${city}</strong>`;
 
       resultsGrid.innerHTML = `
         <div class="results-summary">
-          Hotels ${locationLabel} &nbsp;·&nbsp;
+          Hotels ${legacyLocationLabel} &nbsp;·&nbsp;
           ${formatDate(checkin)} → ${formatDate(checkout)} &nbsp;·&nbsp;
           <strong>${rooms} rooms needed</strong>
         </div>
       `;
 
-      for (const h of hotelsToShow) renderHotelCard(h, currentParams);
-      hotelsToShow.forEach(h => loadProviderAvailability(h, currentParams));
+      for (const h of legacyHotelsToShow) renderHotelCard(h, currentParams);
+      legacyHotelsToShow.forEach(h => loadProviderAvailability(h, currentParams));
 
     } catch (err) {
       showError('Search failed. Please try again.');
@@ -330,6 +369,75 @@ async function checkAgodaAvailability(hotelName, checkin, checkout, cityId) {
 }
 
 // ── Shared fuzzy scorer ───────────────────────────────────────────────────────
+// ── SerpApi hotel card renderer ─────────────────────────────────────────────
+function renderSerpHotelCard(h, params) {
+  const stars   = h.stars ? '★'.repeat(Math.min(h.stars, 5)) : '';
+  const price   = h.pricePerNight ? `$${h.pricePerNight} CAD/night` : '';
+  const rating  = h.rating ? `${h.rating}/5` : '';
+  const shareToken = Math.random().toString(36).slice(2);
+
+  // Build provider booking URLs with affiliate links
+  const bookingUrl = `https://www.booking.com/search.html?ss=${encodeURIComponent(h.name + ' ' + params.city)}&checkin_year=${params.checkin.split('-')[0]}&checkin_month=${parseInt(params.checkin.split('-')[1])}&checkin_monthday=${parseInt(params.checkin.split('-')[2])}&checkout_year=${params.checkout.split('-')[0]}&checkout_month=${parseInt(params.checkout.split('-')[1])}&checkout_monthday=${parseInt(params.checkout.split('-')[2])}&no_rooms=${params.rooms}&group_adults=2&selected_currency=CAD`;
+  const hotelsUrl  = `https://www.dpbolvw.net/click-7635804-1702763?url=${encodeURIComponent('https://www.hotels.com/search.do?q-destination=' + encodeURIComponent(h.name + ' ' + params.city) + '&q-check-in=' + params.checkin + '&q-check-out=' + params.checkout + '&q-rooms=' + params.rooms)}`;
+  const expediaUrl = `https://www.expedia.ca/Hotels/search?q=${encodeURIComponent(h.name + ' ' + params.city)}&startDate=${params.checkin}&endDate=${params.checkout}&rooms=${params.rooms}&adults=2`;
+
+  const providers = [
+    { name: 'Booking.com', icon: '🔵', price: price, url: bookingUrl },
+    { name: 'Hotels.com',  icon: '🔴', price: price, url: hotelsUrl },
+    { name: 'Expedia',     icon: '🟡', price: price, url: expediaUrl },
+  ];
+
+  // Add any SerpApi provider links that have prices
+  h.providers?.forEach(p => {
+    if (p.url && p.name && !providers.find(x => x.name.toLowerCase().includes(p.name.toLowerCase().slice(0,5)))) {
+      providers.push({ name: p.name, icon: '⚪', price: p.price || price, url: p.url });
+    }
+  });
+
+  const shareProviders = providers.map(p => ({ name: p.name, price: p.price, url: p.url }));
+  const hotelId = 'serp_' + Math.random().toString(36).slice(2);
+
+  const card = document.createElement('div');
+  card.className = 'hotel-card';
+  card.id = `hotel-card-${hotelId}`;
+  card.innerHTML = `
+    ${h.photo ? `<img src="${h.photo}" alt="${h.name}" class="hotel-photo" onerror="this.style.display='none'"/>` : ''}
+    <div class="hotel-body">
+      <div class="hotel-rank-name">
+        <h3 class="hotel-name">${h.name}</h3>
+        ${stars ? `<span class="hotel-stars">${stars}</span>` : ''}
+      </div>
+      <div class="hotel-meta">
+        ${rating ? `<span>⭐ ${rating}${h.reviews ? ' · ' + h.reviews.toLocaleString() + ' reviews' : ''}</span>` : ''}
+        <span>📍 ${params.venueName || params.city}</span>
+        ${price ? `<span>From ${price}</span>` : ''}
+      </div>
+      ${params.venueLat && h.lat ? (() => {
+        const km = haversineKm(params.venueLat, params.venueLng, h.lat, h.lng);
+        return `<div><span class="distance-badge">📍 ${km < 1 ? (km*1000).toFixed(0)+' meters' : km.toFixed(1)+' km'} from ${params.venueName}</span></div>`;
+      })() : ''}
+      <div class="providers-table">
+        <div class="providers-header">
+          <span>Booking Site</span><span>Availability</span><span>Price/night</span><span></span>
+        </div>
+        ${providers.map(p => `
+          <div class="provider-row has-count">
+            <span class="provider-name">${p.icon} ${p.name}</span>
+            <span class="provider-rooms avail">✅ Available</span>
+            <span class="provider-price">${p.price || '<span style="color:#9ca3af;font-size:0.82rem;">See site</span>'}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="share-row">
+        <button class="btn-copy-share" onclick="openSharePage(buildShareUrl('${hotelId}','${encodeURIComponent(h.name)}','${params.checkin}','${params.checkout}','${params.rooms}','${encodeURIComponent(h.photo||'')}',${JSON.stringify(shareProviders)}), this)">
+          🔗 Share with Team
+        </button>
+      </div>
+    </div>
+  `;
+  resultsGrid.appendChild(card);
+}
+
 function fuzzyScore(a, b) {
   const norm = s => (s||'').toLowerCase().replace(/\b(hotel|the|inn|suites|suite|resort|and|by|at)\b/g,'').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
   const wa = norm(a).split(' ').filter(w=>w.length>2);

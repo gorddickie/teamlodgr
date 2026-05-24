@@ -131,6 +131,7 @@ if (searchForm) {
     currentParams = { city, checkin, checkout, rooms };
 
     resultsSection.style.display = 'block';
+    resultsSection.scrollIntoView({ behavior: 'smooth' });
     resultsGrid.innerHTML = '';
     const overlay = document.getElementById('search-overlay');
     const overlayTitle = document.getElementById('overlay-title');

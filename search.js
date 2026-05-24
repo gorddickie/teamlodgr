@@ -132,6 +132,9 @@ if (searchForm) {
 
     resultsSection.style.display = 'block';
     resultsSection.scrollIntoView({ behavior: 'smooth' });
+    // Hide nav so organizer can focus on results
+    const mainNav = document.getElementById('main-nav');
+    if (mainNav) mainNav.style.display = 'none';
     resultsGrid.innerHTML = '';
     const overlay = document.getElementById('search-overlay');
     const overlayTitle = document.getElementById('overlay-title');
@@ -421,6 +424,7 @@ function renderSerpHotelCard(h, params) {
         const km = haversineKm(params.venueLat, params.venueLng, h.lat, h.lng);
         return `<div><span class="distance-badge">📍 ${km < 1 ? (km*1000).toFixed(0)+' meters' : km.toFixed(1)+' km'} from ${params.venueName}</span></div>`;
       })() : ''}
+      <div id="team-banner-${hotelId}" style="display:none;margin-bottom:12px;padding:10px 14px;background:#f0fdf4;border-radius:8px;font-size:0.9rem;"></div>
       <div class="providers-table">
         <div class="providers-header">
           <span>Booking Site</span><span>Availability</span><span>Price/night</span><span></span>
@@ -448,6 +452,20 @@ function renderSerpHotelCard(h, params) {
     .then(r => r.json())
     .then(avail => {
       console.log('[Availability]', h.name, avail);
+      const banner = document.getElementById(`team-banner-${hotelId}`);
+      if (banner) {
+        const needed = parseInt(params.rooms) || 1;
+        if (avail.available === false) {
+          banner.innerHTML = `<span style="color:#ef4444;font-weight:700;">⚠️ Sold out — choose another hotel</span>`;
+          banner.style.display = 'block';
+        } else if (avail.rooms !== null && avail.rooms !== undefined && avail.rooms < needed) {
+          banner.innerHTML = `<span style="color:#f59e0b;font-weight:700;">⚠️ Only ${avail.rooms} rooms available — your team needs ${needed}</span>`;
+          banner.style.display = 'block';
+        } else if (avail.available) {
+          banner.innerHTML = `<span style="color:#16a34a;font-weight:700;">✅ Enough rooms for your team of ${needed}</span>`;
+          banner.style.display = 'block';
+        }
+      }
       providers.forEach(p => {
         const el = document.getElementById(`avail-${hotelId}-${p.name.replace(/\s/g,'')}`);
         if (!el) return;

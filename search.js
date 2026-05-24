@@ -428,7 +428,7 @@ function renderSerpHotelCard(h, params) {
         ${providers.map(p => `
           <div class="provider-row has-count">
             <span class="provider-name">${p.icon} ${p.name}</span>
-            <span class="provider-rooms avail">✅ Available</span>
+            <span class="provider-rooms avail" id="avail-${hotelId}-${p.name.replace(/\s/g,'')}">⏳</span>
             <span class="provider-price">${p.price || '<span style="color:#9ca3af;font-size:0.82rem;">See site</span>'}</span>
           </div>
         `).join('')}
@@ -441,6 +441,33 @@ function renderSerpHotelCard(h, params) {
     </div>
   `;
   resultsGrid.appendChild(card);
+
+  // Load real availability async
+  fetch(`/api/hotel-availability?name=${encodeURIComponent(h.name)}&city=${encodeURIComponent(params.city)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}`)
+    .then(r => r.json())
+    .then(avail => {
+      providers.forEach(p => {
+        const el = document.getElementById(`avail-${hotelId}-${p.name.replace(/\s/g,'')}`);
+        if (!el) return;
+        if (avail.available === false) {
+          el.innerHTML = '<span style="color:#ef4444">Sold out</span>';
+        } else if (avail.rooms !== null && avail.rooms !== undefined) {
+          el.innerHTML = `✅ ${avail.rooms}+ rooms`;
+        } else if (avail.tier) {
+          el.innerHTML = `✅ ${avail.tier}+ rooms`;
+        } else if (avail.available) {
+          el.innerHTML = '✅ Available';
+        } else {
+          el.innerHTML = 'Check site';
+        }
+      });
+    })
+    .catch(() => {
+      providers.forEach(p => {
+        const el = document.getElementById(`avail-${hotelId}-${p.name.replace(/\s/g,'')}`);
+        if (el) el.innerHTML = 'Check site';
+      });
+    });
 }
 
 function fuzzyScore(a, b) {

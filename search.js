@@ -285,7 +285,7 @@ async function checkPricelineAvailability(hotelName, checkin, checkout, locId) {
 }
 
 // ── Tiered availability check for Agoda ─────────────────────────────────
-async function checkAgodaAvailability(checkin, checkout, cityId) {
+async function checkAgodaAvailability(hotelName, checkin, checkout, cityId) {
   if (!cityId) return { available: false, tier: 0, price: null };
   for (const tier of TIERS) {
     const r = await fetch(
@@ -293,7 +293,23 @@ async function checkAgodaAvailability(checkin, checkout, cityId) {
       { headers: HEADERS_AGODA }
     ).then(r => r.json()).catch(() => null);
     const total = r?.data?.citySearch?.searchResult?.searchInfo?.totalAvailableHotelsWithoutFilter || 0;
-    if (total > 0) return { available: true, tier, price: null };
+    if (total > 0) {
+      // Try to fuzzy-match specific hotel and extract price
+      const properties = r?.data?.citySearch?.searchResult?.properties || [];
+      const match = properties
+        .map(p => ({ p, s: fuzzyScore(hotelName, p.name || p.hotelName || '') }))
+        .filter(x => x.s >= 40)
+        .sort((a, b) => b.s - a.s)[0]?.p || null;
+      let price = null;
+      if (match) {
+        const raw = match?.pricing?.offers?.[0]?.roomOffers?.[0]?.room?.pricing?.[0]?.price?.perRoomPerNight?.exclusive?.display
+          || match?.price?.perRoomPerNight
+          || match?.minPrice
+          || null;
+        if (raw) price = `$${Math.round(raw)} USD`;
+      }
+      return { available: true, tier, price };
+    }
   }
   return { available: false, tier: 0, price: null };
 }
@@ -346,7 +362,7 @@ async function loadProviderAvailability(h, params) {
         .then(r => r.json()).catch(() => ({ hotels: [] })),
 
       checkPricelineAvailability(h.property.name, params.checkin, params.checkout, params.pricelineLocId),
-      checkAgodaAvailability(params.checkin, params.checkout, params.agodaCityId)
+      checkAgodaAvailability(h.property.name, params.checkin, params.checkout, params.agodaCityId)
     ]);
 
     const booking  = bookingAvail.status === 'fulfilled' ? bookingAvail.value : { available: false, tier: 0 };
@@ -394,7 +410,10 @@ async function loadProviderAvailability(h, params) {
         url: `https://www.expedia.ca/Hotel-Search?destination=${encodeURIComponent(h.property.name + ' ' + params.city)}&startDate=${params.checkin}&endDate=${params.checkout}&rooms=${params.rooms}&adults=2`,
       },
       {
-        name: 'Hotels.com', icon: '🔴', available: true, tier: null, price: null,
+        name: 'Hotels.com', icon: '🔴',
+        available: booking.available || null,
+        tier: booking.tier || null,
+        price: booking.price || null,  // Hotels.com shares Expedia/Booking inventory — use Booking price as proxy
         url: `https://www.hotels.com/search.do?q-destination=${encodeURIComponent(h.property.name + ' ' + params.city)}&q-check-in=${params.checkin}&q-check-out=${params.checkout}&q-rooms=${params.rooms}`,
       },
       {

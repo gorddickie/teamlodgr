@@ -453,15 +453,18 @@ function renderSerpHotelCard(h, params) {
     .then(avail => {
       console.log('[Availability]', h.name, avail);
       const banner = document.getElementById(`team-banner-${hotelId}`);
-      if (banner) {
-        const needed = parseInt(params.rooms) || 1;
-        if (avail.available === false) {
-          banner.innerHTML = `<span style="color:#ef4444;font-weight:700;">⚠️ Sold out — choose another hotel</span>`;
-          banner.style.display = 'block';
-        } else if (avail.rooms !== null && avail.rooms !== undefined && avail.rooms < needed) {
-          banner.innerHTML = `<span style="color:#f59e0b;font-weight:700;">⚠️ Only ${avail.rooms} rooms available — your team needs ${needed}</span>`;
-          banner.style.display = 'block';
-        } else if (avail.available) {
+      const cardEl = document.getElementById(`hotel-card-${hotelId}`);
+      const needed = parseInt(params.rooms) || 1;
+
+      if (avail.available === false) {
+        // Sold out — hide card
+        if (cardEl) cardEl.style.display = 'none';
+      } else if (avail.rooms !== null && avail.rooms !== undefined && avail.rooms < needed) {
+        // Not enough rooms — hide card
+        if (cardEl) cardEl.style.display = 'none';
+      } else if (avail.available) {
+        // Enough rooms — show banner and keep card
+        if (banner) {
           banner.innerHTML = `<span style="color:#16a34a;font-weight:700;">✅ Enough rooms for your team of ${needed}</span>`;
           banner.style.display = 'block';
         }

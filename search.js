@@ -424,8 +424,9 @@ function renderSerpHotelCard(h, params) {
     }
   });
 
-  const shareProviders = providers.map(p => ({ name: p.name, price: p.price, url: p.url }));
   const hotelId = 'serp_' + Math.random().toString(36).slice(2);
+  const shareProviders = providers.map(p => ({ name: p.name, price: p.price, url: p.url }));
+  window['shareProviders_' + hotelId] = shareProviders;
 
   const card = document.createElement('div');
   card.className = 'hotel-card';
@@ -460,7 +461,7 @@ function renderSerpHotelCard(h, params) {
         `).join('')}
       </div>
       <div class="share-row">
-        <button class="btn-copy-share" onclick="openSharePage(buildShareUrl('${hotelId}','${encodeURIComponent(h.name)}','${params.checkin}','${params.checkout}','${params.rooms}','${encodeURIComponent(h.photo||'')}',${JSON.stringify(shareProviders)}), this)">
+        <button class="btn-copy-share" onclick="openSharePage(buildShareUrl('${hotelId}','${encodeURIComponent(h.name)}','${params.checkin}','${params.checkout}','${params.rooms}','${encodeURIComponent(h.photo||'')}',shareProviders_${hotelId}), this)">
           🔗 Share with Team
         </button>
       </div>

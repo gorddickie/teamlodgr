@@ -455,7 +455,7 @@ function renderSerpHotelCard(h, params) {
             <span class="provider-name">${p.icon} ${p.name}</span>
             <span class="provider-rooms avail" id="avail-${hotelId}-${p.name.replace(/\s/g,'')}">⏳</span>
             <span class="provider-price">${p.price || '<span style="color:#9ca3af;font-size:0.82rem;">See site</span>'}</span>
-            <a href="${p.url}" target="_blank" rel="noopener" class="btn-book-sm">Book →</a>
+
           </div>
         `).join('')}
       </div>

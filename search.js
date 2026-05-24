@@ -387,6 +387,26 @@ function renderSerpHotelCard(h, params) {
   const agodaUrl  = `https://www.agoda.com/search?q=${encodeURIComponent(h.name + ' ' + params.city)}&checkIn=${params.checkin}&checkOut=${params.checkout}&rooms=${params.rooms}&adults=2`;
   const kayakUrl   = `https://www.kayak.com/hotels/${encodeURIComponent(params.city)}/${params.checkin}/${params.checkout}/${params.rooms}rooms/?q=${encodeURIComponent(h.name)}`;
 
+  // Detect brand and build direct hotel brand URL
+  function getBrandUrl(name, checkin, checkout, rooms) {
+    const n = (name || '').toLowerCase();
+    const ci = checkin; const co = checkout; const r = rooms;
+    if (n.includes('marriott') || n.includes('courtyard') || n.includes('fairfield') || n.includes('residence inn') || n.includes('springhill') || n.includes('towneplace') || n.includes('westin') || n.includes('sheraton') || n.includes('w hotel') || n.includes('renaissance'))
+      return `https://www.marriott.com/search/findHotels.mi?searchType=InCity&location=${encodeURIComponent(params.city)}&fromDate=${ci}&toDate=${co}&numberOfRooms=${r}`;
+    if (n.includes('hilton') || n.includes('hampton inn') || n.includes('doubletree') || n.includes('embassy suites') || n.includes('homewood') || n.includes('home2') || n.includes('curio') || n.includes('tapestry'))
+      return `https://www.hilton.com/en/hotels/?search=${encodeURIComponent(name + ' ' + params.city)}&checkin=${ci}&checkout=${co}&numRooms=${r}`;
+    if (n.includes('hyatt') || n.includes('andaz') || n.includes('park hyatt') || n.includes('grand hyatt') || n.includes('aloft'))
+      return `https://www.hyatt.com/search/${encodeURIComponent(params.city)}?checkinDate=${ci}&checkoutDate=${co}&rooms=${r}`;
+    if (n.includes('ihg') || n.includes('holiday inn') || n.includes('crowne plaza') || n.includes('intercontinental') || n.includes('even hotel') || n.includes('staybridge'))
+      return `https://www.ihg.com/hotels/us/en/find-hotels/hotel/rooms?qDest=${encodeURIComponent(params.city)}&qCiD=${ci}&qCoD=${co}&qRms=${r}`;
+    if (n.includes('best western'))
+      return `https://www.bestwestern.com/en_US/book/hotel-rooms.html?propertyCode=&checkIn=${ci}&checkOut=${co}&numberOfRooms=${r}&city=${encodeURIComponent(params.city)}`;
+    if (n.includes('wyndham') || n.includes('days inn') || n.includes('super 8') || n.includes('la quinta') || n.includes('ramada') || n.includes('howard johnson'))
+      return `https://www.wyndhamhotels.com/search?checkInDate=${ci}&checkOutDate=${co}&query=${encodeURIComponent(params.city)}&numberOfRooms=${r}`;
+    return null;
+  }
+  const brandUrl = getBrandUrl(h.name, params.checkin, params.checkout, params.rooms);
+
   const providers = [
     { name: 'Booking.com', icon: '🔵', price: price, url: bookingUrl },
     { name: 'Hotels.com',  icon: '🔴', price: price, url: hotelsUrl },
@@ -394,6 +414,7 @@ function renderSerpHotelCard(h, params) {
     { name: 'Agoda',       icon: '🟢', price: null,  url: agodaUrl  },
     { name: 'Kayak',       icon: '🟠', price: null,  url: kayakUrl  },
   ];
+  if (brandUrl) providers.unshift({ name: 'Book Direct', icon: '🏨', price: price, url: brandUrl });
 
   // Add any SerpApi provider links that have prices
   h.providers?.forEach(p => {

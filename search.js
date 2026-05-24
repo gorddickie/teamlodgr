@@ -302,17 +302,23 @@ async function checkAgodaAvailability(hotelName, checkin, checkout, cityId) {
     if (total > 0) {
       // Try to fuzzy-match specific hotel and extract price
       const properties = r?.data?.citySearch?.searchResult?.properties || [];
+      console.log('[Agoda] properties count:', properties.length, 'sample keys:', properties[0] ? Object.keys(properties[0]) : 'none');
       const match = properties
-        .map(p => ({ p, s: fuzzyScore(hotelName, p.name || p.hotelName || '') }))
+        .map(p => ({ p, s: fuzzyScore(hotelName, p.name || p.hotelName || p.content?.informationSummary?.hotelName || '') }))
         .filter(x => x.s >= 40)
         .sort((a, b) => b.s - a.s)[0]?.p || null;
       let price = null;
       if (match) {
+        console.log('[Agoda] matched:', match?.name || match?.hotelName, JSON.stringify(match?.pricing || match?.price || match?.lowestAveragePrice));
         const raw = match?.pricing?.offers?.[0]?.roomOffers?.[0]?.room?.pricing?.[0]?.price?.perRoomPerNight?.exclusive?.display
+          || match?.pricing?.minPrice
+          || match?.lowestAveragePrice
           || match?.price?.perRoomPerNight
           || match?.minPrice
           || null;
         if (raw) price = `$${Math.round(raw)} USD`;
+      } else {
+        console.log('[Agoda] no match. Top names:', properties.slice(0,5).map(p => p.name || p.hotelName || p.content?.informationSummary?.hotelName));
       }
       return { available: true, tier, price };
     }

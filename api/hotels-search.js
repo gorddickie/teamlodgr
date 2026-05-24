@@ -30,7 +30,16 @@ module.exports = async (req, res) => {
 
     if (!data.properties?.length) return res.json({ hotels: [] });
 
-    const hotels = data.properties.slice(0, 10).map(p => ({
+    // Filter out vacation rentals / private rooms — keep only actual hotels
+    const hotelOnly = data.properties.filter(p => {
+      const name = (p.name || '').toLowerCase();
+      const type = (p.type || '').toLowerCase();
+      if (type && !type.includes('hotel') && !type.includes('motel') && !type.includes('resort') && !type.includes('inn') && !type.includes('suite')) return false;
+      if (name.includes('private') || name.includes('bedroom') || name.includes('apartment') || name.includes('condo') || name.includes('airbnb') || name.includes('vacation rental')) return false;
+      return true;
+    });
+    const source = hotelOnly.length >= 3 ? hotelOnly : data.properties; // fallback if filter too aggressive
+    const hotels = source.slice(0, 10).map(p => ({
       name:        p.name,
       rating:      p.overall_rating,
       reviews:     p.reviews,

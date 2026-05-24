@@ -448,7 +448,7 @@ function renderSerpHotelCard(h, params) {
         return `<div><span class="distance-badge">📍 ${km < 1 ? (km*1000).toFixed(0)+' meters' : km.toFixed(1)+' km'} from ${params.venueName}</span></div>`;
       })() : ''}
       <div id="team-banner-${hotelId}" style="margin-bottom:12px;padding:10px 14px;background:#f9fafb;border-radius:8px;font-size:0.9rem;color:#6b7280;">⏳ Checking room availability for your team...</div>
-      <div class="providers-table">
+      <div class="providers-table" id="providers-table-${hotelId}" style="display:none;">
         <div class="providers-header">
           <span>Booking Site</span><span>Availability</span><span>Price/night</span>
         </div>
@@ -474,15 +474,17 @@ function renderSerpHotelCard(h, params) {
     .then(r => r.json())
     .then(avail => {
       console.log('[Availability]', h.name, avail);
-      const banner = document.getElementById(`team-banner-${hotelId}`);
-      const cardEl = document.getElementById(`hotel-card-${hotelId}`);
-      const needed = parseInt(params.rooms) || 1;
+      const banner    = document.getElementById(`team-banner-${hotelId}`);
+      const cardEl    = document.getElementById(`hotel-card-${hotelId}`);
+      const tableEl   = document.getElementById(`providers-table-${hotelId}`);
+      const needed    = parseInt(params.rooms) || 1;
 
       if (!avail.available || avail.sufficient === false) {
         // Not enough rooms across all providers — hide card
         if (cardEl) cardEl.style.display = 'none';
       } else {
-        // Sufficient rooms confirmed — show banner
+        // Sufficient rooms confirmed — show table + banner
+        if (tableEl) tableEl.style.display = '';
         if (banner) {
           const parts = [];
           if (avail.bookingRooms > 0) parts.push(`Booking.com: ${avail.bookingRooms}`);

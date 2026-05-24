@@ -438,9 +438,9 @@
       Use the links below to search directly.
     </div>
 
-    <!-- Alternative providers always shown -->
+    <!-- Provider list (from original search) -->
     <div id="alt-providers" style="display:none">
-      <div style="padding: 6px 24px 4px; font-size: 0.78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Also available on</div>
+      <div style="padding: 6px 24px 4px; font-size: 0.78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Book Your Room</div>
       <div id="alt-provider-list"></div>
     </div>
   </div>
@@ -526,23 +526,36 @@
     const checkout = b.checkout;
     const nights   = nightsBetween(checkin, checkout);
 
-    const altProviders = [
-      { id: 'expedia',    label: 'Expedia' },
-      { id: 'hotels.com', label: 'Hotels.com' },
-      { id: 'agoda',      label: 'Agoda' },
-    ];
-
-    // Show alt providers right away (they're always available)
+    // Use saved providers from original search (with prices), or fall back to defaults
+    const savedProviders = b.providers || [];
     const altList = document.getElementById('alt-provider-list');
-    altProviders.forEach(p => {
-      const url = buildAltUrl(p.id, b.hotel_name, checkin, checkout);
-      altList.innerHTML += `
-        <div class="provider-row">
-          <span class="provider-logo">${p.label}</span>
-          <span class="provider-price"><small>Search & compare</small></span>
-          <a href="${url}" target="_blank" rel="noopener" class="btn-provider">Book Now →</a>
-        </div>`;
-    });
+
+    if (savedProviders.length > 0) {
+      savedProviders.forEach(p => {
+        altList.innerHTML += `
+          <div class="provider-row">
+            <span class="provider-logo">${p.name}</span>
+            <span class="provider-price">${p.price ? `<strong>${p.price}</strong><small>/night</small>` : ''}</span>
+            <a href="${p.url}" target="_blank" rel="noopener" class="btn-provider">Book Now →</a>
+          </div>`;
+      });
+    } else {
+      // Fallback if no providers saved
+      const defaults = [
+        { label: 'Expedia',    id: 'expedia' },
+        { label: 'Hotels.com', id: 'hotels.com' },
+        { label: 'Agoda',      id: 'agoda' },
+      ];
+      defaults.forEach(p => {
+        const url = buildAltUrl(p.id, b.hotel_name, checkin, checkout);
+        altList.innerHTML += `
+          <div class="provider-row">
+            <span class="provider-logo">${p.label}</span>
+            <span class="provider-price"></span>
+            <a href="${url}" target="_blank" rel="noopener" class="btn-provider">Book Now →</a>
+          </div>`;
+      });
+    }
     document.getElementById('alt-providers').style.display = '';
 
     // If no hotel_id, skip the live query
@@ -634,7 +647,7 @@
       // Load group booking via shared Supabase client
       const { data: bookings, error } = await db
         .from('group_bookings')
-        .select('id,hotel_name,hotel_url,affiliate_code,checkin,checkout,rooms_needed')
+        .select('id,hotel_name,hotel_url,affiliate_code,checkin,checkout,rooms_needed,providers')
         .eq('share_token', token)
         .limit(1);
 
@@ -661,10 +674,10 @@
       // Team progress pill
       const pill = document.getElementById('urgency-pill');
       if (remaining === 0) {
-        pill.textContent = '✅ All rooms filled';
+        pill.textContent = '✅ All rooms booked!';
         pill.classList.add('sold-out');
       } else {
-        pill.textContent = `⚡ ${remaining} room${remaining === 1 ? '' : 's'} still needed`;
+        pill.textContent = `⚡ ${remaining} room${remaining === 1 ? '' : 's'} remaining`;
       }
       const pct = b.rooms_needed > 0 ? Math.round((bookedCount / b.rooms_needed) * 100) : 0;
       document.getElementById('progress-fill').style.width = Math.min(pct, 100) + '%';

@@ -495,7 +495,8 @@
       checkout:      checkout || new Date().toISOString().slice(0, 10),
       rooms_needed:  rooms || 1,
       share_token:   shareToken,
-      affiliate_code: hotelId || null,  // Booking.com hotel_id for live availability
+      affiliate_code: hotelId || null,
+      providers:     currentProviders?.length ? currentProviders : null,
     };
 
     const { data, error } = await db

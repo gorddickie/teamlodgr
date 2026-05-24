@@ -381,10 +381,15 @@ function renderSerpHotelCard(h, params) {
   const hotelsUrl  = `https://www.dpbolvw.net/click-7635804-1702763?url=${encodeURIComponent('https://www.hotels.com/search.do?q-destination=' + encodeURIComponent(h.name + ' ' + params.city) + '&q-check-in=' + params.checkin + '&q-check-out=' + params.checkout + '&q-rooms=' + params.rooms)}`;
   const expediaUrl = `https://www.expedia.ca/Hotels/search?q=${encodeURIComponent(h.name + ' ' + params.city)}&startDate=${params.checkin}&endDate=${params.checkout}&rooms=${params.rooms}&adults=2`;
 
+  const agodaUrl  = `https://www.agoda.com/search?q=${encodeURIComponent(h.name + ' ' + params.city)}&checkIn=${params.checkin}&checkOut=${params.checkout}&rooms=${params.rooms}&adults=2`;
+  const kayakUrl   = `https://www.kayak.com/hotels/${encodeURIComponent(params.city)}/${params.checkin}/${params.checkout}/${params.rooms}rooms/?q=${encodeURIComponent(h.name)}`;
+
   const providers = [
     { name: 'Booking.com', icon: '🔵', price: price, url: bookingUrl },
     { name: 'Hotels.com',  icon: '🔴', price: price, url: hotelsUrl },
     { name: 'Expedia',     icon: '🟡', price: price, url: expediaUrl },
+    { name: 'Agoda',       icon: '🟢', price: null,  url: agodaUrl  },
+    { name: 'Kayak',       icon: '🟠', price: null,  url: kayakUrl  },
   ];
 
   // Add any SerpApi provider links that have prices

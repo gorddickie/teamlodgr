@@ -463,7 +463,7 @@ function renderSerpHotelCard(h, params) {
           </div>
         `).join('')}
       </div>
-      <div class="share-row" style="margin-top:16px;">
+      <div class="share-row" style="margin-top:auto;padding-top:16px;">
         <button class="btn-copy-share" style="width:100%;padding:13px 20px;font-size:1rem;background:#0d1b3e;" onclick="openSharePage(buildShareUrl('${hotelId}','${encodeURIComponent(h.name)}','${params.checkin}','${params.checkout}','${params.rooms}','${encodeURIComponent(h.photo||'')}',shareProviders_${hotelId}), this)">
           🔗 Share with Team
         </button>
@@ -494,11 +494,7 @@ function renderSerpHotelCard(h, params) {
         // Sufficient rooms confirmed — show table + banner
         if (tableEl) tableEl.style.display = '';
         if (banner) {
-          const parts = [];
-          if (avail.bookingRooms > 0) parts.push(`Booking.com: ${avail.bookingRooms}`);
-          if (avail.agodaRooms > 0)   parts.push(`Agoda: ${avail.agodaRooms}`);
-          const detail = parts.length ? ` (${parts.join(', ')})` : '';
-          banner.innerHTML = `<span style="color:#16a34a;font-weight:700;">✅ ${avail.rooms}+ rooms available across providers${detail} — enough for your team of ${needed}</span>`;
+          banner.innerHTML = `<span style="color:#16a34a;font-weight:700;">✅ ${avail.rooms}+ rooms confirmed for your team of ${needed}</span>`;
           banner.style.display = 'block';
         }
       }

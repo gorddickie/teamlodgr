@@ -411,15 +411,20 @@ function renderSerpHotelCard(h, params) {
   }
   const brandUrl = getBrandUrl(h.name, params.checkin, params.checkout, params.rooms);
 
+  // Pull Agoda price/url from SerpApi if available
+  const serpAgoda = h.providers?.find(p => p.name?.toLowerCase().includes('agoda'));
+  const agodaPrice = serpAgoda?.price || null;
+  const agodaFinalUrl = (serpAgoda?.url) || agodaUrl;
+
   const providers = [
-    { name: 'Booking.com', icon: '🔵', price: price, url: bookingUrl },
-    { name: 'Hotels.com',  icon: '🔴', price: price, url: hotelsUrl },
-    { name: 'Expedia',     icon: '🟡', price: price, url: expediaUrl },
-    { name: 'Agoda',       icon: '🟢', price: null,  url: agodaUrl  },
+    { name: 'Booking.com', icon: '🔵', price: price,      url: bookingUrl    },
+    { name: 'Hotels.com',  icon: '🔴', price: price,      url: hotelsUrl     },
+    { name: 'Expedia',     icon: '🟡', price: price,      url: expediaUrl    },
+    { name: 'Agoda',       icon: '🟢', price: agodaPrice, url: agodaFinalUrl },
   ];
   if (brandUrl) providers.unshift({ name: 'Book Direct', icon: '🏨', price: price, url: brandUrl });
 
-  // Add any SerpApi provider links that have prices
+  // Add any SerpApi provider links that have prices (excluding already-listed ones)
   h.providers?.forEach(p => {
     if (p.url && p.name && !providers.find(x => x.name.toLowerCase().includes(p.name.toLowerCase().slice(0,5)))) {
       providers.push({ name: p.name, icon: '⚪', price: p.price || price, url: p.url });

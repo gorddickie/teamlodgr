@@ -314,6 +314,83 @@
       .book-your-room { padding: 22px 18px; }
       .booked-row   { flex-direction: column; }
     }
+
+    /* ── Step Wizard ── */
+    .step-wizard {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      margin: 28px 0 24px;
+      position: relative;
+    }
+    .step-wizard::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: calc(16.66% + 20px);
+      right: calc(16.66% + 20px);
+      height: 2px;
+      background: #e5e7eb;
+      z-index: 0;
+    }
+    .wizard-step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+      z-index: 1;
+      transition: opacity 0.3s;
+    }
+    .wizard-step.dimmed { opacity: 0.35; pointer-events: none; }
+    .wizard-dot {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 800;
+      border: 2px solid #e5e7eb;
+      background: white;
+      transition: all 0.3s;
+    }
+    .wizard-step.done .wizard-dot {
+      background: #16a34a;
+      border-color: #16a34a;
+      color: white;
+    }
+    .wizard-step.active .wizard-dot {
+      background: var(--navy);
+      border-color: var(--navy);
+      color: white;
+      box-shadow: 0 0 0 4px rgba(13,27,62,0.12);
+    }
+    .wizard-step.dimmed .wizard-dot {
+      background: #f3f4f6;
+      border-color: #e5e7eb;
+      color: #d1d5db;
+    }
+    .wizard-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.3;
+    }
+    .wizard-step.done .wizard-label { color: #16a34a; }
+    .wizard-step.active .wizard-label { color: var(--navy); }
+    .wizard-step.dimmed .wizard-label { color: #d1d5db; }
+    .step-panel {
+      transition: opacity 0.3s;
+    }
+    .step-panel.dimmed {
+      opacity: 0.3;
+      pointer-events: none;
+      user-select: none;
+    }
   </style>
 </head>
 <body>
@@ -331,6 +408,22 @@
 
 <div class="main">
 
+  <!-- ── Step Wizard (organizer only, hidden for team members) ── -->
+  <div class="step-wizard" id="step-wizard" style="display:none;">
+    <div class="wizard-step done" id="wstep-1">
+      <div class="wizard-dot">✓</div>
+      <div class="wizard-label">Hotel<br>Selected</div>
+    </div>
+    <div class="wizard-step active" id="wstep-2">
+      <div class="wizard-dot">2</div>
+      <div class="wizard-label">Send<br>Invites</div>
+    </div>
+    <div class="wizard-step dimmed" id="wstep-3">
+      <div class="wizard-dot">3</div>
+      <div class="wizard-label">Track<br>Bookings</div>
+    </div>
+  </div>
+
   <!-- ── Book Your Room (team member view) ── -->
   <div class="book-your-room" id="book-your-room" style="display:none;">
     <h2>🛏️ Book Your Room</h2>
@@ -339,7 +432,8 @@
     <div id="book-providers"></div>
   </div>
 
-  <!-- ── Notify Form ── -->
+  <!-- ── Notify Form (Step 2) ── -->
+  <div class="step-panel" id="invite-step-panel">
   <div class="section-card">
     <div id="trip-details" style="margin-bottom:20px; font-size:0.95rem; color:var(--muted);"></div>
     <div id="invite-form-fields">
@@ -362,6 +456,27 @@
     </div>
     <p id="invite-error" style="display:none;" class="error-msg"></p>
   </div>
+  </div><!-- /invite-step-panel -->
+
+  <!-- ── Booking Status (Step 3) ── -->
+  <div class="step-panel dimmed" id="status-step-panel">
+  <div class="section-card" id="status-section" style="display:none;">
+    <h3>📊 Team Booking Status</h3>
+    <div class="status-inner">
+      <div class="status-bar-header">
+        <div>
+          <div class="status-count" id="status-count">0 of ${rooms}</div>
+          <div class="status-label">rooms booked</div>
+        </div>
+        <span class="urgency-tag urgency-ok" id="urgency-tag">✅ On Track</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+      <div style="font-size:0.85rem;color:var(--muted);" id="status-subtext"></div>
+    </div>
+  </div>
+  </div><!-- /status-step-panel -->
 
   <!-- ── Footer ── -->
   <div class="footer">
@@ -443,6 +558,24 @@
 
   // ── Show booking options for team members (only when arriving via email link) ──
   const isTeamMember = params.get('email') || params.get('member');
+
+  // Show step wizard for organizers only
+  if (!isTeamMember) {
+    document.getElementById('step-wizard').style.display = 'flex';
+  }
+
+  function advanceWizardToStep3() {
+    const s2 = document.getElementById('wstep-2');
+    const s3 = document.getElementById('wstep-3');
+    if (s2) { s2.className = 'wizard-step done'; s2.querySelector('.wizard-dot').textContent = '✓'; }
+    if (s3) { s3.className = 'wizard-step active'; }
+    // Dim the invite panel, highlight the status panel
+    const inviteCard = document.getElementById('invite-step-panel');
+    const statusCard = document.getElementById('status-step-panel');
+    if (inviteCard) inviteCard.classList.add('dimmed');
+    if (statusCard) statusCard.classList.remove('dimmed');
+  }
+
   if (isTeamMember && providers1Room.length > 0) {
     document.getElementById('hero-title').textContent = '🏨 Book Your Room';
     document.getElementById('book-your-room').style.display = 'block';
@@ -557,6 +690,8 @@
 
     // Only show status section when there are team members in the DB
     document.getElementById('status-section').style.display = '';
+    const statusPanel = document.getElementById('status-step-panel');
+    if (statusPanel) statusPanel.classList.remove('dimmed');
 
     const booked     = members.filter(m => m.booked_at).length;
     const pct        = Math.round((booked / rooms) * 100);
@@ -719,6 +854,7 @@
 
       document.getElementById('invite-confirm').style.display = 'block';
       document.getElementById('invite-form-fields').style.display = 'none';
+      advanceWizardToStep3();
       // Build summary
       const sentEmails = emails;
       const tName = document.getElementById('tournament-name').value.trim();

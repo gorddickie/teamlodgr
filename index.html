@@ -495,20 +495,27 @@
   </div>
   <form class="search-card" id="search-form">
 
-    <!-- Row 1: City + Venue -->
+    <!-- Row 1: City + Tournament -->
     <div class="search-row search-row-1">
       <div class="field">
         <label>Destination City</label>
         <input type="text" id="city" placeholder="e.g. Halifax, NS" required/>
       </div>
+      <div class="field">
+        <label>Tournament / Event Name <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;">(optional)</span></label>
+        <input type="text" id="tournament-name" placeholder="e.g. 2026 Provincial Championships"/>
+      </div>
+    </div>
+    <!-- Row 2: Venue -->
+    <div class="search-row">
       <div class="field" style="position:relative;">
-        <label>Near a Venue / Community <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;">(optional)</span></label>
-        <input type="text" id="venue-input" placeholder="e.g. Scotiabank Arena, Downtown Halifax" autocomplete="off"/>
+        <label>Near a Venue / Arena <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;">(optional — we'll sort results by distance)</span></label>
+        <input type="text" id="venue-input" placeholder="e.g. Scotiabank Arena, TD Garden" autocomplete="off"/>
         <div class="venue-dropdown" id="venue-dropdown" style="display:none;"></div>
         <div id="venue-selected" style="display:none; margin-top:6px;"></div>
       </div>
     </div>
-    <!-- Row 2: Dates + Rooms -->
+    <!-- Row 3: Dates + Rooms -->
     <div class="search-row search-row-2">
       <div class="field">
         <label>Check-In</label>
@@ -523,19 +530,13 @@
         <input type="number" id="rooms" min="2" placeholder="e.g. 10" required/>
       </div>
     </div>
-    <!-- Row 3: Organizer Info -->
+    <!-- Row 4: Organizer Info -->
     <div class="search-row search-row-1" style="margin-top:4px;">
-      <div class="field">
-        <label>Tournament / Event Name <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;">(optional)</span></label>
-        <input type="text" id="tournament-name" placeholder="e.g. 2026 Provincial Championships"/>
-      </div>
       <div class="field">
         <label>Your Name <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;">(optional)</span></label>
         <input type="text" id="organizer-name" placeholder="e.g. Coach Mike"/>
       </div>
-    </div>
-    <div class="search-row" style="margin-top:4px;">
-      <div class="field" style="max-width:420px;">
+      <div class="field">
         <label>Your Email <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;">(replies from players go here)</span></label>
         <input type="email" id="organizer-email" placeholder="e.g. coach@hockeyteam.ca"/>
       </div>

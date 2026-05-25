@@ -463,8 +463,8 @@ function renderSerpHotelCard(h, params) {
           </div>
         `).join('')}
       </div>
-      <div class="share-row">
-        <button class="btn-copy-share" onclick="openSharePage(buildShareUrl('${hotelId}','${encodeURIComponent(h.name)}','${params.checkin}','${params.checkout}','${params.rooms}','${encodeURIComponent(h.photo||'')}',shareProviders_${hotelId}), this)">
+      <div class="share-row" style="margin-top:16px;">
+        <button class="btn-copy-share" style="width:100%;padding:13px 20px;font-size:1rem;background:#0d1b3e;" onclick="openSharePage(buildShareUrl('${hotelId}','${encodeURIComponent(h.name)}','${params.checkin}','${params.checkout}','${params.rooms}','${encodeURIComponent(h.photo||'')}',shareProviders_${hotelId}), this)">
           🔗 Share with Team
         </button>
       </div>

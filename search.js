@@ -3,14 +3,12 @@
 
 const RAPIDAPI_KEY      = '3173251728msha891fafe5abe622p17d02fjsn272b51fed579';
 const BOOKING_HOST      = 'booking-com15.p.rapidapi.com';
-const PRICELINE_HOST    = 'priceline-com-provider.p.rapidapi.com';
+// Priceline RapidAPI removed
 // Agoda RapidAPI removed — deeplink only
 const HEADERS_BOOKING   = { 'x-rapidapi-host': BOOKING_HOST,   'x-rapidapi-key': RAPIDAPI_KEY };
-const HEADERS_PRICELINE = { 'x-rapidapi-host': PRICELINE_HOST, 'x-rapidapi-key': RAPIDAPI_KEY };
-
 
 const TIERS = [20, 10, 5]; // Check highest first
-let pricelineCache = {}; // Cache Priceline city results to avoid repeat calls
+let pricelineCache = {};
 
 let currentParams = {};
 let selectedVenue = null; // { name, lat, lng } — set when user picks a venue
@@ -302,33 +300,6 @@ function renderHotelCard(h, params) {
   resultsGrid.appendChild(card);
 }
 
-// ── Tiered availability check for Priceline ─────────────────────────────────
-async function checkPricelineAvailability(hotelName, checkin, checkout, locId) {
-  if (!locId) return { available: false, tier: 0, price: null };
-  for (const tier of TIERS) {
-    const cacheKey = `${locId}_${checkin}_${checkout}_${tier}`;
-    let hotels;
-    if (pricelineCache[cacheKey]) {
-      hotels = pricelineCache[cacheKey];
-    } else {
-      const r = await fetch(
-        `https://${PRICELINE_HOST}/v1/hotels/search?location_id=${locId}&date_checkin=${checkin}&date_checkout=${checkout}&sort_order=PRICE&rooms_number=${tier}&adults_number=2&limit=20`,
-        { headers: HEADERS_PRICELINE }
-      ).then(r => r.json()).catch(() => []);
-      hotels = Array.isArray(r) ? r : (r.hotels || []);
-      pricelineCache[cacheKey] = hotels;
-    }
-    const match = hotels.find(h => {
-      const score = fuzzyScore(hotelName, h.name || '');
-      return score >= 40;
-    });
-    if (match) {
-      const price = match.ratesSummary?.minPrice ? `$${Math.round(match.ratesSummary.minPrice)} USD` : null;
-      return { available: true, tier, price };
-    }
-  }
-  return { available: false, tier: 0, price: null };
-}
 
 
 // ── Shared fuzzy scorer ───────────────────────────────────────────────────────

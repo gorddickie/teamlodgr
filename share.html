@@ -416,6 +416,11 @@
     if (p.name === 'Hotels.com' && url.includes('hotels.com')) {
       url = 'https://www.dpbolvw.net/click-7635804-1702763?url=' + encodeURIComponent(url);
     }
+    // Expedia: wrap with CJ affiliate tracking (Canada for .ca, Inc for .com)
+    if (p.name === 'Expedia' && url.includes('expedia')) {
+      const expediaId = url.includes('expedia.ca') ? '5261370' : '1874913';
+      url = 'https://www.dpbolvw.net/click-7635804-' + expediaId + '?url=' + encodeURIComponent(url);
+    }
     // Kayak: /Nrooms/ → /1rooms/
     url = url.replace(/\/\d+rooms\//, '/1rooms/');
     // Trivago: roomsCount=N → roomsCount=1

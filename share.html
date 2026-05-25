@@ -496,14 +496,17 @@
 <script>
   // ── URL params ────────────────────────────────────────────────────────────
   const params    = new URLSearchParams(window.location.search);
-  const hotelId   = params.get('hotel');
-  const hotelName = decodeURIComponent(params.get('name') || 'Your Team Hotel');
-  const checkin   = params.get('checkin');
-  const checkout  = params.get('checkout');
-  const rooms     = parseInt(params.get('rooms') || '1', 10);
-  const city      = decodeURIComponent(params.get('city') || '');
-  const hotelUrl  = decodeURIComponent(params.get('url') || '');
-  const hotelPhoto = decodeURIComponent(params.get('photo') || '');
+  const hotelId        = params.get('hotel');
+  const hotelName      = decodeURIComponent(params.get('name') || 'Your Team Hotel');
+  const checkin        = params.get('checkin');
+  const checkout       = params.get('checkout');
+  const rooms          = parseInt(params.get('rooms') || '1', 10);
+  const city           = decodeURIComponent(params.get('city') || '');
+  const hotelUrl       = decodeURIComponent(params.get('url') || '');
+  const hotelPhoto     = decodeURIComponent(params.get('photo') || '');
+  const tournamentName = decodeURIComponent(params.get('tournament') || '');
+  const organizerName  = decodeURIComponent(params.get('organizer') || '');
+  const organizerEmail = decodeURIComponent(params.get('orgEmail') || '');
 
   // share_token: prefer explicit param, then derive from URL, then generate fresh
   let shareToken = params.get('token');
@@ -562,6 +565,20 @@
   // Show step wizard for organizers only
   if (!isTeamMember) {
     document.getElementById('step-wizard').style.display = 'flex';
+
+    // Pre-fill organizer fields from search params
+    if (tournamentName) {
+      const el = document.getElementById('tournament-name');
+      if (el) { el.value = tournamentName; el.closest('.field-group') && (el.style.background = '#f9fafb'); }
+    }
+    if (organizerName) {
+      const el = document.getElementById('organizer-name');
+      if (el) el.value = organizerName;
+    }
+    if (organizerEmail) {
+      const el = document.getElementById('organizer-email');
+      if (el) el.value = organizerEmail;
+    }
   }
 
   function advanceWizardToStep3() {

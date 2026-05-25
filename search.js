@@ -120,15 +120,18 @@ if (searchForm) {
   searchForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const city    = document.getElementById('city').value.trim();
-    const checkin = document.getElementById('checkin').value;
-    const checkout= document.getElementById('checkout').value;
-    const rooms   = parseInt(document.getElementById('rooms').value);
+    const city           = document.getElementById('city').value.trim();
+    const checkin        = document.getElementById('checkin').value;
+    const checkout       = document.getElementById('checkout').value;
+    const rooms          = parseInt(document.getElementById('rooms').value);
+    const tournamentName = (document.getElementById('tournament-name')?.value || '').trim();
+    const organizerName  = (document.getElementById('organizer-name')?.value || '').trim();
+    const organizerEmail = (document.getElementById('organizer-email')?.value || '').trim();
 
     if (!city) { alert('Please enter a destination city.'); return; }
     if (!checkin || !checkout || !rooms) { alert('Please fill in all fields.'); return; }
 
-    currentParams = { city, checkin, checkout, rooms };
+    currentParams = { city, checkin, checkout, rooms, tournamentName, organizerName, organizerEmail };
 
     resultsSection.style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -661,6 +664,9 @@ function buildShareUrl(hotelId, name, checkin, checkout, rooms, photo, providers
   const base = window.location.origin + '/share.html';
   const p = new URLSearchParams({ hotel: hotelId, name: decodeURIComponent(name), checkin, checkout, rooms, photo: decodeURIComponent(photo), city: currentParams.city || '' });
   if (providers && providers.length) p.set('providers', JSON.stringify(providers));
+  if (currentParams.tournamentName) p.set('tournament', currentParams.tournamentName);
+  if (currentParams.organizerName)  p.set('organizer',  currentParams.organizerName);
+  if (currentParams.organizerEmail) p.set('orgEmail',   currentParams.organizerEmail);
   return base + '?' + p.toString();
 }
 

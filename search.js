@@ -450,7 +450,7 @@ function renderSerpHotelCard(h, params) {
         const km = haversineKm(params.venueLat, params.venueLng, h.lat, h.lng);
         return `<div><span class="distance-badge">📍 ${km < 1 ? (km*1000).toFixed(0)+' meters' : km.toFixed(1)+' km'} from ${params.venueName}</span></div>`;
       })() : ''}
-      <div id="team-banner-${hotelId}" style="margin-bottom:12px;padding:10px 14px;background:#f9fafb;border-radius:8px;font-size:0.9rem;color:#6b7280;display:none;">
+      <div id="team-banner-${hotelId}" style="margin-bottom:12px;padding:10px 14px;background:#f9fafb;border-radius:8px;font-size:0.9rem;color:#6b7280;display:none;"></div>
       <div class="providers-table" id="providers-table-${hotelId}" style="display:none;">
         <div class="providers-header">
           <span>Booking Site</span><span>Availability</span><span>Price/night</span>

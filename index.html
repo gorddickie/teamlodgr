@@ -598,6 +598,49 @@
     overflow: hidden;
     display: flex;
     align-items: stretch;
+    position: relative;
+    transition: opacity 0.4s;
+  }
+  .hotel-card.loading {
+    pointer-events: none;
+  }
+  .hotel-card.loading::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.78);
+    z-index: 10;
+    border-radius: 16px;
+    backdrop-filter: blur(1px);
+  }
+  .hotel-card.loading .hotel-photo {
+    filter: grayscale(1) brightness(0.85);
+  }
+  .hotel-loading-badge {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+    background: white;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #6b7280;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+  }
+  .hotel-loading-badge .spin {
+    width: 16px; height: 16px;
+    border: 2px solid #1a6fd4;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
   }
   .hotel-photo {
     width: 200px;

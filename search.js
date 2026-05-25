@@ -431,9 +431,10 @@ function renderSerpHotelCard(h, params) {
   window['shareProviders_' + hotelId] = shareProviders;
 
   const card = document.createElement('div');
-  card.className = 'hotel-card';
+  card.className = 'hotel-card loading';
   card.id = `hotel-card-${hotelId}`;
   card.innerHTML = `
+    <div class="hotel-loading-badge" id="loading-badge-${hotelId}"><div class="spin"></div> Checking availability...</div>
     ${h.photo ? `<img src="${h.photo}" alt="${h.name}" class="hotel-photo" onerror="this.style.display='none'"/>` : ''}
     <div class="hotel-body">
       <div class="hotel-rank-name">
@@ -449,7 +450,7 @@ function renderSerpHotelCard(h, params) {
         const km = haversineKm(params.venueLat, params.venueLng, h.lat, h.lng);
         return `<div><span class="distance-badge">📍 ${km < 1 ? (km*1000).toFixed(0)+' meters' : km.toFixed(1)+' km'} from ${params.venueName}</span></div>`;
       })() : ''}
-      <div id="team-banner-${hotelId}" style="margin-bottom:12px;padding:10px 14px;background:#f9fafb;border-radius:8px;font-size:0.9rem;color:#6b7280;" class="checking-pulse">⏳ Checking room availability for your team...</div>
+      <div id="team-banner-${hotelId}" style="margin-bottom:12px;padding:10px 14px;background:#f9fafb;border-radius:8px;font-size:0.9rem;color:#6b7280;display:none;">
       <div class="providers-table" id="providers-table-${hotelId}" style="display:none;">
         <div class="providers-header">
           <span>Booking Site</span><span>Availability</span><span>Price/night</span>
@@ -479,7 +480,12 @@ function renderSerpHotelCard(h, params) {
       const banner    = document.getElementById(`team-banner-${hotelId}`);
       const cardEl    = document.getElementById(`hotel-card-${hotelId}`);
       const tableEl   = document.getElementById(`providers-table-${hotelId}`);
+      const badge     = document.getElementById(`loading-badge-${hotelId}`);
       const needed    = parseInt(params.rooms) || 1;
+
+      // Always remove loading state first
+      if (cardEl) cardEl.classList.remove('loading');
+      if (badge)  badge.remove();
 
       if (!avail.available || avail.sufficient === false) {
         // Not enough rooms across all providers — hide card
@@ -487,7 +493,6 @@ function renderSerpHotelCard(h, params) {
       } else {
         // Sufficient rooms confirmed — show table + banner
         if (tableEl) tableEl.style.display = '';
-        if (banner) banner.classList.remove('checking-pulse');
         if (banner) {
           const parts = [];
           if (avail.bookingRooms > 0) parts.push(`Booking.com: ${avail.bookingRooms}`);
@@ -514,6 +519,10 @@ function renderSerpHotelCard(h, params) {
       });
     })
     .catch(() => {
+      const cardEl = document.getElementById(`hotel-card-${hotelId}`);
+      const badge  = document.getElementById(`loading-badge-${hotelId}`);
+      if (cardEl) cardEl.classList.remove('loading');
+      if (badge)  badge.remove();
       providers.forEach(p => {
         const el = document.getElementById(`avail-${hotelId}-${p.name.replace(/\s/g,'')}`);
         if (el) el.innerHTML = 'Check site';

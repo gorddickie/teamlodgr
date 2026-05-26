@@ -634,14 +634,6 @@
 
   // ── Save / get group booking in Supabase ──────────────────────────────────
   async function ensureBooking() {
-    const { data: existing } = await db
-      .from('group_bookings')
-      .select('id')
-      .eq('share_token', shareToken)
-      .maybeSingle();
-
-    if (existing) { bookingId = existing.id; return; }
-
     const payload = {
       hotel_name:    hotelName,
       hotel_url:     hotelUrl || null,
@@ -656,7 +648,7 @@
 
     const { data, error } = await db
       .from('group_bookings')
-      .insert(payload)
+      .upsert(payload, { onConflict: 'share_token' })
       .select('id')
       .single();
 

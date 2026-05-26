@@ -558,6 +558,18 @@
     url = url.replace(/no_rooms=\d+/, 'no_rooms=1');
     // room_qty=N → room_qty=1
     url = url.replace(/room_qty=\d+/, 'room_qty=1');
+    // Booking.com: rebuild with clean params if ss contains unencoded &
+    if ((url.includes('booking.com/search') || url.includes('booking.com/searchresults')) && url.match(/ss=[^&]*&[^&]*(?:checkin|checkout|Inn|Hotel)/i)) {
+      try {
+        const bUrl = new URL(url);
+        const rawSs = bUrl.searchParams.get('ss') || '';
+        const ci = bUrl.searchParams.get('checkin') || '';
+        const co = bUrl.searchParams.get('checkout') || '';
+        if (rawSs && ci && co) {
+          url = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(rawSs)}&checkin=${ci}&checkout=${co}&no_rooms=1&group_adults=2&selected_currency=CAD`;
+        }
+      } catch(e) {}
+    }
     return { ...p, url };
   }
   const providers1Room = currentProviders.map(fixProviderUrl);
@@ -652,7 +664,7 @@
       rooms_needed:  rooms || 1,
       share_token:   shareToken,
       affiliate_code: hotelId || null,
-      providers:     currentProviders?.length ? currentProviders : null,
+      providers:     providers1Room?.length ? providers1Room : null,
     };
 
     const apiRes = await fetch('https://www.teamlodgr.com/api/booking', {
@@ -871,7 +883,7 @@
           roomsAvailable: currentRoomsAvailable || null,
           roomsNeeded: rooms,
           pricePerNight: currentPricePerNight || null,
-          providers: currentProviders,
+          providers: providers1Room,
         }),
       });
 

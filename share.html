@@ -660,7 +660,11 @@
       document.getElementById('invite-error').style.display = 'block';
       const sendBtn = document.getElementById('send-invites-btn');
       if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Send Booking Link to Team →'; }
-    } else bookingId = data.id;
+    } else {
+      bookingId = data.id;
+      // Always use the token that was actually stored in the DB
+      if (data.share_token) shareToken = data.share_token;
+    }
   }
 
   // ── Load live hotel data from API ─────────────────────────────────────────

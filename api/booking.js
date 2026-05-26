@@ -29,5 +29,5 @@ module.exports = async (req, res) => {
   if (!r.ok) return res.status(500).json({ error: data?.message || JSON.stringify(data) });
 
   const booking = Array.isArray(data) ? data[0] : data;
-  return res.status(200).json({ id: booking.id });
+  return res.status(200).json({ id: booking.id, share_token: booking.share_token });
 };

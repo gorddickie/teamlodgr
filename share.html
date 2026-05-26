@@ -897,7 +897,11 @@
 
   // ── Init ──────────────────────────────────────────────────────────────────
   async function init() {
+    // Disable send button until booking is ready
+    const sendBtn = document.getElementById('send-invites-btn');
+    if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = 'Preparing...'; }
     await ensureBooking();
+    if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Send Booking Link to Team →'; }
     await Promise.all([loadHotelData(), loadBookingStatus()]);
   }
 

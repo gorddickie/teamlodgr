@@ -523,12 +523,12 @@
     // New format: Hotel-Search?destination=...&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
     // Wrapped in CJ affiliate (Hotels.com advertiser #1702763)
     const hotelsBase = `https://www.hotels.com/Hotel-Search?destination=${q}&startDate=${checkin}&endDate=${checkout}&adults=2&rooms=1`;
-    const hotelsUrl  = hotelsBase; // TODO: wrap with CJ affiliate once publisher ID confirmed
+    const hotelsUrl  = `https://www.dpbolvw.net/click-7963197-1702763?url=${encodeURIComponent(hotelsBase)}`;
 
     // ── Expedia ──────────────────────────────────────────────────────────
     // New format: Hotel-Search?destination=...&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
     const expediaBase = `https://www.expedia.ca/Hotel-Search?destination=${q}&startDate=${checkin}&endDate=${checkout}&adults=2&rooms=1`;
-    const expediaUrl  = expediaBase; // TODO: wrap with CJ affiliate once publisher ID confirmed
+    const expediaUrl  = `https://www.dpbolvw.net/click-7963197-5261370?url=${encodeURIComponent(expediaBase)}`;
 
     // ── Agoda ────────────────────────────────────────────────────────────
     // Format: agoda.com/search?q=HOTEL,CITY&checkIn=YYYY-MM-DD&checkOut=YYYY-MM-DD

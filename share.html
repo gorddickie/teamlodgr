@@ -646,11 +646,13 @@
       providers:     currentProviders?.length ? currentProviders : null,
     };
 
-    const { data, error } = await db
-      .from('group_bookings')
-      .upsert(payload, { onConflict: 'share_token' })
-      .select('id')
-      .single();
+    const apiRes = await fetch('/api/booking', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await apiRes.json();
+    const error = apiRes.ok ? null : data;
 
     if (error) {
       console.error('Failed to save group booking:', JSON.stringify(error));

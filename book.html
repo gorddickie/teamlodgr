@@ -507,27 +507,46 @@
     return `https://www.booking.com/searchresults.html?ss=${ss}&checkin=${checkin}&checkout=${checkout}&no_rooms=1&group_adults=2&selected_currency=CAD`;
   }
 
-  function buildAltUrl(site, hotelName, checkin, checkout) {
-    const name = encodeURIComponent(hotelName);
-    if (!checkin || !checkout) {
-      switch(site) {
-        case 'expedia':    return `https://www.expedia.ca/Hotels/search?q=${name}`;
-        case 'hotels.com': return `https://www.dpbolvw.net/click-7635804-1702763?url=${encodeURIComponent('https://www.hotels.com/search.do?q-destination=' + name)}`;
-        case 'agoda':      return `https://www.agoda.com/search?q=${name}`;
-      }
-    }
-    const [cy, cm, cd] = checkin.split('-');
-    const [oy, om, od] = checkout.split('-');
-    switch(site) {
-      case 'expedia':
-        return `https://www.expedia.ca/Hotels/search?q=${name}&startDate=${checkin}&endDate=${checkout}&rooms=1&adults=2`;
-      case 'hotels.com': {
-        const hotelsUrl = `https://www.hotels.com/search.do?q-destination=${name}&q-check-in=${cy}-${cm}-${cd}&q-check-out=${oy}-${om}-${od}&q-rooms=1&q-adults-per-room=1`;
-        return `https://www.dpbolvw.net/click-7635804-1702763?url=${encodeURIComponent(hotelsUrl)}`;
-      }
-      case 'agoda':
-        return `https://www.agoda.com/search?q=${name}&checkIn=${checkin}&checkOut=${checkout}&rooms=1&adults=2`;
-    }
+  // Build clean provider URLs from booking data — never trust saved URLs for standard providers
+  function buildProviderUrls(b) {
+    const city     = encodeURIComponent(b.city || b.hotel_name || '');
+    const name     = encodeURIComponent(b.hotel_name || '');
+    const checkin  = b.checkin  || '';
+    const checkout = b.checkout || '';
+    const hasDate  = checkin && checkout;
+
+    // Booking.com — search by city with dates
+    const bookingUrl = hasDate
+      ? `https://www.booking.com/searchresults.html?ss=${city}&checkin=${checkin}&checkout=${checkout}&no_rooms=1&group_adults=2&selected_currency=CAD`
+      : `https://www.booking.com/searchresults.html?ss=${city}&no_rooms=1&group_adults=2`;
+
+    // Hotels.com (CJ affiliate)
+    const hotelsBase = hasDate
+      ? `https://www.hotels.com/search.do?q-destination=${name}&q-check-in=${checkin}&q-check-out=${checkout}&q-rooms=1&q-adults-per-room=2`
+      : `https://www.hotels.com/search.do?q-destination=${name}`;
+    const hotelsUrl = `https://www.dpbolvw.net/click-7635804-1702763?url=${encodeURIComponent(hotelsBase)}`;
+
+    // Expedia (CJ affiliate)
+    const expediaBase = hasDate
+      ? `https://www.expedia.ca/Hotels/search?q=${name}&startDate=${checkin}&endDate=${checkout}&rooms=1&adults=2`
+      : `https://www.expedia.ca/Hotels/search?q=${name}`;
+    const expediaUrl = `https://www.dpbolvw.net/click-7635804-5261370?url=${encodeURIComponent(expediaBase)}`;
+
+    // Agoda
+    const agodaUrl = hasDate
+      ? `https://www.agoda.com/search?q=${name}&checkIn=${checkin}&checkOut=${checkout}&rooms=1&adults=2`
+      : `https://www.agoda.com/search?q=${name}`;
+
+    // Book Direct — use saved URL if available, otherwise skip
+    const directProvider = b.providers?.find(p => p.name === 'Book Direct' && p.url);
+
+    const providers = [];
+    if (directProvider) providers.push({ label: 'Book Direct 🏨', url: directProvider.url, price: directProvider.price });
+    providers.push({ label: 'Booking.com', url: bookingUrl, price: null });
+    providers.push({ label: 'Hotels.com',  url: hotelsUrl,  price: null });
+    providers.push({ label: 'Expedia',     url: expediaUrl, price: null });
+    providers.push({ label: 'Agoda',       url: agodaUrl,   price: null });
+    return providers;
   }
 
   async function searchAvailability(b) {
@@ -538,20 +557,21 @@
     const hotelName = b.hotel_name;
     const nights   = nightsBetween(checkin, checkout);
 
-    // If saved providers exist (from organizer's search), use them directly
-    if (b.providers && Array.isArray(b.providers) && b.providers.length > 0) {
+    // Always build clean provider URLs from booking data
+    {
       document.getElementById('avail-spinner').style.display = 'none';
+      const providers = buildProviderUrls(b);
       const altList = document.getElementById('alt-provider-list');
-      b.providers.forEach(p => {
+      providers.forEach(p => {
         altList.innerHTML += `
           <div class="provider-row">
-            <span class="provider-logo">${p.name}</span>
-            <span class="provider-price">${p.price ? `<strong>$${p.price} CAD</strong><small>/night</small>` : ''}</span>
+            <span class="provider-logo">${p.label}</span>
+            <span class="provider-price">${p.price ? `<strong>${p.price}</strong><small>/night</small>` : ''}</span>
             <a href="${p.url}" target="_blank" rel="noopener" class="btn-provider">Book Now →</a>
           </div>`;
       });
       document.getElementById('alt-providers').style.display = '';
-      document.getElementById('avail-timestamp').textContent = 'From your organizer\'s search';
+      document.getElementById('avail-timestamp').textContent = 'Prices may vary — check each site';
       return;
     }
 

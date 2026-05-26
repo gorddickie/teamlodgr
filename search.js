@@ -313,7 +313,7 @@ function renderSerpHotelCard(h, params) {
   // Build provider booking URLs with affiliate links
   const _q        = encodeURIComponent(h.name + ', ' + params.city);
   const bookingUrl = `https://www.booking.com/searchresults.html?ss=${_q}&checkin=${params.checkin}&checkout=${params.checkout}&no_rooms=${params.rooms}&group_adults=2&selected_currency=CAD`;
-  const hotelsUrl  = `https://www.dpbolvw.net/click-101756333-1702763?url=${encodeURIComponent('https://www.hotels.com/search.do?q-destination=' + _q + '&q-check-in=' + params.checkin + '&q-check-out=' + params.checkout + '&q-rooms=' + params.rooms)}`;
+  const hotelsUrl  = `https://www.anrdoezrs.net/click-101756333-15042852?url=${encodeURIComponent('https://www.hotels.com/Hotel-Search?destination=' + _q + '&startDate=' + params.checkin + '&endDate=' + params.checkout + '&adults=2&rooms=' + params.rooms)}`;
   const expediaUrl = `https://www.dpbolvw.net/click-101756333-13859169?url=${encodeURIComponent('https://www.expedia.ca/Hotels/search?q=' + _q + '&startDate=' + params.checkin + '&endDate=' + params.checkout + '&rooms=' + params.rooms + '&adults=2')}`;
 
   const agodaUrl  = `https://www.agoda.com/search?q=${_q}&checkIn=${params.checkin}&checkOut=${params.checkout}&rooms=${params.rooms}&adults=2`;

@@ -501,7 +501,8 @@
   }
 
   function bookingComUrl(hotelId, checkin, checkout, hotelName, city) {
-    const ss = encodeURIComponent(city ? `${hotelName}, ${city}` : (hotelName || hotelId));
+    // Use city as primary search term — more reliable than full hotel name with special chars
+    const ss = encodeURIComponent(city || hotelName || hotelId);
     if (!checkin || !checkout) return `https://www.booking.com/searchresults.html?ss=${ss}&no_rooms=1&group_adults=2`;
     return `https://www.booking.com/searchresults.html?ss=${ss}&checkin=${checkin}&checkout=${checkout}&no_rooms=1&group_adults=2&selected_currency=CAD`;
   }

@@ -408,6 +408,7 @@
 
 <div class="main">
 
+  <div id="steps-1-2" style="transition:opacity 0.4s;">
   <!-- ── Step Wizard (organizer only, hidden for team members) ── -->
   <div class="step-wizard" id="step-wizard" style="display:none;">
     <div class="wizard-step done" id="wstep-1">
@@ -458,6 +459,7 @@
     <p id="invite-error" style="display:none;" class="error-msg"></p>
   </div>
   </div><!-- /invite-step-panel -->
+  </div><!-- /steps-1-2 -->
 
   <!-- ── Booking Status (Step 3) — merged into same card as confirmation ── -->
   <div class="step-panel dimmed" id="status-step-panel">
@@ -593,10 +595,10 @@
     const s3 = document.getElementById('wstep-3');
     if (s2) { s2.className = 'wizard-step done'; s2.querySelector('.wizard-dot').textContent = '✓'; }
     if (s3) { s3.className = 'wizard-step active'; }
-    // Dim the invite panel, highlight the status panel
-    const inviteCard = document.getElementById('invite-step-panel');
+    // Grey out all of steps 1+2, highlight the status card
+    const steps12 = document.getElementById('steps-1-2');
+    if (steps12) { steps12.style.opacity = '0.25'; steps12.style.pointerEvents = 'none'; }
     const statusCard = document.getElementById('status-step-panel');
-    if (inviteCard) inviteCard.classList.add('dimmed');
     if (statusCard) statusCard.classList.remove('dimmed');
   }
 

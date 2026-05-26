@@ -321,20 +321,38 @@ function renderSerpHotelCard(h, params) {
 
   // Detect brand and build direct hotel brand URL
   function getBrandUrl(name, checkin, checkout, rooms) {
-    const n = (name || '').toLowerCase();
+    const n  = (name || '').toLowerCase();
     const ci = checkin; const co = checkout; const r = rooms;
-    if (n.includes('marriott') || n.includes('courtyard') || n.includes('fairfield') || n.includes('residence inn') || n.includes('springhill') || n.includes('towneplace') || n.includes('westin') || n.includes('sheraton') || n.includes('w hotel') || n.includes('renaissance'))
-      return `https://www.marriott.com/search/findHotels.mi?searchType=InCity&location=${encodeURIComponent(params.city)}&fromDate=${ci}&toDate=${co}&numberOfRooms=${r}`;
+    const c  = encodeURIComponent(params.city);
+
+    // Hilton family — correct format: /en/hotels/?locationQuery=CITY&arrivalDate=YYYY-MM-DD&departureDate=YYYY-MM-DD
     if (n.includes('hilton') || n.includes('hampton inn') || n.includes('doubletree') || n.includes('embassy suites') || n.includes('homewood') || n.includes('home2') || n.includes('curio') || n.includes('tapestry'))
-      return `https://www.hilton.com/en/hotels/?search=${encodeURIComponent(name + ' ' + params.city)}&checkin=${ci}&checkout=${co}&numRooms=${r}`;
+      return `https://www.hilton.com/en/hotels/?locationQuery=${c}&arrivalDate=${ci}&departureDate=${co}&numAdults=2&numRooms=${r}`;
+
+    // Marriott family — correct format: /search/findHotels.mi
+    if (n.includes('marriott') || n.includes('courtyard') || n.includes('fairfield') || n.includes('residence inn') || n.includes('springhill') || n.includes('towneplace') || n.includes('westin') || n.includes('sheraton') || n.includes('w hotel') || n.includes('renaissance'))
+      return `https://www.marriott.com/search/findHotels.mi?searchType=InCity&location=${c}&fromDate=${ci}&toDate=${co}&numberOfRooms=${r}&numberOfGuests=2`;
+
+    // Hyatt family
     if (n.includes('hyatt') || n.includes('andaz') || n.includes('park hyatt') || n.includes('grand hyatt') || n.includes('aloft'))
-      return `https://www.hyatt.com/search/${encodeURIComponent(params.city)}?checkinDate=${ci}&checkoutDate=${co}&rooms=${r}`;
+      return `https://www.hyatt.com/search/${c}?checkinDate=${ci}&checkoutDate=${co}&rooms=${r}&adults=2`;
+
+    // IHG family
     if (n.includes('ihg') || n.includes('holiday inn') || n.includes('crowne plaza') || n.includes('intercontinental') || n.includes('even hotel') || n.includes('staybridge'))
-      return `https://www.ihg.com/hotels/us/en/find-hotels/hotel/rooms?qDest=${encodeURIComponent(params.city)}&qCiD=${ci}&qCoD=${co}&qRms=${r}`;
+      return `https://www.ihg.com/hotels/us/en/find-hotels/hotel/rooms?qDest=${c}&qCiD=${ci}&qCoD=${co}&qRms=${r}&qAdlt=2`;
+
+    // Best Western
     if (n.includes('best western'))
-      return `https://www.bestwestern.com/en_US/book/hotel-rooms.html?propertyCode=&checkIn=${ci}&checkOut=${co}&numberOfRooms=${r}&city=${encodeURIComponent(params.city)}`;
-    if (n.includes('wyndham') || n.includes('days inn') || n.includes('super 8') || n.includes('la quinta') || n.includes('ramada') || n.includes('howard johnson'))
-      return `https://www.wyndhamhotels.com/search?checkInDate=${ci}&checkOutDate=${co}&query=${encodeURIComponent(params.city)}&numberOfRooms=${r}`;
+      return `https://www.bestwestern.com/en_US/book/hotels-in.html?city=${c}&checkIn=${ci}&checkOut=${co}&rooms=${r}&adults=2`;
+
+    // Wyndham family (Days Inn, Super 8, La Quinta, Ramada, Howard Johnson)
+    if (n.includes('wyndham') || n.includes('days inn') || n.includes('super 8') || n.includes('la quinta') || n.includes('ramada') || n.includes('howard johnson') || n.includes('microtel') || n.includes('travelodge'))
+      return `https://www.wyndhamhotels.com/search?checkInDate=${ci}&checkOutDate=${co}&query=${c}&numberOfRooms=${r}&adults=2`;
+
+    // Choice Hotels (Comfort Inn, Quality Inn, Econo Lodge, etc.)
+    if (n.includes('comfort inn') || n.includes('quality inn') || n.includes('econo lodge') || n.includes('sleep inn') || n.includes('clarion') || n.includes('rodeway'))
+      return `https://www.choicehotels.com/hotels?checkInDate=${ci}&checkOutDate=${co}&destination=${c}&rooms=${r}&adults=2`;
+
     return null;
   }
   const brandUrl = getBrandUrl(h.name, params.checkin, params.checkout, params.rooms);

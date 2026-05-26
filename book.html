@@ -666,7 +666,7 @@
       // Load group booking via shared Supabase client
       const { data: bookings, error } = await db
         .from('group_bookings')
-        .select('id,hotel_name,hotel_url,affiliate_code,checkin,checkout,rooms_needed,providers')
+        .select('id,hotel_name,hotel_url,affiliate_code,checkin,checkout,rooms_needed')
         .eq('share_token', token)
         .limit(1);
 

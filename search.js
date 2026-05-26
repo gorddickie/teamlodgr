@@ -311,11 +311,12 @@ function renderSerpHotelCard(h, params) {
   const shareToken = Math.random().toString(36).slice(2);
 
   // Build provider booking URLs with affiliate links
-  const bookingUrl = `https://www.booking.com/search.html?ss=${encodeURIComponent(h.name + ' ' + params.city)}&checkin_year=${params.checkin.split('-')[0]}&checkin_month=${parseInt(params.checkin.split('-')[1])}&checkin_monthday=${parseInt(params.checkin.split('-')[2])}&checkout_year=${params.checkout.split('-')[0]}&checkout_month=${parseInt(params.checkout.split('-')[1])}&checkout_monthday=${parseInt(params.checkout.split('-')[2])}&no_rooms=${params.rooms}&group_adults=2&selected_currency=CAD`;
-  const hotelsUrl  = `https://www.dpbolvw.net/click-7635804-1702763?url=${encodeURIComponent('https://www.hotels.com/search.do?q-destination=' + encodeURIComponent(h.name + ' ' + params.city) + '&q-check-in=' + params.checkin + '&q-check-out=' + params.checkout + '&q-rooms=' + params.rooms)}`;
-  const expediaUrl = `https://www.expedia.ca/Hotels/search?q=${encodeURIComponent(h.name + ' ' + params.city)}&startDate=${params.checkin}&endDate=${params.checkout}&rooms=${params.rooms}&adults=2`;
+  const _q        = encodeURIComponent(h.name + ', ' + params.city);
+  const bookingUrl = `https://www.booking.com/searchresults.html?ss=${_q}&checkin=${params.checkin}&checkout=${params.checkout}&no_rooms=${params.rooms}&group_adults=2&selected_currency=CAD`;
+  const hotelsUrl  = `https://www.dpbolvw.net/click-7635804-1702763?url=${encodeURIComponent('https://www.hotels.com/search.do?q-destination=' + _q + '&q-check-in=' + params.checkin + '&q-check-out=' + params.checkout + '&q-rooms=' + params.rooms)}`;
+  const expediaUrl = `https://www.dpbolvw.net/click-7635804-5261370?url=${encodeURIComponent('https://www.expedia.ca/Hotels/search?q=' + _q + '&startDate=' + params.checkin + '&endDate=' + params.checkout + '&rooms=' + params.rooms + '&adults=2')}`;
 
-  const agodaUrl  = `https://www.agoda.com/search?q=${encodeURIComponent(h.name + ' ' + params.city)}&checkIn=${params.checkin}&checkOut=${params.checkout}&rooms=${params.rooms}&adults=2`;
+  const agodaUrl  = `https://www.agoda.com/search?q=${_q}&checkIn=${params.checkin}&checkOut=${params.checkout}&rooms=${params.rooms}&adults=2`;
   const kayakUrl   = `https://www.kayak.com/hotels/${encodeURIComponent(params.city)}/${params.checkin}/${params.checkout}/${params.rooms}rooms/?q=${encodeURIComponent(h.name)}`;
 
   // Detect brand and build direct hotel brand URL

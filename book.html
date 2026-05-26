@@ -509,16 +509,17 @@
 
   // Build clean provider URLs from booking data — never trust saved URLs for standard providers
   function buildProviderUrls(b) {
+    const _q   = encodeURIComponent((b.hotel_name || '') + (b.city ? ', ' + b.city : ''));
     const city     = encodeURIComponent(b.city || b.hotel_name || '');
-    const name     = encodeURIComponent(b.hotel_name || '');
+    const name     = _q;
     const checkin  = b.checkin  || '';
     const checkout = b.checkout || '';
     const hasDate  = checkin && checkout;
 
     // Booking.com — search by city with dates
     const bookingUrl = hasDate
-      ? `https://www.booking.com/searchresults.html?ss=${city}&checkin=${checkin}&checkout=${checkout}&no_rooms=1&group_adults=2&selected_currency=CAD`
-      : `https://www.booking.com/searchresults.html?ss=${city}&no_rooms=1&group_adults=2`;
+      ? `https://www.booking.com/searchresults.html?ss=${name}&checkin=${checkin}&checkout=${checkout}&no_rooms=1&group_adults=2&selected_currency=CAD`
+      : `https://www.booking.com/searchresults.html?ss=${name}&no_rooms=1&group_adults=2`;
 
     // Hotels.com (CJ affiliate)
     const hotelsBase = hasDate

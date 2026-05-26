@@ -507,46 +507,49 @@
     return `https://www.booking.com/searchresults.html?ss=${ss}&checkin=${checkin}&checkout=${checkout}&no_rooms=1&group_adults=2&selected_currency=CAD`;
   }
 
-  // Build clean provider URLs from booking data — never trust saved URLs for standard providers
+  // Build clean provider URLs from booking data — one method per provider
   function buildProviderUrls(b) {
-    const _q   = encodeURIComponent((b.hotel_name || '') + (b.city ? ', ' + b.city : ''));
-    const city     = encodeURIComponent(b.city || b.hotel_name || '');
-    const name     = _q;
+    const hotel    = b.hotel_name || '';
+    const city     = b.city || '';
     const checkin  = b.checkin  || '';
     const checkout = b.checkout || '';
-    const hasDate  = checkin && checkout;
+    const q        = encodeURIComponent(hotel + (city ? ', ' + city : ''));
 
-    // Booking.com — search by city with dates
-    const bookingUrl = hasDate
-      ? `https://www.booking.com/searchresults.html?ss=${name}&checkin=${checkin}&checkout=${checkout}&no_rooms=1&group_adults=2&selected_currency=CAD`
-      : `https://www.booking.com/searchresults.html?ss=${name}&no_rooms=1&group_adults=2`;
+    // ── Booking.com ──────────────────────────────────────────────────────
+    // Format: searchresults.html?ss=HOTEL,CITY&checkin=YYYY-MM-DD&checkout=YYYY-MM-DD
+    const bookingUrl = `https://www.booking.com/searchresults.html?ss=${q}&checkin=${checkin}&checkout=${checkout}&no_rooms=1&group_adults=2&selected_currency=CAD&lang=en-gb`;
 
-    // Hotels.com (CJ affiliate)
-    const hotelsBase = hasDate
-      ? `https://www.hotels.com/search.do?q-destination=${name}&q-check-in=${checkin}&q-check-out=${checkout}&q-rooms=1&q-adults-per-room=2`
-      : `https://www.hotels.com/search.do?q-destination=${name}`;
-    const hotelsUrl = `https://www.dpbolvw.net/click-7635804-1702763?url=${encodeURIComponent(hotelsBase)}`;
+    // ── Hotels.com ───────────────────────────────────────────────────────
+    // New format: Hotel-Search?destination=...&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+    // Wrapped in CJ affiliate (Hotels.com advertiser #1702763)
+    const hotelsBase = `https://www.hotels.com/Hotel-Search?destination=${q}&startDate=${checkin}&endDate=${checkout}&adults=2&rooms=1`;
+    const hotelsUrl  = `https://www.dpbolvw.net/click-7635804-1702763?url=${encodeURIComponent(hotelsBase)}`;
 
-    // Expedia (CJ affiliate)
-    const expediaBase = hasDate
-      ? `https://www.expedia.ca/Hotels/search?q=${name}&startDate=${checkin}&endDate=${checkout}&rooms=1&adults=2`
-      : `https://www.expedia.ca/Hotels/search?q=${name}`;
-    const expediaUrl = `https://www.dpbolvw.net/click-7635804-5261370?url=${encodeURIComponent(expediaBase)}`;
+    // ── Expedia ──────────────────────────────────────────────────────────
+    // New format: Hotel-Search?destination=...&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+    // Wrapped in CJ affiliate (Expedia Canada advertiser #5261370)
+    const expediaBase = `https://www.expedia.ca/Hotel-Search?destination=${q}&startDate=${checkin}&endDate=${checkout}&adults=2&rooms=1`;
+    const expediaUrl  = `https://www.dpbolvw.net/click-7635804-5261370?url=${encodeURIComponent(expediaBase)}`;
 
-    // Agoda
-    const agodaUrl = hasDate
-      ? `https://www.agoda.com/search?q=${name}&checkIn=${checkin}&checkOut=${checkout}&rooms=1&adults=2`
-      : `https://www.agoda.com/search?q=${name}`;
+    // ── Agoda ────────────────────────────────────────────────────────────
+    // Format: agoda.com/search?q=HOTEL,CITY&checkIn=YYYY-MM-DD&checkOut=YYYY-MM-DD
+    const agodaUrl = `https://www.agoda.com/search?q=${q}&checkIn=${checkin}&checkOut=${checkout}&rooms=1&adults=2&hl=en-us`;
 
-    // Book Direct — use saved URL if available, otherwise skip
+    // ── Priceline ────────────────────────────────────────────────────────
+    // Format: priceline.com/hotel-search?q=HOTEL,CITY&checkIn=...&checkOut=...
+    const pricelineUrl = `https://www.priceline.com/hotel-search?q=${q}&checkIn=${checkin}&checkOut=${checkout}&rooms=1&adults=2`;
+
+    // ── Book Direct ──────────────────────────────────────────────────────
+    // Use saved brand URL if available (Wyndham, Marriott, Hilton, etc.)
     const directProvider = b.providers?.find(p => p.name === 'Book Direct' && p.url);
 
     const providers = [];
-    if (directProvider) providers.push({ label: 'Book Direct 🏨', url: directProvider.url, price: directProvider.price });
-    providers.push({ label: 'Booking.com', url: bookingUrl, price: null });
-    providers.push({ label: 'Hotels.com',  url: hotelsUrl,  price: null });
-    providers.push({ label: 'Expedia',     url: expediaUrl, price: null });
-    providers.push({ label: 'Agoda',       url: agodaUrl,   price: null });
+    if (directProvider) providers.push({ label: '🏨 Book Direct', url: directProvider.url, price: directProvider.price });
+    providers.push({ label: 'Booking.com', url: bookingUrl  });
+    providers.push({ label: 'Hotels.com',  url: hotelsUrl   });
+    providers.push({ label: 'Expedia',     url: expediaUrl  });
+    providers.push({ label: 'Agoda',       url: agodaUrl    });
+    providers.push({ label: 'Priceline',   url: pricelineUrl });
     return providers;
   }
 

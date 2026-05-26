@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!key) return res.status(500).json({ error: 'Missing SUPABASE_SERVICE_ROLE_KEY' });
 
-  const { share_token, hotel_name, hotel_url, city, checkin, checkout, rooms_needed, affiliate_code } = req.body;
+  const { share_token, hotel_name, hotel_url, city, checkin, checkout, rooms_needed, affiliate_code, providers } = req.body;
   if (!share_token) return res.status(400).json({ error: 'Missing share_token' });
 
   const headers = {
@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
   const r = await fetch(`${SUPABASE_URL}/rest/v1/group_bookings`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ share_token, hotel_name, hotel_url, city, checkin, checkout, rooms_needed, affiliate_code }),
+    body: JSON.stringify({ share_token, hotel_name, hotel_url, city, checkin, checkout, rooms_needed, affiliate_code, ...(providers ? { providers } : {}) }),
   });
 
   const data = await r.json();

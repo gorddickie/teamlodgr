@@ -500,10 +500,10 @@
     return Math.max(1, Math.round((b - a) / 86400000));
   }
 
-  function bookingComUrl(hotelId, checkin, checkout, hotelName) {
-    const name = encodeURIComponent(hotelName || hotelId);
-    if (!checkin || !checkout) return `https://www.booking.com/searchresults.html?ss=${name}&no_rooms=1&group_adults=2`;
-    return `https://www.booking.com/searchresults.html?ss=${name}&checkin=${checkin}&checkout=${checkout}&no_rooms=1&group_adults=2&selected_currency=CAD`;
+  function bookingComUrl(hotelId, checkin, checkout, hotelName, city) {
+    const ss = encodeURIComponent(city ? `${hotelName}, ${city}` : (hotelName || hotelId));
+    if (!checkin || !checkout) return `https://www.booking.com/searchresults.html?ss=${ss}&no_rooms=1&group_adults=2`;
+    return `https://www.booking.com/searchresults.html?ss=${ss}&checkin=${checkin}&checkout=${checkout}&no_rooms=1&group_adults=2&selected_currency=CAD`;
   }
 
   function buildAltUrl(site, hotelName, checkin, checkout) {
@@ -536,6 +536,23 @@
     const city     = b.city;
     const hotelName = b.hotel_name;
     const nights   = nightsBetween(checkin, checkout);
+
+    // If saved providers exist (from organizer's search), use them directly
+    if (b.providers && Array.isArray(b.providers) && b.providers.length > 0) {
+      document.getElementById('avail-spinner').style.display = 'none';
+      const altList = document.getElementById('alt-provider-list');
+      b.providers.forEach(p => {
+        altList.innerHTML += `
+          <div class="provider-row">
+            <span class="provider-logo">${p.name}</span>
+            <span class="provider-price">${p.price ? `<strong>$${p.price} CAD</strong><small>/night</small>` : ''}</span>
+            <a href="${p.url}" target="_blank" rel="noopener" class="btn-provider">Book Now →</a>
+          </div>`;
+      });
+      document.getElementById('alt-providers').style.display = '';
+      document.getElementById('avail-timestamp').textContent = 'From your organizer\'s search';
+      return;
+    }
 
     if (!hotelId) {
       document.getElementById('avail-spinner').style.display = 'none';
@@ -609,7 +626,7 @@
         {
           label: 'Booking.com',
           price: bookingPrice ? `$${bookingPrice} CAD` : null,
-          url:   bookingComUrl(hotelId, checkin, checkout, hotelName),
+          url:   bookingComUrl(hotelId, checkin, checkout, hotelName, b.city),
           show:  !soldOut,
         },
         {
@@ -664,7 +681,7 @@
       // Load group booking via shared Supabase client
       const { data: bookings, error } = await db
         .from('group_bookings')
-        .select('id,hotel_name,hotel_url,affiliate_code,checkin,checkout,rooms_needed')
+        .select('id,hotel_name,hotel_url,affiliate_code,checkin,checkout,rooms_needed,city,providers')
         .eq('share_token', token)
         .limit(1);
 

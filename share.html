@@ -610,14 +610,18 @@
     // Grey out and collapse steps 1+2, highlight the status card
     const steps12 = document.getElementById('steps-1-2');
     if (steps12) {
-      steps12.style.opacity = '0.25';
+      steps12.style.opacity = '0.2';
       steps12.style.pointerEvents = 'none';
-      steps12.style.maxHeight = '120px';
+      steps12.style.maxHeight = '60px';
       steps12.style.overflow = 'hidden';
       steps12.style.transition = 'max-height 0.4s ease, opacity 0.4s';
+      steps12.style.marginBottom = '0';
     }
     const statusCard = document.getElementById('status-step-panel');
     if (statusCard) statusCard.classList.remove('dimmed');
+    // Shrink hero
+    const hero = document.querySelector('.hero');
+    if (hero) hero.style.padding = '12px 20px 10px';
   }
 
   if (isTeamMember && providers1Room.length > 0) {

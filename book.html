@@ -502,10 +502,8 @@
 
   function bookingComUrl(hotelId, checkin, checkout, hotelName) {
     const name = encodeURIComponent(hotelName || hotelId);
-    if (!checkin || !checkout) return `https://www.booking.com/search.html?ss=${name}&no_rooms=1&group_adults=2`;
-    const [cy, cm, cd] = checkin.split('-');
-    const [oy, om, od] = checkout.split('-');
-    return `https://www.booking.com/search.html?ss=${name}&checkin_year=${cy}&checkin_month=${parseInt(cm)}&checkin_monthday=${parseInt(cd)}&checkout_year=${oy}&checkout_month=${parseInt(om)}&checkout_monthday=${parseInt(od)}&no_rooms=1&group_adults=2&selected_currency=CAD`;
+    if (!checkin || !checkout) return `https://www.booking.com/searchresults.html?ss=${name}&no_rooms=1&group_adults=2`;
+    return `https://www.booking.com/searchresults.html?ss=${name}&checkin=${checkin}&checkout=${checkout}&no_rooms=1&group_adults=2&selected_currency=CAD`;
   }
 
   function buildAltUrl(site, hotelName, checkin, checkout) {

@@ -532,11 +532,14 @@
 
     // ── Agoda ────────────────────────────────────────────────────────────
     // Format: agoda.com/search?q=HOTEL,CITY&checkIn=YYYY-MM-DD&checkOut=YYYY-MM-DD
-    const agodaUrl = `https://www.agoda.com/search?q=${q}&checkIn=${checkin}&checkOut=${checkout}&rooms=1&adults=2&hl=en-us`;
+    // Agoda — correct format: /en-au/search?q=HOTEL,CITY&checkIn=YYYY-MM-DD&checkOut=YYYY-MM-DD
+    const agodaUrl = `https://www.agoda.com/en-au/search?q=${q}&checkIn=${checkin}&checkOut=${checkout}&rooms=1&adults=2&hl=en-us`;
 
-    // ── Priceline ────────────────────────────────────────────────────────
-    // Format: priceline.com/hotel-search?q=HOTEL,CITY&checkIn=...&checkOut=...
-    const pricelineUrl = `https://www.priceline.com/hotel-search?q=${q}&checkIn=${checkin}&checkOut=${checkout}&rooms=1&adults=2`;
+    // Priceline — correct format: /relax/in/CITY/from/YYYYMMDD/to/YYYYMMDD/rooms/1
+    const _ci = checkin.replace(/-/g, '');
+    const _co = checkout.replace(/-/g, '');
+    const pricelineCity = encodeURIComponent(city);
+    const pricelineUrl = `https://www.priceline.com/relax/in/${pricelineCity}/from/${_ci}/to/${_co}/rooms/1`;
 
     // ── Book Direct ──────────────────────────────────────────────────────
     // Use saved brand URL if available (Wyndham, Marriott, Hilton, etc.)

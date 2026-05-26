@@ -459,9 +459,14 @@
   </div>
   </div><!-- /invite-step-panel -->
 
-  <!-- ── Booking Status (Step 3) ── -->
+  <!-- ── Booking Status (Step 3) — merged into same card as confirmation ── -->
   <div class="step-panel dimmed" id="status-step-panel">
   <div class="section-card" id="status-section" style="display:none;">
+    <div id="invite-confirm-merged" style="display:none; text-align:center; margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid #e5e7eb;">
+      <div style="font-size:2rem; margin-bottom:6px;">✅</div>
+      <h3 style="color:#0d1b3e; font-size:1.15rem; margin-bottom:4px;">Booking Link Shared!</h3>
+      <p style="color:#6b7280; font-size:0.88rem; margin-bottom:4px;">Your team has been sent a personal link to book their room.</p>
+    </div>
     <h3>📊 Team Booking Status</h3>
     <div class="status-inner">
       <div class="status-bar-header">
@@ -476,6 +481,7 @@
       </div>
       <div style="font-size:0.85rem;color:var(--muted);" id="status-subtext"></div>
     </div>
+    <div id="invite-summary-merged" style="background:#f4f6fa; border-radius:10px; padding:16px; margin-top:16px;"></div>
   </div>
   </div><!-- /status-step-panel -->
 
@@ -869,13 +875,14 @@
 
       if (!res.ok) throw new Error(`API error ${res.status}`);
 
-      document.getElementById('invite-confirm').style.display = 'block';
+      document.getElementById('invite-confirm').style.display = 'none';
       document.getElementById('invite-form-fields').style.display = 'none';
+      document.getElementById('invite-confirm-merged').style.display = 'block';
       advanceWizardToStep3();
       // Build summary
       const sentEmails = emails;
       const tName = document.getElementById('tournament-name').value.trim();
-      document.getElementById('invite-summary').innerHTML = `
+      document.getElementById('invite-summary-merged').innerHTML = `
         ${tName ? `<div style="font-weight:700;color:#0d1b3e;margin-bottom:10px;">🏆 ${tName}</div>` : ''}
         <div style="font-size:0.88rem;color:#6b7280;margin-bottom:10px;">🏨 ${hotelName} &nbsp;|&nbsp; 📅 ${checkin} → ${checkout}</div>
         <div style="font-size:0.85rem;font-weight:700;color:#0d1b3e;margin-bottom:8px;">📧 Sent to ${sentEmails.length} player${sentEmails.length !== 1 ? 's' : ''}:</div>

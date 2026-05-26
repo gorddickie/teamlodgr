@@ -531,8 +531,13 @@
 
     // ── Expedia ──────────────────────────────────────────────────────────
     // New format: Hotel-Search?destination=...&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
-    const expediaBase = `https://www.expedia.ca/Hotel-Search?destination=${q}&startDate=${checkin}&endDate=${checkout}&adults=2&rooms=1`;
-    const expediaUrl  = `https://www.dpbolvw.net/click-101756333-13859169?url=${encodeURIComponent(expediaBase)}`;
+    const isCanadaExpedia = /\b(AB|BC|MB|NB|NL|NS|NT|NU|ON|PE|QC|SK|YT|alberta|british columbia|ontario|quebec|nova scotia|new brunswick|manitoba|saskatchewan|newfoundland|prince edward)\b/i.test((b.city || '') + ' ' + (b.hotel_name || ''));
+    const expediaBase = isCanadaExpedia
+      ? `https://www.expedia.ca/Hotel-Search?destination=${q}&startDate=${checkin}&endDate=${checkout}&adults=2&rooms=1`
+      : `https://www.expedia.com/Hotel-Search?destination=${q}&startDate=${checkin}&endDate=${checkout}&adults=2&rooms=1`;
+    const expediaUrl = isCanadaExpedia
+      ? `https://www.dpbolvw.net/click-101756333-13859169?url=${encodeURIComponent(expediaBase)}`
+      : `https://www.kqzyfj.com/click-101756333-15042831?url=${encodeURIComponent(expediaBase)}`;
 
     // ── Agoda ────────────────────────────────────────────────────────────
     // Format: agoda.com/search?q=HOTEL,CITY&checkIn=YYYY-MM-DD&checkOut=YYYY-MM-DD

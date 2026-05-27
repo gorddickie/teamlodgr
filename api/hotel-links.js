@@ -62,6 +62,9 @@ module.exports = async (req, res) => {
             const gRes = await fetch(`https://serpapi.com/search?${gParams}`);
             const gData = await gRes.json();
             const hotelLink = (gData.organic_results || []).find(r => /hotels\.com\/ho\d+/.test(r.link));
+            // Also grab Agoda and Expedia links from Google results
+            const agodaLink = (gData.organic_results || []).find(r => /agoda\.com\/[a-z-]+\/hotel/.test(r.link));
+            if (agodaLink) links.agoda = agodaLink.link;
             if (hotelLink) {
               const idMatch = hotelLink.link.match(/hotels\.com\/ho(\d+)/);
               if (idMatch) {

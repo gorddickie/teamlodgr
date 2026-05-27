@@ -547,7 +547,7 @@
     // ── Agoda ────────────────────────────────────────────────────────────
     // Format: agoda.com/search?q=HOTEL,CITY&checkIn=YYYY-MM-DD&checkOut=YYYY-MM-DD
     // Agoda — correct format: /en-au/search?q=HOTEL,CITY&checkIn=YYYY-MM-DD&checkOut=YYYY-MM-DD
-    const agodaUrl = `https://www.agoda.com/en-au/search?q=${q}&checkIn=${checkin}&checkOut=${checkout}&rooms=1&adults=2&hl=en-us`;
+    const agodaUrl = `https://www.agoda.com/search?q=${q}&checkIn=${checkin}&checkOut=${checkout}&rooms=1&adults=2&hl=en-us`;
 
     // Priceline — correct format: /relax/in/CITY/from/YYYYMMDD/to/YYYYMMDD/rooms/1
     const _ci = checkin.replace(/-/g, '');

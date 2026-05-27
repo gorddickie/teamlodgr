@@ -55,7 +55,7 @@ module.exports = async (req, res) => {
           try {
             const gParams = new URLSearchParams({
               engine: 'google',
-              q: `"${hotelResult.regionNames?.shortName || hotel}" (site:hotels.com OR site:agoda.com)`,
+              q: `"${hotelResult.regionNames?.shortName || hotel}" (site:hotels.com OR site:agoda.com OR site:priceline.com)`,
               api_key: apiKey,
               num: 5,
             });
@@ -65,9 +65,13 @@ module.exports = async (req, res) => {
             // Also grab Agoda and Expedia links from Google results
             const agodaLink = (gData.organic_results || []).find(r => /agoda\.com\//.test(r.link) && !/agoda\.com\/$/.test(r.link));
             if (agodaLink) {
-              // Append dates to Agoda hotel URL
               const agodaBase = agodaLink.link.split('?')[0];
               links.agoda = `${agodaBase}?checkIn=${checkin}&checkOut=${checkout}&rooms=1&adults=2`;
+            }
+            const pricelineLink = (gData.organic_results || []).find(r => /priceline\.com\//.test(r.link) && r.link.includes('hotel'));
+            if (pricelineLink) {
+              const plBase = pricelineLink.link.split('?')[0];
+              links.priceline = `${plBase}?checkIn=${checkin}&checkOut=${checkout}&rooms=1`;
             }
             if (hotelLink) {
               const idMatch = hotelLink.link.match(/hotels\.com\/ho(\d+)/);

@@ -357,16 +357,34 @@ function renderSerpHotelCard(h, params) {
   }
   const brandUrl = getBrandUrl(h.name, params.checkin, params.checkout, params.rooms);
 
-  // Pull Agoda price/url from SerpApi if available
-  const serpAgoda = h.providers?.find(p => p.name?.toLowerCase().includes('agoda'));
-  const agodaPrice = serpAgoda?.price || null;
-  const agodaFinalUrl = (serpAgoda?.url) || agodaUrl;
+  // Pull provider-specific URLs from SerpApi — these are direct hotel links, not generic searches
+  const serpHotels  = h.providers?.find(p => /hotels\.com/i.test(p.name || p.url || ''));
+  const serpExpedia = h.providers?.find(p => /expedia/i.test(p.name || p.url || ''));
+  const serpAgoda   = h.providers?.find(p => /agoda/i.test(p.name || p.url || ''));
+
+  // Wrap serp URLs with affiliate tracking if available
+  function wrapHotels(url) {
+    if (!url) return hotelsUrl;
+    const isCA = /\.ca\b|canada/i.test(url + params.city);
+    const base = isCA ? 'https://www.tkqlhce.com/click-101756333-15042853' : 'https://www.anrdoezrs.net/click-101756333-15042852';
+    return `${base}?url=${encodeURIComponent(url)}`;
+  }
+  function wrapExpedia(url) {
+    if (!url) return expediaUrl;
+    const isCA = /expedia\.ca|canada/i.test(url + params.city);
+    const base = isCA ? 'https://www.dpbolvw.net/click-101756333-13859169' : 'https://www.kqzyfj.com/click-101756333-15042831';
+    return `${base}?url=${encodeURIComponent(url)}`;
+  }
+
+  const agodaFinalUrl   = serpAgoda?.url   || agodaUrl;
+  const hotelseFinalUrl = serpHotels?.url  ? wrapHotels(serpHotels.url)   : hotelsUrl;
+  const expediaFinalUrl = serpExpedia?.url ? wrapExpedia(serpExpedia.url) : expediaUrl;
 
   const providers = [
-    { name: 'Booking.com', icon: '🔵', price: price,      url: bookingUrl    },
-    { name: 'Hotels.com',  icon: '🔴', price: price,      url: hotelsUrl     },
-    { name: 'Expedia',     icon: '🟡', price: price,      url: expediaUrl    },
-    { name: 'Agoda',       icon: '🟢', price: agodaPrice, url: agodaFinalUrl },
+    { name: 'Booking.com', icon: '🔵', price: price,             url: bookingUrl      },
+    { name: 'Hotels.com',  icon: '🔴', price: serpHotels?.price  || price, url: hotelseFinalUrl },
+    { name: 'Expedia',     icon: '🟡', price: serpExpedia?.price || price, url: expediaFinalUrl },
+    { name: 'Agoda',       icon: '🟢', price: serpAgoda?.price   || null,  url: agodaFinalUrl   },
   ];
   if (brandUrl) providers.unshift({ name: 'Book Direct', icon: '🏨', price: price, url: brandUrl });
 

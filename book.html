@@ -527,7 +527,7 @@
     // ── Hotels.com ───────────────────────────────────────────────────────
     // New format: Hotel-Search?destination=...&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
     // Wrapped in CJ affiliate (Hotels.com advertiser #1702763)
-    const hotelsBase = `https://www.hotels.com/Hotel-Search?destination=${q}&startDate=${checkin}&endDate=${checkout}&adults=2&rooms=1`;
+    const hotelsBase = `https://www.hotels.com/search.do?q-destination=${q}&q-check-in=${checkin}&q-check-out=${checkout}&q-rooms=1&q-adults-per-room=2`;
     // Use CA affiliate for Canadian hotels, US affiliate for everything else
     const isCanada = /\b(AB|BC|MB|NB|NL|NS|NT|NU|ON|PE|QC|SK|YT|alberta|british columbia|ontario|quebec|nova scotia|new brunswick|manitoba|saskatchewan|newfoundland|prince edward)\b/i.test((b.city || '') + ' ' + (b.hotel_name || ''));
     const hotelsUrl = isCanada

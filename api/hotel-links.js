@@ -40,7 +40,7 @@ module.exports = async (req, res) => {
       if (propertyId) {
         // Build direct hotel page URLs using property ID
         const isCA = /\b(nb|ns|on|bc|ab|qc|mb|sk|nl|pe|nt|nu|yt|canada|moncton|halifax|toronto|vancouver|calgary|montreal|ottawa)\b/i.test(city);
-        const toSlug = s => s.split(/\s+/).map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join('-').replace(/[^a-zA-Z0-9-]/g,'');
+        const toSlug = s => s.replace(/[^a-zA-Z0-9\s]/g,' ').split(/\s+/).filter(Boolean).map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join('-');
         const slug = toSlug(hotelResult.regionNames?.shortName || hotel);
         const citySlug = toSlug(city);
 

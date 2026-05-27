@@ -597,8 +597,10 @@
         document.getElementById('avail-timestamp').textContent = 'Prices may vary — check each site';
       }
 
-      // Show base URLs immediately
+      // Show base URLs immediately with loading note
       renderProviders(providers);
+      document.getElementById('avail-timestamp').textContent = '⏳ Finding direct hotel links...';
+      document.getElementById('avail-timestamp').style.color = '#ea580c';
 
       // Then try to upgrade Hotels.com + Expedia with direct hotel links
       if (hotelName && city && checkin && checkout) {
@@ -615,8 +617,13 @@
               return p;
             });
             renderProviders(upgraded);
+            document.getElementById('avail-timestamp').textContent = '✅ Direct hotel links ready';
+            document.getElementById('avail-timestamp').style.color = '#16a34a';
           })
-          .catch(() => {}); // silently keep base URLs if lookup fails
+          .catch(() => {
+            document.getElementById('avail-timestamp').textContent = 'Prices may vary — check each site';
+            document.getElementById('avail-timestamp').style.color = '';
+          });
       }
       return;
     }

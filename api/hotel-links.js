@@ -1,5 +1,8 @@
-// api/hotel-links.js — look up provider-specific hotel URLs via SerpAPI Google Hotels
-// Called by book.html to get direct hotel deep links for Hotels.com, Expedia, etc.
+// api/hotel-links.js — look up provider-specific hotel IDs and URLs
+// Uses hotels-com-provider RapidAPI to get Hotels.com/Expedia property IDs
+// Falls back to SerpAPI Google Hotels if needed
+
+const RAPIDAPI_KEY  = process.env.RAPIDAPI_KEY || '3173251728msha891fafe5abe622p17d02fjsn272b51fed579';
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -8,52 +11,42 @@ module.exports = async (req, res) => {
   const { hotel, city, checkin, checkout } = req.query;
   if (!hotel || !city) return res.status(400).json({ error: 'Missing hotel or city' });
 
-  const apiKey = process.env.SERPAPI_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'SERPAPI_KEY not configured' });
-
-  const params = new URLSearchParams({
-    engine:         'google_hotels',
-    q:              hotel + ' ' + city,
-    check_in_date:  checkin  || '',
-    check_out_date: checkout || '',
-    adults:         '2',
-    rooms:          '1',
-    currency:       'CAD',
-    gl:             'ca',
-    hl:             'en',
-    api_key:        apiKey,
-  });
+  const links = {};
+  let hotelName = hotel;
 
   try {
-    const r = await fetch(`https://serpapi.com/search?${params}`);
-    const data = await r.json();
+    // ── Step 1: Hotels.com/Expedia property lookup via hotels-com-provider ──
+    const regionRes = await fetch(
+      `https://hotels-com-provider.p.rapidapi.com/v2/regions?locale=en_CA&domain=CA&query=${encodeURIComponent(hotel + ' ' + city)}`,
+      { headers: { 'x-rapidapi-key': RAPIDAPI_KEY, 'x-rapidapi-host': 'hotels-com-provider.p.rapidapi.com' } }
+    );
+    const regionData = await regionRes.json();
+    const hotelResult = (regionData.data || []).find(r => r['@type'] === 'gaiaHotelResult' || r.type === 'HOTEL');
 
-    const properties = data.properties || [];
+    if (hotelResult) {
+      const propertyId = hotelResult.hotelId || hotelResult.essId?.sourceId;
+      hotelName = hotelResult.regionNames?.shortName || hotel;
 
-    // Find best match by hotel name
-    const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
-    const target = norm(hotel);
-    const match = properties.find(p => {
-      const score = norm(p.name || '');
-      return score.includes(target.slice(0, 12)) || target.includes(score.slice(0, 12));
-    }) || properties[0];
+      if (propertyId) {
+        // Build direct hotel page URLs using property ID
+        const isCA = /\b(nb|ns|on|bc|ab|qc|mb|sk|nl|pe|nt|nu|yt|canada|moncton|halifax|toronto|vancouver|calgary|montreal|ottawa)\b/i.test(city);
 
-    if (!match) return res.json({ links: {} });
+        // Hotels.com direct property URL
+        const hotelsBase = `https://www.hotels.com/ho${propertyId}/?q-check-in=${checkin}&q-check-out=${checkout}&q-rooms=1&q-adults-per-room=2`;
+        links.hotels = hotelsBase;
 
-    const links = {};
-    (match.prices || []).forEach(p => {
-      const src = (p.source || '').toLowerCase();
-      const url = p.link || null;
-      if (!url) return;
-      if (src.includes('hotels.com'))  links.hotels  = url;
-      if (src.includes('expedia'))     links.expedia = url;
-      if (src.includes('agoda'))       links.agoda   = url;
-      if (src.includes('booking'))     links.booking = url;
-      if (src.includes('priceline'))   links.priceline = url;
-    });
+        // Expedia direct property URL
+        const expediaSlug = hotelName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const expediaBase = isCA
+          ? `https://www.expedia.ca/h${propertyId}.Hotel-Information?chkin=${checkin}&chkout=${checkout}&rm1=a2&regionId=${propertyId}`
+          : `https://www.expedia.com/h${propertyId}.Hotel-Information?chkin=${checkin}&chkout=${checkout}&rm1=a2`;
+        links.expedia = expediaBase;
+      }
+    }
 
-    return res.json({ links, hotelName: match.name, debug: { pricesCount: (match.prices||[]).length, serpCount: properties.length } });
+    return res.json({ links, hotelName });
+
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+    return res.status(500).json({ error: e.message, links: {} });
   }
 };

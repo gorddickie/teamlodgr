@@ -52,7 +52,7 @@ module.exports = async (req, res) => {
       if (src.includes('priceline'))   links.priceline = url;
     });
 
-    return res.json({ links, hotelName: match.name });
+    return res.json({ links, hotelName: match.name, debug: { pricesCount: (match.prices||[]).length, serpCount: properties.length } });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }

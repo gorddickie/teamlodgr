@@ -377,7 +377,8 @@ function renderSerpHotelCard(h, params) {
     }
   });
 
-  const hotelId = 'serp_' + Math.random().toString(36).slice(2);
+  // Use the real Booking.com hotel_id so we can deep-link directly to the hotel
+  const hotelId = h.hotel_id || ('serp_' + Math.random().toString(36).slice(2));
   const shareProviders = providers.map(p => ({ name: p.name, price: p.price, url: p.url }));
   window['shareProviders_' + hotelId] = shareProviders;
 

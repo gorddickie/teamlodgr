@@ -516,8 +516,13 @@
     const q        = encodeURIComponent(hotel + (city ? ', ' + city : ''));
 
     // ── Booking.com ──────────────────────────────────────────────────────
-    // Format: searchresults.html?ss=HOTEL,CITY&checkin=YYYY-MM-DD&checkout=YYYY-MM-DD
-    const bookingUrl = `https://www.booking.com/searchresults.html?ss=${q}&checkin=${checkin}&checkout=${checkout}&no_rooms=1&group_adults=2&selected_currency=CAD&lang=en-gb`;
+    // If we have a real numeric hotel_id, deep-link directly to that hotel
+    // Otherwise fall back to search by name+city
+    const hotelId = b.affiliate_code;
+    const isRealHotelId = hotelId && /^\d+$/.test(String(hotelId));
+    const bookingUrl = isRealHotelId
+      ? `https://www.booking.com/searchresults.html?hotel_id=${hotelId}&checkin=${checkin}&checkout=${checkout}&no_rooms=1&group_adults=2&selected_currency=CAD`
+      : `https://www.booking.com/searchresults.html?ss=${q}&checkin=${checkin}&checkout=${checkout}&no_rooms=1&group_adults=2&selected_currency=CAD&lang=en-gb`;
 
     // ── Hotels.com ───────────────────────────────────────────────────────
     // New format: Hotel-Search?destination=...&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD

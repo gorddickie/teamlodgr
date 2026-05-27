@@ -55,16 +55,20 @@ module.exports = async (req, res) => {
           try {
             const gParams = new URLSearchParams({
               engine: 'google',
-              q: `site:hotels.com "${hotelResult.regionNames?.shortName || hotel}" hotel`,
+              q: `"${hotelResult.regionNames?.shortName || hotel}" (site:hotels.com OR site:agoda.com)`,
               api_key: apiKey,
-              num: 3,
+              num: 5,
             });
             const gRes = await fetch(`https://serpapi.com/search?${gParams}`);
             const gData = await gRes.json();
             const hotelLink = (gData.organic_results || []).find(r => /hotels\.com\/ho\d+/.test(r.link));
             // Also grab Agoda and Expedia links from Google results
-            const agodaLink = (gData.organic_results || []).find(r => /agoda\.com\/[a-z-]+\/hotel/.test(r.link));
-            if (agodaLink) links.agoda = agodaLink.link;
+            const agodaLink = (gData.organic_results || []).find(r => /agoda\.com\//.test(r.link) && !/agoda\.com\/$/.test(r.link));
+            if (agodaLink) {
+              // Append dates to Agoda hotel URL
+              const agodaBase = agodaLink.link.split('?')[0];
+              links.agoda = `${agodaBase}?checkIn=${checkin}&checkOut=${checkout}&rooms=1&adults=2`;
+            }
             if (hotelLink) {
               const idMatch = hotelLink.link.match(/hotels\.com\/ho(\d+)/);
               if (idMatch) {

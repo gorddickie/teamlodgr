@@ -577,21 +577,47 @@
     const hotelName = b.hotel_name;
     const nights   = nightsBetween(checkin, checkout);
 
-    // Always build clean provider URLs from booking data
+    // Build base provider URLs, then try to upgrade with direct hotel links from SerpAPI
     {
-      document.getElementById('avail-spinner').style.display = 'none';
       const providers = buildProviderUrls(b);
       const altList = document.getElementById('alt-provider-list');
-      providers.forEach(p => {
-        altList.innerHTML += `
-          <div class="provider-row">
-            <span class="provider-logo">${p.label}</span>
-            <span class="provider-price">${p.price ? `<strong>${p.price}</strong><small>/night</small>` : ''}</span>
-            <a href="${p.url}" target="_blank" rel="noopener" class="btn-provider">Book Now →</a>
-          </div>`;
-      });
-      document.getElementById('alt-providers').style.display = '';
-      document.getElementById('avail-timestamp').textContent = 'Prices may vary — check each site';
+
+      function renderProviders(provs) {
+        altList.innerHTML = '';
+        provs.forEach(p => {
+          altList.innerHTML += `
+            <div class="provider-row">
+              <span class="provider-logo">${p.label}</span>
+              <span class="provider-price">${p.price ? `<strong>${p.price}</strong><small>/night</small>` : ''}</span>
+              <a href="${p.url}" target="_blank" rel="noopener" class="btn-provider">Book Now →</a>
+            </div>`;
+        });
+        document.getElementById('alt-providers').style.display = '';
+        document.getElementById('avail-spinner').style.display = 'none';
+        document.getElementById('avail-timestamp').textContent = 'Prices may vary — check each site';
+      }
+
+      // Show base URLs immediately
+      renderProviders(providers);
+
+      // Then try to upgrade Hotels.com + Expedia with direct hotel links
+      if (hotelName && city && checkin && checkout) {
+        fetch(`https://www.teamlodgr.com/api/hotel-links?hotel=${encodeURIComponent(hotelName)}&city=${encodeURIComponent(city)}&checkin=${checkin}&checkout=${checkout}`)
+          .then(r => r.json())
+          .then(data => {
+            if (!data.links) return;
+            const { hotels, expedia, agoda, priceline } = data.links;
+            const upgraded = providers.map(p => {
+              if (p.label === 'Hotels.com'  && hotels)   return { ...p, url: `https://www.tkqlhce.com/click-101756333-15042853?url=${encodeURIComponent(hotels)}` };
+              if (p.label === 'Expedia'     && expedia)  return { ...p, url: `https://www.dpbolvw.net/click-101756333-13859169?url=${encodeURIComponent(expedia)}` };
+              if (p.label === 'Agoda'       && agoda)    return { ...p, url: agoda };
+              if (p.label === 'Priceline'   && priceline) return { ...p, url: priceline };
+              return p;
+            });
+            renderProviders(upgraded);
+          })
+          .catch(() => {}); // silently keep base URLs if lookup fails
+      }
       return;
     }
 

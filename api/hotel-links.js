@@ -40,16 +40,17 @@ module.exports = async (req, res) => {
       if (propertyId) {
         // Build direct hotel page URLs using property ID
         const isCA = /\b(nb|ns|on|bc|ab|qc|mb|sk|nl|pe|nt|nu|yt|canada|moncton|halifax|toronto|vancouver|calgary|montreal|ottawa)\b/i.test(city);
+        const slug = (hotelResult.regionNames?.shortName || hotel).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+        const citySlug = city.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 
-        // Hotels.com direct property URL
-        const hotelsBase = `https://www.hotels.com/ho${propertyId}/?q-check-in=${checkin}&q-check-out=${checkout}&q-rooms=1&q-adults-per-room=2`;
+        // Hotels.com: /City-Hotels-Hotel-Name.h{id}.Hotel-Information
+        const hotelsBase = `https://www.hotels.com/${citySlug}-Hotels-${slug}.h${propertyId}.Hotel-Information?chkin=${checkin}&chkout=${checkout}&q-rooms=1&q-adults-per-room=2`;
         links.hotels = hotelsBase;
 
-        // Expedia direct property URL
-        const expediaSlug = hotelName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        // Expedia: /h{id}.Hotel-Information
         const expediaBase = isCA
-          ? `https://www.expedia.ca/h${propertyId}.Hotel-Information?chkin=${checkin}&chkout=${checkout}&rm1=a2&regionId=${propertyId}`
-          : `https://www.expedia.com/h${propertyId}.Hotel-Information?chkin=${checkin}&chkout=${checkout}&rm1=a2`;
+          ? `https://www.expedia.ca/${citySlug}-Hotels-${slug}.h${propertyId}.Hotel-Information?chkin=${checkin}&chkout=${checkout}&rm1=a2`
+          : `https://www.expedia.com/${citySlug}-Hotels-${slug}.h${propertyId}.Hotel-Information?chkin=${checkin}&chkout=${checkout}&rm1=a2`;
         links.expedia = expediaBase;
       }
     }

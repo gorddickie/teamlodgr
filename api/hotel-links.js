@@ -40,8 +40,9 @@ module.exports = async (req, res) => {
       if (propertyId) {
         // Build direct hotel page URLs using property ID
         const isCA = /\b(nb|ns|on|bc|ab|qc|mb|sk|nl|pe|nt|nu|yt|canada|moncton|halifax|toronto|vancouver|calgary|montreal|ottawa)\b/i.test(city);
-        const slug = (hotelResult.regionNames?.shortName || hotel).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
-        const citySlug = city.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+        const toSlug = s => s.split(/\s+/).map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join('-').replace(/[^a-zA-Z0-9-]/g,'');
+        const slug = toSlug(hotelResult.regionNames?.shortName || hotel);
+        const citySlug = toSlug(city);
 
         // Hotels.com: /City-Hotels-Hotel-Name.h{id}.Hotel-Information
         const hotelsBase = `https://www.hotels.com/${citySlug}-Hotels-${slug}.h${propertyId}.Hotel-Information?chkin=${checkin}&chkout=${checkout}&q-rooms=1&q-adults-per-room=2`;

@@ -597,8 +597,7 @@
         document.getElementById('avail-timestamp').textContent = 'Prices may vary — check each site';
       }
 
-      // Show base URLs immediately with loading note
-      renderProviders(providers);
+      // Keep spinner showing while we fetch direct hotel links
       document.getElementById('avail-timestamp').textContent = '⏳ Finding direct hotel links...';
       document.getElementById('avail-timestamp').style.color = '#ea580c';
 
@@ -617,10 +616,12 @@
               return p;
             });
             renderProviders(upgraded);
-            document.getElementById('avail-timestamp').textContent = '✅ Direct hotel links ready';
+            document.getElementById('avail-timestamp').textContent = '✅ Hotel links ready — book your room below';
             document.getElementById('avail-timestamp').style.color = '#16a34a';
           })
           .catch(() => {
+            // Fallback: show base URLs if lookup fails
+            renderProviders(providers);
             document.getElementById('avail-timestamp').textContent = 'Prices may vary — check each site';
             document.getElementById('avail-timestamp').style.color = '';
           });

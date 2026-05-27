@@ -44,13 +44,37 @@ module.exports = async (req, res) => {
         const slug = toSlug(hotelResult.regionNames?.shortName || hotel);
         const citySlug = toSlug(city);
 
-        // Hotels.com: use ca.hotels.com for Canadian properties
-        const hotelsDomain = isCA ? 'ca.hotels.com' : 'www.hotels.com';
-        links.hotels = `https://${hotelsDomain}/ho${propertyId}/?q-check-in=${checkin}&q-check-out=${checkout}&q-rooms=1&q-adults-per-room=2`;
-
-        // Expedia: use expedia.ca for Canadian properties
+        // Expedia: works directly with Expedia property ID
         const expediaDomain = isCA ? 'www.expedia.ca' : 'www.expedia.com';
         links.expedia = `https://${expediaDomain}/h${propertyId}.Hotel-Information?chkin=${checkin}&chkout=${checkout}&rm1=a2`;
+
+        // Hotels.com: needs listing ID (different from Expedia ID)
+        // Try to find it via SerpAPI Google search
+        const apiKey = process.env.SERPAPI_KEY;
+        if (apiKey) {
+          try {
+            const gParams = new URLSearchParams({
+              engine: 'google',
+              q: `site:hotels.com "${hotelResult.regionNames?.shortName || hotel}" hotel`,
+              api_key: apiKey,
+              num: 3,
+            });
+            const gRes = await fetch(`https://serpapi.com/search?${gParams}`);
+            const gData = await gRes.json();
+            const hotelLink = (gData.organic_results || []).find(r => /hotels\.com\/ho\d+/.test(r.link));
+            if (hotelLink) {
+              const idMatch = hotelLink.link.match(/hotels\.com\/ho(\d+)/);
+              if (idMatch) {
+                const listingId = idMatch[1];
+                links.hotels = `https://www.hotels.com/ho${listingId}/?chkin=${checkin}&chkout=${checkout}&q-rooms=1&q-adults-per-room=2`;
+              }
+            }
+          } catch(e) {}
+        }
+        // Fallback if Google lookup failed
+        if (!links.hotels) {
+          links.hotels = `https://www.hotels.com/Hotel-Search?destination=${encodeURIComponent((hotelResult.regionNames?.shortName || hotel) + ', ' + city)}&startDate=${checkin}&endDate=${checkout}&adults=2&rooms=1`;
+        }
       }
     }
 

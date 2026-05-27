@@ -16,12 +16,19 @@ module.exports = async (req, res) => {
 
   try {
     // ── Step 1: Hotels.com/Expedia property lookup via hotels-com-provider ──
-    const regionRes = await fetch(
-      `https://hotels-com-provider.p.rapidapi.com/v2/regions?locale=en_CA&domain=CA&query=${encodeURIComponent(hotel + ' ' + city)}`,
-      { headers: { 'x-rapidapi-key': RAPIDAPI_KEY, 'x-rapidapi-host': 'hotels-com-provider.p.rapidapi.com' } }
-    );
-    const regionData = await regionRes.json();
-    const hotelResult = (regionData.data || []).find(r => r['@type'] === 'gaiaHotelResult' || r.type === 'HOTEL');
+    // Try progressively shorter name variants until we get a match
+    const words = hotel.split(/\s+/);
+    let hotelResult = null;
+    for (let len = words.length; len >= 2 && !hotelResult; len--) {
+      const query = words.slice(0, len).join(' ') + ' ' + city;
+      const regionRes = await fetch(
+        `https://hotels-com-provider.p.rapidapi.com/v2/regions?locale=en_CA&domain=CA&query=${encodeURIComponent(query)}`,
+        { headers: { 'x-rapidapi-key': RAPIDAPI_KEY, 'x-rapidapi-host': 'hotels-com-provider.p.rapidapi.com' } }
+      );
+      const regionData = await regionRes.json();
+      const match = (regionData.data || []).find(r => r['@type'] === 'gaiaHotelResult');
+      if (match) hotelResult = match;
+    }
 
     if (hotelResult) {
       const propertyId = hotelResult.hotelId || hotelResult.essId?.sourceId;

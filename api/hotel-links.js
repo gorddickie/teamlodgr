@@ -18,9 +18,12 @@ module.exports = async (req, res) => {
     // ── Step 1: Hotels.com/Expedia property lookup via hotels-com-provider ──
     // Try progressively shorter name variants until we get a match
     const words = hotel.split(/\s+/);
+    const cityInName = hotel.toLowerCase().includes(city.toLowerCase().split(/\s+/)[0]);
     let hotelResult = null;
+    // Try progressively shorter name variants (don't append city if already in name)
     for (let len = words.length; len >= 2 && !hotelResult; len--) {
-      const query = words.slice(0, len).join(' ') + ' ' + city;
+      const namePart = words.slice(0, len).join(' ');
+      const query = cityInName ? namePart : (namePart + ' ' + city);
       const regionRes = await fetch(
         `https://hotels-com-provider.p.rapidapi.com/v2/regions?locale=en_CA&domain=CA&query=${encodeURIComponent(query)}`,
         { headers: { 'x-rapidapi-key': RAPIDAPI_KEY, 'x-rapidapi-host': 'hotels-com-provider.p.rapidapi.com' } }

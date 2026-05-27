@@ -44,15 +44,13 @@ module.exports = async (req, res) => {
         const slug = toSlug(hotelResult.regionNames?.shortName || hotel);
         const citySlug = toSlug(city);
 
-        // Hotels.com: /City-Hotels-Hotel-Name.h{id}.Hotel-Information
-        const hotelsBase = `https://www.hotels.com/${citySlug}-Hotels-${slug}.h${propertyId}.Hotel-Information?chkin=${checkin}&chkout=${checkout}&q-rooms=1&q-adults-per-room=2`;
-        links.hotels = hotelsBase;
+        // Hotels.com: use ca.hotels.com for Canadian properties
+        const hotelsDomain = isCA ? 'ca.hotels.com' : 'www.hotels.com';
+        links.hotels = `https://${hotelsDomain}/ho${propertyId}/?q-check-in=${checkin}&q-check-out=${checkout}&q-rooms=1&q-adults-per-room=2`;
 
-        // Expedia: /h{id}.Hotel-Information
-        const expediaBase = isCA
-          ? `https://www.expedia.ca/${citySlug}-Hotels-${slug}.h${propertyId}.Hotel-Information?chkin=${checkin}&chkout=${checkout}&rm1=a2`
-          : `https://www.expedia.com/${citySlug}-Hotels-${slug}.h${propertyId}.Hotel-Information?chkin=${checkin}&chkout=${checkout}&rm1=a2`;
-        links.expedia = expediaBase;
+        // Expedia: use expedia.ca for Canadian properties
+        const expediaDomain = isCA ? 'www.expedia.ca' : 'www.expedia.com';
+        links.expedia = `https://${expediaDomain}/h${propertyId}.Hotel-Information?chkin=${checkin}&chkout=${checkout}&rm1=a2`;
       }
     }
 

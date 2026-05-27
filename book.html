@@ -608,7 +608,7 @@
             if (!data.links) return;
             const { hotels, expedia, agoda, priceline } = data.links;
             const upgraded = providers.map(p => {
-              if (p.label === 'Hotels.com'  && hotels)   return { ...p, url: `https://www.tkqlhce.com/click-101756333-15042853?url=${encodeURIComponent(hotels)}` };
+              if (p.label === 'Hotels.com'  && hotels)   return { ...p, url: hotels }; // Direct link — CJ strips property ID in redirect
               if (p.label === 'Expedia'     && expedia)  return { ...p, url: `https://www.dpbolvw.net/click-101756333-13859169?url=${encodeURIComponent(expedia)}` };
               if (p.label === 'Agoda'       && agoda)    return { ...p, url: agoda };
               if (p.label === 'Priceline'   && priceline) return { ...p, url: priceline };

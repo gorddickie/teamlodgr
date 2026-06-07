@@ -12,9 +12,11 @@ async function searchBookingCom(city, checkin, checkout, rooms) {
     'Content-Type': 'application/json',
   };
 
-  // Step 1: Destination lookup
+  // Step 1: Destination lookup — strip province/state suffix ("Halifax, NS" -> "Halifax"),
+  // which Booking.com's searchDestination otherwise returns empty for.
+  const cityQuery = String(city).split(',')[0].trim() || city;
   const destRes = await fetch(
-    `https://booking-com15.p.rapidapi.com/api/v1/hotels/searchDestination?query=${encodeURIComponent(city)}`,
+    `https://booking-com15.p.rapidapi.com/api/v1/hotels/searchDestination?query=${encodeURIComponent(cityQuery)}`,
     { headers }
   );
   const destData = await destRes.json();
@@ -67,9 +69,10 @@ async function searchHotelbeds(city, checkin, checkout, rooms) {
 
   const BASE_URL = 'https://api.test.hotelbeds.com'; // swap to api.hotelbeds.com for production
 
-  // Step 1: Destination lookup
+  // Step 1: Destination lookup — use primary city token for consistent matching.
+  const cityQuery = String(city).split(',')[0].trim() || city;
   const destRes = await fetch(
-    `${BASE_URL}/hotel-content-api/1.0/locations/destinations?fields=all&language=ENG&from=1&to=5&useSecondaryLanguage=false&match=${encodeURIComponent(city)}`,
+    `${BASE_URL}/hotel-content-api/1.0/locations/destinations?fields=all&language=ENG&from=1&to=5&useSecondaryLanguage=false&match=${encodeURIComponent(cityQuery)}`,
     { headers }
   );
   const destData = await destRes.json();

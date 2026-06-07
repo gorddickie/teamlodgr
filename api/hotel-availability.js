@@ -3,7 +3,7 @@
 
 const BOOKING_HOST = 'booking-com15.p.rapidapi.com';
 const AGODA_HOST   = 'agoda-com.p.rapidapi.com';
-const RAPIDAPI_KEY = '3173251728msha891fafe5abe622p17d02fjsn272b51fed579';
+const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY;
 const HEADERS_BOOKING = { 'x-rapidapi-host': BOOKING_HOST, 'x-rapidapi-key': RAPIDAPI_KEY };
 const HEADERS_AGODA   = { 'x-rapidapi-host': AGODA_HOST,   'x-rapidapi-key': RAPIDAPI_KEY };
 
@@ -23,11 +23,15 @@ module.exports = async (req, res) => {
   if (!name || !city || !checkin || !checkout) return res.status(400).json({ error: 'Missing params' });
   const needed = parseInt(rooms) || 1;
 
+  // Booking.com's searchDestination chokes on a trailing province/state suffix
+  // (e.g. "Halifax, NS" returns []), so query on the primary city token only.
+  const cityQuery = String(city).split(',')[0].trim() || city;
+
   try {
     // Run Booking.com dest lookup + Agoda city lookup in parallel
     const [destRes, agodaLocRes] = await Promise.allSettled([
-      fetch(`https://${BOOKING_HOST}/api/v1/hotels/searchDestination?query=${encodeURIComponent(city)}`, { headers: HEADERS_BOOKING }).then(r => r.json()),
-      fetch(`https://${AGODA_HOST}/hotels/auto-complete?query=${encodeURIComponent(city)}&locale=en-us`, { headers: HEADERS_AGODA }).then(r => r.json()),
+      fetch(`https://${BOOKING_HOST}/api/v1/hotels/searchDestination?query=${encodeURIComponent(cityQuery)}`, { headers: HEADERS_BOOKING }).then(r => r.json()),
+      fetch(`https://${AGODA_HOST}/hotels/auto-complete?query=${encodeURIComponent(cityQuery)}&locale=en-us`, { headers: HEADERS_AGODA }).then(r => r.json()),
     ]);
 
     // Run Booking.com hotel search + Agoda hotel search in parallel

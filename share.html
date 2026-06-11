@@ -675,6 +675,7 @@
       share_token:   shareToken,
       affiliate_code: hotelId || null,
       providers:     providers1Room?.length ? providers1Room : null,
+      hotel_photo:   hotelPhoto || null,
     };
 
     const apiRes = await fetch('https://www.teamlodgr.com/api/booking', {

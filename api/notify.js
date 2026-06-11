@@ -111,9 +111,18 @@ module.exports = async (req, res) => {
     const { email, name } = member;
     if (!email) continue;
 
-    // Build player booking link: /book.html?token=SHARE_TOKEN&email=ENCODED_EMAIL
+    // Build player booking link with all params so book.html can show hotel + providers
     const siteBase = baseUrl || shareUrl?.replace(/\/share\.html.*$/, '') || 'https://teamlodgr.com';
-    const playerLink = `${siteBase}/book.html?token=${encodeURIComponent(shareToken)}&email=${encodeURIComponent(email)}`;
+    const bookParams = new URLSearchParams({
+      token:    shareToken,
+      email:    email,
+      ...(req.body.hotelName   ? { name:     req.body.hotelName }                          : {}),
+      ...(req.body.checkin     ? { checkin:  req.body.checkin }                            : {}),
+      ...(req.body.checkout    ? { checkout: req.body.checkout }                           : {}),
+      ...(req.body.hotelPhoto  ? { photo:    req.body.hotelPhoto }                         : {}),
+      ...(req.body.providers?.length ? { providers: encodeURIComponent(JSON.stringify(req.body.providers)) } : {}),
+    });
+    const playerLink = `${siteBase}/book.html?${bookParams.toString()}`;
 
     // Send email via Resend
     let emailSent = false;

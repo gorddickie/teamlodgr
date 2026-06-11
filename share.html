@@ -858,7 +858,7 @@
     }
 
     btn.disabled    = true;
-    btn.textContent = 'Sending...';
+    btn.textContent = 'Saving...';
 
     // Insert team members into Supabase
     for (const email of emails) {
@@ -872,53 +872,55 @@
         });
     }
 
-    // Call notify API with organizerEmail for Reply-To
+    // Generate a confirm_token and save to booking row
+    const confirmToken = btoa([shareToken, Date.now()].join('|')).replace(/[^a-zA-Z0-9]/g, '').slice(0, 48);
+    await db
+      .from('bookings')
+      .update({
+        confirm_token:    confirmToken,
+        organizer_name:   organizerName  || null,
+        organizer_email:  organizerEmail || null,
+        tournament_name:  tournamentName || null,
+      })
+      .eq('id', bookingId);
+
+    // Send organizer confirmation email via /api/notify?action=confirm
     try {
+      const confirmUrl = `https://teamlodgr.com/api/confirm?token=${encodeURIComponent(confirmToken)}`;
       const res = await fetch('/api/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          bookingId,
-          shareToken,
-          members: emails.map(email => ({ email, name: '' })),
+          action:          'organizer-confirm',
+          confirmUrl,
+          organizerEmail,
+          organizerName,
+          tournamentName,
           hotelName,
           hotelPhoto,
           checkin,
           checkout,
-          shareUrl,
-          tournamentName,
-          organizerName,
-          organizerEmail,
-          bookingSite: currentBookingSite || 'Booking.com',
-          roomsAvailable: currentRoomsAvailable || null,
-          roomsNeeded: rooms,
-          pricePerNight: currentPricePerNight || null,
-          providers: providers1Room,
+          rooms,
+          memberCount:     emails.length,
         }),
       });
 
       if (!res.ok) throw new Error(`API error ${res.status}`);
 
-      document.getElementById('invite-confirm').style.display = 'none';
+      // Show "check your email" state
       document.getElementById('invite-form-fields').style.display = 'none';
-      document.getElementById('invite-confirm-merged').style.display = 'block';
-      advanceWizardToStep3();
-      // Build summary
-      const sentEmails = emails;
-      const tName = document.getElementById('tournament-name').value.trim();
-      document.getElementById('invite-summary-merged').innerHTML = `
-        ${tName ? `<div style="font-weight:700;color:#0d1b3e;margin-bottom:10px;">🏆 ${tName}</div>` : ''}
-        <div style="font-size:0.88rem;color:#6b7280;margin-bottom:10px;">🏨 ${hotelName} &nbsp;|&nbsp; 📅 ${checkin} → ${checkout}</div>
-        <div style="font-size:0.85rem;font-weight:700;color:#0d1b3e;margin-bottom:8px;">📧 Sent to ${sentEmails.length} player${sentEmails.length !== 1 ? 's' : ''}:</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;">
-          ${sentEmails.map(e => `<span style="background:white;border:1px solid #e5e7eb;border-radius:50px;padding:3px 10px;font-size:0.82rem;color:#374151;">${e}</span>`).join('')}
+      document.getElementById('invite-confirm').style.display = 'block';
+      document.getElementById('invite-confirm').innerHTML = `
+        <div style="text-align:center;padding:10px 0;">
+          <div style="font-size:2.5rem;margin-bottom:8px;">📧</div>
+          <h3 style="color:#0d1b3e;font-size:1.2rem;margin-bottom:8px;">Check your email!</h3>
+          <p style="color:#6b7280;font-size:0.92rem;line-height:1.6;margin-bottom:6px;">We've sent a confirmation to <strong>${organizerEmail}</strong>.</p>
+          <p style="color:#374151;font-size:0.9rem;line-height:1.6;">Click the button in that email to notify your ${emails.length} team member${emails.length !== 1 ? 's' : ''}.</p>
         </div>
       `;
-      document.getElementById('team-emails').value = '';
-      loadBookingStatus();
     } catch (e) {
       console.error('Notify API error:', e.message);
-      document.getElementById('invite-confirm').textContent   = '✅ Team members saved! (Email delivery pending API setup.)';
+      document.getElementById('invite-confirm').textContent   = '✅ Team saved! (Confirmation email pending API setup.)';
       document.getElementById('invite-confirm').style.display = 'block';
     }
 

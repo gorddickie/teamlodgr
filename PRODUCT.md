@@ -25,9 +25,19 @@ Group hotel booking for sports teams. A Organizer searches for hotels, picks the
 
 ## Key Flows
 1. **Search** → Manager enters city, dates, rooms needed → sees top hotels with availability confirmed across providers
-2. **Share** → Manager picks a hotel → enters team emails → members get an email with a TeamLodgr link
-3. **Book** → Team member lands on share page → clicks "Book 1 Room" on their preferred provider → books directly
-4. **Notify** → Team member clicks "I've Booked" → other team members get a notification with updated count
+2. **Share** → Manager picks a hotel → enters their own email + team member emails on share.html
+3. **Confirm** → Organizer receives a confirmation email → reviews hotel details → clicks "Confirm & Notify My Team"
+4. **Book** → Team members receive invite emails → land on book.html with pre-filled hotel + dates → click "Book 1 Room" on preferred provider
+5. **Notify** → Team member clicks "I've Booked" → other team members get a notification with updated count
+
+### Confirmation Email Flow (step 2→3)
+- On form submit, team member emails are saved to Supabase immediately
+- A `confirm_token` is generated and stored on the `bookings` row
+- Organizer gets an email: hotel photo, name, dates, room count, member count
+- Email has a single CTA: **"Confirm & Notify My Team"**
+- That button hits `/api/confirm?token=XXX`
+- `/api/confirm` marks `confirmed_at`, fires `/api/notify` for all team members, redirects organizer to `confirmed.html`
+- If the confirm link is clicked a second time, organizer lands on `confirmed.html?alreadySent=1` — no duplicate emails sent
 
 ## Data Model (Supabase)
 - `bookings` — one per hotel selection (hotel, dates, rooms needed, organizer info, share token)

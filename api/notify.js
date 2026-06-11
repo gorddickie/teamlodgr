@@ -25,12 +25,80 @@ async function supabaseRequest(path, method, body, serviceRole = true) {
   return res.json();
 }
 
+// ── Send organizer confirmation email ──────────────────────────────────────
+async function sendOrganizerConfirmEmail({ resendApiKey, confirmUrl, hotelName, hotelPhoto, checkin, checkout, rooms, organizerEmail, organizerName, tournamentName, memberCount }) {
+  if (!resendApiKey || !organizerEmail) return false;
+  const ci = checkin  ? new Date(checkin  + 'T00:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }) : checkin;
+  const co = checkout ? new Date(checkout + 'T00:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }) : checkout;
+  try {
+    const emailRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${resendApiKey}` },
+      body: JSON.stringify({
+        from: 'TeamLodgr <bookings@teamlodgr.com>',
+        to: [organizerEmail],
+        subject: tournamentName ? `Confirm hotel selection for ${tournamentName}` : `Confirm your hotel selection — ${hotelName}`,
+        html: `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:40px 20px;background:#ffffff;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;">
+    <tr><td style="padding-bottom:28px;border-bottom:2px solid #0d1b3e;">
+      <img src="https://www.teamlodgr.com/logo.png" alt="TeamLodgr" height="40" style="display:block;height:40px;width:auto;">
+    </td></tr>
+    <tr><td style="padding:32px 0 28px;">
+      ${hotelPhoto ? `<img src="${hotelPhoto}" alt="${hotelName || 'Hotel'}" style="display:block;width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-bottom:20px;">` : ''}
+      <p style="margin:0 0 6px;font-size:16px;color:#111827;">Hi ${organizerName || 'there'},</p>
+      <p style="margin:0 0 16px;font-size:15px;color:#374151;line-height:1.6;">You've selected a hotel for ${tournamentName ? `<strong>${tournamentName}</strong>` : 'your team'}. Review the details below, then click the button to notify your ${memberCount} team member${memberCount !== 1 ? 's' : ''}.</p>
+      ${hotelName ? `<p style="margin:0 0 4px;font-size:22px;font-weight:700;color:#0d1b3e;">${hotelName}</p>` : ''}
+      ${ci && co ? `<p style="margin:0 0 20px;font-size:15px;color:#6b7280;">📅 ${ci} → ${co} &nbsp;·&nbsp; 🛏️ ${rooms} room${rooms !== 1 ? 's' : ''}</p>` : ''}
+      <a href="${confirmUrl}" style="display:block;background:#0d1b3e;color:#ffffff;text-decoration:none;text-align:center;font-size:18px;font-weight:700;padding:18px 24px;border-radius:8px;">✅ Confirm &amp; Notify My Team</a>
+      <p style="margin:16px 0 0;font-size:13px;color:#9ca3af;text-align:center;">Your team won't receive anything until you click this button.</p>
+    </td></tr>
+    <tr><td style="padding-top:20px;border-top:1px solid #e5e7eb;">
+      <p style="margin:0;font-size:13px;color:#9ca3af;">Sent by TeamLodgr. Questions? Reply to this email.</p>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+      }),
+    });
+    return emailRes.ok;
+  } catch (e) {
+    console.error('Organizer confirm email error:', e.message);
+    return false;
+  }
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { bookingId, shareToken, members, hotelName, hotelPhoto, checkin, checkout, shareUrl, baseUrl } = req.body;
+  const { action, bookingId, shareToken, members, hotelName, hotelPhoto, checkin, checkout, shareUrl, baseUrl } = req.body;
+
+  // ── Organizer confirmation email ─────────────────────────────────────
+  if (action === 'organizer-confirm') {
+    const { confirmUrl, organizerEmail, organizerName, tournamentName, rooms, memberCount } = req.body;
+    if (!organizerEmail || !confirmUrl) {
+      return res.status(400).json({ error: 'Missing organizerEmail or confirmUrl' });
+    }
+    const sent = await sendOrganizerConfirmEmail({
+      resendApiKey: process.env.RESEND_API_KEY,
+      confirmUrl,
+      hotelName: req.body.hotelName,
+      hotelPhoto: req.body.hotelPhoto,
+      checkin: req.body.checkin,
+      checkout: req.body.checkout,
+      rooms: req.body.rooms,
+      organizerEmail,
+      organizerName,
+      tournamentName,
+      memberCount,
+    });
+    return res.status(200).json({ ok: true, emailSent: sent });
+  }
 
   if (!bookingId || !members || !Array.isArray(members) || members.length === 0) {
     return res.status(400).json({ error: 'Missing required fields: bookingId, members' });

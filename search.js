@@ -457,10 +457,7 @@ function renderSerpHotelCard(h, params) {
       if (cardEl) cardEl.classList.remove('loading');
       if (badge)  badge.remove();
 
-      if (!avail.available || avail.sufficient === false) {
-        // Not enough rooms across all providers — hide card
-        if (cardEl) cardEl.style.display = 'none';
-      } else {
+      if (avail.available && avail.sufficient !== false) {
         // Sufficient rooms confirmed — show table + banner
         if (tableEl) tableEl.style.display = '';
         if (banner) {

@@ -549,11 +549,11 @@
     const los = nightsBetween(checkin, checkout);
     const agodaUrl = `https://www.agoda.com/search?textToSearch=${encodeURIComponent(hotel + (city ? ', ' + city : ''))}&checkIn=${checkin}&los=${los || 1}&rooms=1&adults=2&currency=CAD&hl=en-us`;
 
-    // Priceline — correct format: /relax/in/CITY/from/YYYYMMDD/to/YYYYMMDD/rooms/1
+    // Priceline — search by hotel name + city with dates
     const _ci = checkin.replace(/-/g, '');
     const _co = checkout.replace(/-/g, '');
-    const pricelineCity = encodeURIComponent(city);
-    const pricelineUrl = `https://www.priceline.com/relax/in/${pricelineCity}/from/${_ci}/to/${_co}/rooms/1`;
+    const pricelineQuery = encodeURIComponent(hotel + (city ? ', ' + city : ''));
+    const pricelineUrl = `https://www.priceline.com/relax/in/${pricelineQuery}/from/${_ci}/to/${_co}/rooms/1`;
 
     // ── Book Direct ──────────────────────────────────────────────────────
     // Use saved brand URL if available (Wyndham, Marriott, Hilton, etc.)

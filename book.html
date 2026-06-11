@@ -545,9 +545,9 @@
       : `https://www.kqzyfj.com/click-101756333-15042831?url=${encodeURIComponent(expediaBase)}`;
 
     // ── Agoda ────────────────────────────────────────────────────────────
-    // Format: agoda.com/search?q=HOTEL,CITY&checkIn=YYYY-MM-DD&checkOut=YYYY-MM-DD
-    // Agoda — correct format: /en-au/search?q=HOTEL,CITY&checkIn=YYYY-MM-DD&checkOut=YYYY-MM-DD
-    const agodaUrl = `https://www.agoda.com/search?q=${q}&checkIn=${checkin}&checkOut=${checkout}&rooms=1&adults=2&hl=en-us`;
+    // Agoda requires los (length of stay) + textToSearch, not checkOut
+    const los = nightsBetween(checkin, checkout);
+    const agodaUrl = `https://www.agoda.com/search?textToSearch=${encodeURIComponent(hotel + (city ? ', ' + city : ''))}&checkIn=${checkin}&los=${los || 1}&rooms=1&adults=2&currency=CAD&hl=en-us`;
 
     // Priceline — correct format: /relax/in/CITY/from/YYYYMMDD/to/YYYYMMDD/rooms/1
     const _ci = checkin.replace(/-/g, '');

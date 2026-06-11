@@ -316,7 +316,8 @@ function renderSerpHotelCard(h, params) {
   const hotelsUrl  = `https://www.anrdoezrs.net/click-101756333-15042852?url=${encodeURIComponent('https://www.hotels.com/Hotel-Search?destination=' + _q + '&startDate=' + params.checkin + '&endDate=' + params.checkout + '&adults=2&rooms=' + params.rooms)}`;
   const expediaUrl = `https://www.dpbolvw.net/click-101756333-13859169?url=${encodeURIComponent('https://www.expedia.ca/Hotels/search?q=' + _q + '&startDate=' + params.checkin + '&endDate=' + params.checkout + '&rooms=' + params.rooms + '&adults=2')}`;
 
-  const agodaUrl  = `https://www.agoda.com/search?q=${_q}&checkIn=${params.checkin}&checkOut=${params.checkout}&rooms=${params.rooms}&adults=2`;
+  const _agodaLos = Math.max(1, Math.round((new Date(params.checkout) - new Date(params.checkin)) / 86400000));
+  const agodaUrl  = `https://www.agoda.com/search?textToSearch=${_q}&checkIn=${params.checkin}&los=${_agodaLos}&rooms=1&adults=2&currency=CAD&hl=en-us`;
   const kayakUrl   = `https://www.kayak.com/hotels/${encodeURIComponent(params.city)}/${params.checkin}/${params.checkout}/${params.rooms}rooms/?q=${encodeURIComponent(h.name)}`;
 
   // Detect brand and build direct hotel brand URL

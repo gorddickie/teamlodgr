@@ -19,7 +19,7 @@ module.exports = async (req, res) => {
     Prefer: 'return=representation,resolution=merge-duplicates',
   };
 
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/group_bookings`, {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
     method: 'POST',
     headers,
     body: JSON.stringify({ share_token, hotel_name, hotel_url, city, checkin, checkout, rooms_needed, affiliate_code, ...(providers ? { providers } : {}) }),

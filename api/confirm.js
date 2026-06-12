@@ -116,6 +116,17 @@ module.exports = async (req, res) => {
     }
   }
 
+  // Send RFP to hotel if we have their email
+  try {
+    await fetch('https://teamlodgr.com/api/rfp-send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bookingId: booking.id }),
+    });
+  } catch (e) {
+    console.error('RFP send error:', e.message);
+  }
+
   // Redirect organizer to confirmed page
   return res.redirect(302,
     `https://teamlodgr.com/confirmed.html?token=${encodeURIComponent(booking.share_token)}&sent=${members?.length || 0}`

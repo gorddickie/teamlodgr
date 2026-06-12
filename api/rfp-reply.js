@@ -33,7 +33,7 @@ module.exports = async (req, res) => {
 
   // Extract booking ID from the to address: rfp+BOOKINGID@teamlodgr.com
   const toAddr = Array.isArray(to) ? to[0] : to;
-  const match  = (toAddr || '').match(/rfp\+([a-f0-9\-]+)@teamlodgr\.com/i);
+  const match  = (toAddr || '').match(/rfp\+([a-f0-9\-]+)@(?:teamlodgr\.com|jrumaxi\.resend\.app)/i);
   if (!match) {
     console.error('Could not extract booking ID from to address:', toAddr);
     return res.status(200).json({ ok: false, reason: 'Could not parse booking ID from address' });
@@ -104,7 +104,7 @@ module.exports = async (req, res) => {
         body: JSON.stringify({
           from:     'TeamLodgr Group Travel <rfp@teamlodgr.com>',
           to:       [b.organizer_email],
-          reply_to: `rfp+${bookingId}@teamlodgr.com`,
+          reply_to: `rfp+${bookingId}@jrumaxi.resend.app`,
           subject:  forwardSubject,
           html:     forwardHtml,
         }),

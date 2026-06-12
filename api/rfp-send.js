@@ -53,8 +53,8 @@ module.exports = async (req, res) => {
   const tournamentName = b.tournament_name || null;
   const rooms          = b.rooms_needed    || 1;
 
-  // RFP reply-to: rfp+BOOKINGID@teamlodgr.com so inbound replies are routed correctly
-  const replyTo = `rfp+${bookingId}@teamlodgr.com`;
+  // RFP reply-to: rfp+BOOKINGID@jrumaxi.resend.app — Resend inbound address
+  const replyTo = `rfp+${bookingId}@jrumaxi.resend.app`;
 
   const subject = tournamentName
     ? `Group Accommodation Request — ${tournamentName} — ${rooms} Rooms`

@@ -513,6 +513,7 @@
   const city           = decodeURIComponent(params.get('city') || '');
   const hotelUrl       = decodeURIComponent(params.get('url') || '');
   const hotelPhoto     = decodeURIComponent(params.get('photo') || '');
+  const hotelWebsite   = decodeURIComponent(params.get('serpLink') || '');
   const tournamentName = decodeURIComponent(params.get('tournament') || '');
   const organizerName  = decodeURIComponent(params.get('organizer') || '');
   const organizerEmail = decodeURIComponent(params.get('orgEmail') || '');
@@ -676,6 +677,7 @@
       affiliate_code: hotelId || null,
       providers:     providers1Room?.length ? providers1Room : null,
       hotel_photo:   hotelPhoto || null,
+      hotel_website: hotelWebsite || null,
     };
 
     const apiRes = await fetch('https://www.teamlodgr.com/api/booking', {
@@ -942,6 +944,19 @@
     clearTimeout(enableTimer);
     if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Send Booking Link to Team →'; }
     await Promise.all([loadHotelData(), loadBookingStatus()]);
+    // Scrape hotel email in background — don't block UI
+    if (hotelWebsite && bookingId) {
+      fetch(`/api/hotel-email?url=${encodeURIComponent(hotelWebsite)}`)
+        .then(r => r.json())
+        .then(async data => {
+          if (data.email && bookingId) {
+            // Save scraped email to booking row
+            await db.from('bookings').update({ hotel_email: data.email }).eq('id', bookingId);
+            console.log('[TeamLodgr] Hotel email found:', data.email);
+          }
+        })
+        .catch(() => {});
+    }
   }
 
   init();

@@ -435,7 +435,7 @@ function renderSerpHotelCard(h, params) {
         `).join('')}
       </div>
       <div class="share-row" style="margin-top:auto;padding-top:16px;">
-        <button class="btn-copy-share" style="width:100%;padding:13px 20px;font-size:1rem;background:#0d1b3e;" onclick="openSharePage(buildShareUrl('${hotelId}','${encodeURIComponent(h.name)}','${params.checkin}','${params.checkout}','${params.rooms}','${encodeURIComponent(h.photo||'')}',shareProviders_${hotelId}), this)">
+        <button class="btn-copy-share" style="width:100%;padding:13px 20px;font-size:1rem;background:#0d1b3e;" onclick="openSharePage(buildShareUrl('${hotelId}','${encodeURIComponent(h.name)}','${params.checkin}','${params.checkout}','${params.rooms}','${encodeURIComponent(h.photo||'')}',shareProviders_${hotelId},'${encodeURIComponent(h.serpLink||'')}'), this)">
           🔗 Share with Team
         </button>
       </div>
@@ -629,13 +629,14 @@ function formatDate(d) {
   return new Date(d + 'T00:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric' });
 }
 
-function buildShareUrl(hotelId, name, checkin, checkout, rooms, photo, providers) {
+function buildShareUrl(hotelId, name, checkin, checkout, rooms, photo, providers, serpLink) {
   const base = window.location.origin + '/share.html';
   const p = new URLSearchParams({ hotel: hotelId, name: decodeURIComponent(name), checkin, checkout, rooms, photo: decodeURIComponent(photo), city: currentParams.city || '' });
   if (providers && providers.length) p.set('providers', JSON.stringify(providers));
   if (currentParams.tournamentName) p.set('tournament', currentParams.tournamentName);
   if (currentParams.organizerName)  p.set('organizer',  currentParams.organizerName);
   if (currentParams.organizerEmail) p.set('orgEmail',   currentParams.organizerEmail);
+  if (serpLink) p.set('serpLink', decodeURIComponent(serpLink));
   return base + '?' + p.toString();
 }
 

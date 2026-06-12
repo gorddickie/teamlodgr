@@ -264,6 +264,9 @@ function renderHotelCard(h, params) {
   const stars = prop.propertyClass ? '★'.repeat(Math.min(prop.propertyClass, 5)) : '';
   const photo = prop.photoUrls?.[0] || '';
 
+  const hLat = prop.latitude || prop.lat || null;
+  const hLng = prop.longitude || prop.lng || prop.lon || null;
+
   const card = document.createElement('div');
   card.className = 'hotel-card';
   card.id = `hotel-card-${h.hotel_id}`;
@@ -279,9 +282,7 @@ function renderHotelCard(h, params) {
         <span>📍 ${params.venueName || params.city}</span>
         ${price ? `<span>From ${price}</span>` : ''}
       </div>
-      ${params.venueLat && (prop.latitude || prop.lat) ? (() => {
-        const hLat = prop.latitude || prop.lat;
-        const hLng = prop.longitude || prop.lng || prop.lon;
+      ${params.venueLat && hLat ? (() => {
         const km = haversineKm(params.venueLat, params.venueLng, hLat, hLng);
         return `<div><span class="distance-badge">📍 ${km < 1 ? (km*1000).toFixed(0)+' meters' : km.toFixed(1)+' km'} from ${params.venueName}</span></div>`;
       })() : ''}
@@ -294,10 +295,16 @@ function renderHotelCard(h, params) {
         </button>
       </div>
     </div>
+    ${hLat ? `<div class="hotel-map-panel" id="map-${h.hotel_id}"></div>` : ''}
   `;
   // Store provider data for share URL building (set before appending)
   window['shareProviders_' + h.hotel_id] = [];
   resultsGrid.appendChild(card);
+  // Init map after card is in DOM
+  if (hLat) {
+    initHotelMap(`map-${h.hotel_id}`, hLat, hLng, prop.name,
+      params.venueLat || null, params.venueLng || null, params.venueName || null);
+  }
 }
 
 
@@ -440,8 +447,14 @@ function renderSerpHotelCard(h, params) {
         </button>
       </div>
     </div>
+    ${h.lat ? `<div class="hotel-map-panel" id="map-${hotelId}"></div>` : ''}
   `;
   resultsGrid.appendChild(card);
+  // Init map after card is in DOM
+  if (h.lat) {
+    initHotelMap(`map-${hotelId}`, h.lat, h.lng, h.name,
+      params.venueLat || null, params.venueLng || null, params.venueName || null);
+  }
 
   // Load real availability async
   fetch(`/api/hotel-availability?name=${encodeURIComponent(h.name)}&city=${encodeURIComponent(params.city)}&checkin=${params.checkin}&checkout=${params.checkout}&rooms=${params.rooms}`)
@@ -492,6 +505,69 @@ function renderSerpHotelCard(h, params) {
         if (el) el.innerHTML = 'Check site';
       });
     });
+}
+
+// ── Hotel map initialiser (Leaflet) ─────────────────────────────────────────
+function initHotelMap(containerId, hotelLat, hotelLng, hotelName, venueLat, venueLng, venueName) {
+  // Wait for DOM paint so Leaflet can measure the container
+  requestAnimationFrame(() => {
+    const el = document.getElementById(containerId);
+    if (!el || typeof L === 'undefined') return;
+
+    // Custom small icons
+    const hotelIcon = L.divIcon({
+      className: '',
+      html: '<div style="background:#1a6fd4;color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,0.3);">🏨</div>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+    const venueIcon = L.divIcon({
+      className: '',
+      html: '<div style="background:#e55;color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,0.3);">🏒</div>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+
+    const points = [[hotelLat, hotelLng]];
+    if (venueLat) points.push([venueLat, venueLng]);
+
+    // Center on midpoint between hotel and venue (or just hotel)
+    const centerLat = venueLat ? (hotelLat + venueLat) / 2 : hotelLat;
+    const centerLng = venueLng ? (hotelLng + venueLng) / 2 : hotelLng;
+
+    const map = L.map(el, {
+      center: [centerLat, centerLng],
+      zoom: 13,
+      zoomControl: false,
+      attributionControl: false,
+      scrollWheelZoom: false,
+      dragging: false,
+      doubleClickZoom: false,
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+    }).addTo(map);
+
+    L.marker([hotelLat, hotelLng], { icon: hotelIcon })
+      .addTo(map)
+      .bindTooltip(hotelName, { permanent: false, direction: 'top' });
+
+    if (venueLat) {
+      L.marker([venueLat, venueLng], { icon: venueIcon })
+        .addTo(map)
+        .bindTooltip(venueName || 'Venue', { permanent: false, direction: 'top' });
+
+      // Fit both pins with padding
+      map.fitBounds(L.latLngBounds(points), { padding: [20, 20], maxZoom: 15 });
+    }
+
+    // Add compact legend
+    const legend = document.createElement('div');
+    legend.className = 'map-legend';
+    legend.innerHTML = '🏨 Hotel' + (venueLat ? '<br>🏒 Venue' : '');
+    el.appendChild(legend);
+  });
 }
 
 function fuzzyScore(a, b) {

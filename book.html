@@ -707,19 +707,19 @@
         {
           label: 'Hotels.com',
           price: bookingPrice ? `$${bookingPrice} CAD` : null,
-          url:   buildAltUrl('hotels.com', hotelName, checkin, checkout),
+          url:   (() => { const q = encodeURIComponent(hotelName + (b.city ? ', ' + b.city : '')); const isCA = /\b(AB|BC|MB|NB|NL|NS|NT|NU|ON|PE|QC|SK|YT|alberta|british columbia|ontario|quebec|nova scotia|new brunswick|manitoba|saskatchewan|newfoundland|prince edward)\b/i.test(b.city||''); const base = `https://www.hotels.com/search.do?q-destination=${q}&q-check-in=${checkin}&q-check-out=${checkout}&q-rooms=1&q-adults-per-room=2`; return isCA ? `https://www.tkqlhce.com/click-101756333-15042853?url=${encodeURIComponent(base)}` : `https://www.anrdoezrs.net/click-101756333-15042852?url=${encodeURIComponent(base)}`; })(),
           show:  true,
         },
         {
           label: 'Expedia',
           price: bookingPrice ? `$${bookingPrice} CAD` : null,
-          url:   buildAltUrl('expedia', hotelName, checkin, checkout),
+          url:   (() => { const q = encodeURIComponent(hotelName + (b.city ? ', ' + b.city : '')); const isCA = /\b(AB|BC|MB|NB|NL|NS|NT|NU|ON|PE|QC|SK|YT|alberta|british columbia|ontario|quebec|nova scotia|new brunswick|manitoba|saskatchewan|newfoundland|prince edward)\b/i.test(b.city||''); const base = isCA ? `https://www.expedia.ca/Hotel-Search?destination=${q}&startDate=${checkin}&endDate=${checkout}&adults=2&rooms=1` : `https://www.expedia.com/Hotel-Search?destination=${q}&startDate=${checkin}&endDate=${checkout}&adults=2&rooms=1`; return isCA ? `https://www.dpbolvw.net/click-101756333-13859169?url=${encodeURIComponent(base)}` : `https://www.kqzyfj.com/click-101756333-15042831?url=${encodeURIComponent(base)}`; })(),
           show:  true,
         },
         {
           label: 'Agoda',
           price: agodaPrice,
-          url:   buildAltUrl('agoda', hotelName, checkin, checkout),
+          url:   (() => { const _los = Math.max(1, Math.round((new Date(checkout) - new Date(checkin)) / 86400000)); return `https://www.agoda.com/search?textToSearch=${encodeURIComponent(hotelName + (b.city ? ', ' + b.city : ''))}&checkIn=${checkin}&los=${_los}&rooms=1&adults=2&currency=CAD&hl=en-us`; })(),
           show:  true,
         },
       ];

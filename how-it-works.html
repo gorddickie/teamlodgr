@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How It Works — TeamLodgr</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #0d1b3e;
+      --navy-mid: #132350;
+      --navy-light: #1c3065;
+      --blue: #1a6fd4;
+      --blue-light: #2d87f0;
+      --blue-pale: #e8f1fd;
+      --white: #ffffff;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-400: #94a3b8;
+      --gray-600: #475569;
+      --gray-800: #1e293b;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --radius-sm: 8px;
+      --radius: 14px;
+      --radius-lg: 20px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+      --shadow: 0 4px 16px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.07);
+      --shadow-lg: 0 10px 40px rgba(13,27,62,.15), 0 4px 12px rgba(13,27,62,.10);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-800);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--navy);
+      backdrop-filter: blur(12px);
+      padding: 0 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+      box-shadow: 0 2px 20px rgba(0,0,0,.25);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none;
+    }
+    .nav-logo-mark {
+      width: 36px; height: 36px; border-radius: 9px;
+      background: linear-gradient(135deg, var(--blue-light), var(--blue));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 16px; color: white;
+      letter-spacing: -0.5px;
+    }
+    .nav-logo-text {
+      font-size: 20px; font-weight: 700; color: white; letter-spacing: -0.3px;
+    }
+    .nav-links {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .nav-links a {
+      color: rgba(255,255,255,.75); text-decoration: none;
+      font-size: 14px; font-weight: 500; padding: 6px 14px; border-radius: 6px;
+      transition: all .2s;
+    }
+    .nav-links a:hover { color: white; background: rgba(255,255,255,.1); }
+    .nav-cta {
+      background: var(--blue) !important; color: white !important;
+      padding: 8px 18px !important; border-radius: 8px !important;
+    }
+    .nav-cta:hover { background: var(--blue-light) !important; }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(155deg, var(--navy) 0%, var(--navy-mid) 45%, #0e2454 70%, #142d6b 100%);
+      padding: 96px 32px 104px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 110%, rgba(26,111,212,.35) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.025'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    .hero-inner { position: relative; max-width: 760px; margin: 0 auto; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(26,111,212,.25); border: 1px solid rgba(26,111,212,.4);
+      color: #93c5fd; font-size: 13px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase;
+      padding: 6px 14px; border-radius: 100px; margin-bottom: 28px;
+    }
+    .hero-badge svg { width: 14px; height: 14px; }
+    .hero h1 {
+      font-size: clamp(38px, 6vw, 64px); font-weight: 900; color: white;
+      letter-spacing: -1.5px; line-height: 1.05; margin-bottom: 22px;
+    }
+    .hero h1 span { color: #60a5fa; }
+    .hero p {
+      font-size: clamp(16px, 2.5vw, 20px); color: rgba(255,255,255,.72);
+      font-weight: 400; max-width: 580px; margin: 0 auto 44px; line-height: 1.65;
+    }
+    .hero-pills {
+      display: flex; justify-content: center; flex-wrap: wrap; gap: 12px;
+    }
+    .hero-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+      color: rgba(255,255,255,.9); font-size: 14px; font-weight: 500;
+      padding: 10px 20px; border-radius: 100px;
+      cursor: default;
+    }
+    .hero-pill svg { width: 16px; height: 16px; opacity: .8; }
+
+    /* ── SECTION LAYOUT ── */
+    .section-wrap { max-width: 1100px; margin: 0 auto; padding: 80px 32px; }
+    .section-header { text-align: center; margin-bottom: 60px; }
+    .section-label {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+      padding: 5px 14px; border-radius: 100px; margin-bottom: 16px;
+    }
+    .label-organizer { background: #dbeafe; color: #1d4ed8; }
+    .label-member    { background: #d1fae5; color: #065f46; }
+    .label-hotel     { background: #fef3c7; color: #92400e; }
+    .section-title {
+      font-size: clamp(28px, 4vw, 44px); font-weight: 800;
+      color: var(--navy); letter-spacing: -1px; margin-bottom: 14px;
+    }
+    .section-sub {
+      font-size: 17px; color: var(--gray-600); max-width: 540px; margin: 0 auto;
+    }
+
+    /* ── STEPS TIMELINE ── */
+    .steps {
+      position: relative;
+      display: flex; flex-direction: column; gap: 0;
+    }
+    .steps::before {
+      content: '';
+      position: absolute;
+      left: 39px; top: 24px; bottom: 24px; width: 2px;
+      background: linear-gradient(to bottom, var(--blue-pale), var(--blue), var(--blue-pale));
+      z-index: 0;
+    }
+
+    .step {
+      display: flex; gap: 28px; align-items: flex-start;
+      position: relative; z-index: 1;
+      padding: 10px 0;
+    }
+
+    .step-icon-wrap {
+      flex-shrink: 0;
+      width: 80px; height: 80px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .step-number-bg {
+      position: absolute; inset: 0; border-radius: 50%;
+      background: white;
+      box-shadow: var(--shadow);
+      border: 3px solid var(--blue-pale);
+      transition: border-color .25s, box-shadow .25s;
+    }
+    .step:hover .step-number-bg {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 6px rgba(26,111,212,.12), var(--shadow);
+    }
+    .step-icon {
+      position: relative; z-index: 1;
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--blue-light), var(--blue));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      color: white;
+      box-shadow: 0 4px 12px rgba(26,111,212,.35);
+      transition: transform .25s;
+    }
+    .step:hover .step-icon { transform: scale(1.08) rotate(-3deg); }
+    .step-icon svg { width: 22px; height: 22px; }
+
+    /* Member theme */
+    .theme-member .step-icon {
+      background: linear-gradient(135deg, #34d399, #10b981);
+      box-shadow: 0 4px 12px rgba(16,185,129,.35);
+    }
+    .theme-member .steps::before {
+      background: linear-gradient(to bottom, #d1fae5, #10b981, #d1fae5);
+    }
+    .theme-member .step-number-bg { border-color: #d1fae5; }
+    .theme-member .step:hover .step-number-bg { border-color: #10b981; box-shadow: 0 0 0 6px rgba(16,185,129,.12), var(--shadow); }
+
+    /* Hotel theme */
+    .theme-hotel .step-icon {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      box-shadow: 0 4px 12px rgba(245,158,11,.35);
+    }
+    .theme-hotel .steps::before {
+      background: linear-gradient(to bottom, #fef3c7, #f59e0b, #fef3c7);
+    }
+    .theme-hotel .step-number-bg { border-color: #fef3c7; }
+    .theme-hotel .step:hover .step-number-bg { border-color: #f59e0b; box-shadow: 0 0 0 6px rgba(245,158,11,.12), var(--shadow); }
+
+    .step-body {
+      flex: 1;
+      background: white;
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--gray-200);
+      transition: box-shadow .25s, transform .2s, border-color .25s;
+      margin-bottom: 20px;
+    }
+    .step:hover .step-body {
+      box-shadow: var(--shadow);
+      transform: translateX(4px);
+      border-color: var(--blue-pale);
+    }
+    .theme-member .step:hover .step-body { border-color: #d1fae5; }
+    .theme-hotel  .step:hover .step-body { border-color: #fef3c7; }
+
+    .step-num {
+      font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      color: var(--blue); margin-bottom: 4px;
+    }
+    .theme-member .step-num { color: #059669; }
+    .theme-hotel  .step-num { color: #d97706; }
+
+    .step-title {
+      font-size: 18px; font-weight: 700; color: var(--navy);
+      margin-bottom: 8px; letter-spacing: -0.3px;
+    }
+    .step-desc {
+      font-size: 15px; color: var(--gray-600); line-height: 1.65;
+    }
+    .step-detail {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px;
+    }
+    .step-tag {
+      font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px;
+      background: var(--blue-pale); color: #1d4ed8;
+    }
+    .theme-member .step-tag { background: #d1fae5; color: #065f46; }
+    .theme-hotel  .step-tag { background: #fef3c7; color: #92400e; }
+
+    /* ── DONE CARD ── */
+    .done-card {
+      background: linear-gradient(135deg, var(--navy), var(--navy-light));
+      border-radius: var(--radius-lg);
+      padding: 32px 36px;
+      color: white;
+      display: flex; align-items: center; gap: 24px;
+      box-shadow: var(--shadow-lg);
+      margin-top: 12px;
+    }
+    .done-icon {
+      width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0;
+      background: rgba(255,255,255,.12);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+    }
+    .done-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .done-card p { font-size: 14px; color: rgba(255,255,255,.75); }
+
+    .done-card.green {
+      background: linear-gradient(135deg, #065f46, #047857);
+    }
+    .done-card.amber {
+      background: linear-gradient(135deg, #78350f, #92400e);
+    }
+
+    /* ── EMAIL FLOW ── */
+    .email-flow {
+      display: flex; flex-direction: column; gap: 0;
+      position: relative;
+    }
+    .email-node {
+      display: flex; gap: 20px; align-items: center;
+      padding: 16px 0;
+    }
+    .email-node-icon {
+      width: 52px; height: 52px; border-radius: 12px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+    .email-node-body {
+      flex: 1;
+      background: white; border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+    }
+    .email-node-body strong { display: block; font-size: 15px; color: var(--navy); margin-bottom: 3px; }
+    .email-node-body span { font-size: 13px; color: var(--gray-600); }
+
+    .email-arrow {
+      display: flex; align-items: center; padding-left: 36px; margin: -6px 0;
+    }
+    .email-arrow-line {
+      width: 2px; height: 36px;
+      background: linear-gradient(to bottom, var(--gray-200), var(--gray-400));
+      margin-right: 18px; flex-shrink: 0;
+    }
+    .email-arrow-label {
+      font-size: 12px; font-weight: 600; color: var(--gray-400); letter-spacing: .5px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .email-arrow-label svg { width: 12px; height: 12px; }
+
+    /* ── HIGHLIGHT BOX ── */
+    .highlight-box {
+      background: var(--blue-pale);
+      border: 1px solid rgba(26,111,212,.2);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-top: 32px;
+    }
+    .highlight-box h4 { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+    .highlight-box p  { font-size: 14px; color: var(--gray-600); }
+
+    /* ── DIVIDER ── */
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--gray-200), transparent);
+      margin: 0 32px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--navy);
+      color: rgba(255,255,255,.6);
+      text-align: center;
+      padding: 40px 32px;
+    }
+    footer .footer-logo {
+      font-size: 22px; font-weight: 800; color: white;
+      margin-bottom: 10px; letter-spacing: -0.3px;
+    }
+    footer p { font-size: 14px; margin-bottom: 8px; }
+    footer a { color: #60a5fa; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    footer .footer-bottom {
+      margin-top: 24px; padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,.1);
+      font-size: 13px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      nav { padding: 0 16px; }
+      .nav-links { display: none; }
+      .hero { padding: 60px 20px 72px; }
+      .section-wrap { padding: 60px 20px; }
+      .steps::before { left: 31px; }
+      .step-icon-wrap { width: 64px; height: 64px; }
+      .step-icon { width: 36px; height: 36px; border-radius: 9px; }
+      .step-icon svg { width: 18px; height: 18px; }
+      .step-body { padding: 18px 20px; }
+      .done-card { flex-direction: column; text-align: center; padding: 24px; }
+      footer { padding: 32px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     NAV
+══════════════════════════════════════════ -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-mark">TL</div>
+    <span class="nav-logo-text">TeamLodgr</span>
+  </a>
+  <div class="nav-links">
+    <a href="#organizer">For Organizers</a>
+    <a href="#member">For Members</a>
+    <a href="#behind">Behind the Scenes</a>
+    <a href="https://teamlodgr.com" class="nav-cta">Get Started →</a>
+  </div>
+</nav>
+
+
+<!-- ══════════════════════════════════════════
+     HERO
+══════════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+      </svg>
+      Simple. Fast. Built for Teams.
+    </div>
+    <h1>Group hotel booking,<br/><span>done right.</span></h1>
+    <p>TeamLodgr handles the coordination, the hotel RFP, and the team communication — so you can focus on the game.</p>
+    <div class="hero-pills">
+      <div class="hero-pill">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        Team Organizers
+      </div>
+      <div class="hero-pill">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+        Instant Team Invites
+      </div>
+      <div class="hero-pill">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+        </svg>
+        Group Rate RFPs
+      </div>
+      <div class="hero-pill">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/>
+        </svg>
+        Any OTA Provider
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     ORGANIZER FLOW
+══════════════════════════════════════════ -->
+<section id="organizer">
+  <div class="section-wrap">
+    <div class="section-header">
+      <div class="section-label label-organizer">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+        For the Team Organizer
+      </div>
+      <h2 class="section-title">Set up your team's hotel in minutes</h2>
+      <p class="section-sub">Search, pick, share, and confirm. TeamLodgr handles everything from there.</p>
+    </div>
+
+    <div class="steps">
+      <!-- Step 1 -->
+      <div class="step">
+        <div class="step-icon-wrap">
+          <div class="step-number-bg"></div>
+          <div class="step-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="step-num">Step 1</div>
+          <div class="step-title">Search for Hotels</div>
+          <div class="step-desc">Enter your destination city, travel dates, and the number of rooms your team needs. Optionally add your tournament name and venue for a more tailored search experience.</div>
+          <div class="step-detail">
+            <span class="step-tag">City &amp; Dates</span>
+            <span class="step-tag">Room Count</span>
+            <span class="step-tag">Tournament Name</span>
+            <span class="step-tag">Venue</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step">
+        <div class="step-icon-wrap">
+          <div class="step-number-bg"></div>
+          <div class="step-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="step-num">Step 2</div>
+          <div class="step-title">Pick Your Hotel</div>
+          <div class="step-desc">Browse results featuring photos, star ratings, amenities, and price ranges. Found the right fit? Click <strong>"Share with Team"</strong> to lock it in as your team's official hotel pick.</div>
+          <div class="step-detail">
+            <span class="step-tag">Photos &amp; Ratings</span>
+            <span class="step-tag">Price Range</span>
+            <span class="step-tag">Amenities</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="step">
+        <div class="step-icon-wrap">
+          <div class="step-number-bg"></div>
+          <div class="step-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="step-num">Step 3</div>
+          <div class="step-title">Enter Team Emails</div>
+          <div class="step-desc">Enter your own name and email, then paste in your team members' email addresses. TeamLodgr will send each person a personalized invite with all the details they need.</div>
+          <div class="step-detail">
+            <span class="step-tag">Your Contact Info</span>
+            <span class="step-tag">Team Email List</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="step">
+        <div class="step-icon-wrap">
+          <div class="step-number-bg"></div>
+          <div class="step-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="step-num">Step 4</div>
+          <div class="step-title">Review &amp; Confirm</div>
+          <div class="step-desc">You'll receive a confirmation email summarizing your hotel selection and team list. Take a moment to review everything, then click <strong>"Confirm &amp; Notify My Team"</strong> to set everything in motion.</div>
+          <div class="step-detail">
+            <span class="step-tag">Email Summary</span>
+            <span class="step-tag">One-Click Confirm</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Done -->
+    <div class="done-card">
+      <div class="done-icon">🎉</div>
+      <div>
+        <h3>You're Done — TeamLodgr Takes It From Here</h3>
+        <p>Your team receives personalized booking invites. The hotel automatically gets a group rate RFP. You get a live dashboard to track who's booked.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+
+<!-- ══════════════════════════════════════════
+     MEMBER FLOW
+══════════════════════════════════════════ -->
+<section id="member">
+  <div class="section-wrap theme-member">
+    <div class="section-header">
+      <div class="section-label label-member">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        </svg>
+        For the Team Member
+      </div>
+      <h2 class="section-title">Book your room in seconds</h2>
+      <p class="section-sub">No accounts, no logins, no confusion. Get the invite, pick your OTA, and you're done.</p>
+    </div>
+
+    <div class="steps">
+      <!-- Step 1 -->
+      <div class="step">
+        <div class="step-icon-wrap">
+          <div class="step-number-bg"></div>
+          <div class="step-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="step-num">Step 1</div>
+          <div class="step-title">Receive Your Invite Email</div>
+          <div class="step-desc">You'll get a personal email from TeamLodgr showing the hotel your organizer has selected for the team. No action needed just yet — this is your heads-up.</div>
+          <div class="step-detail">
+            <span class="step-tag">Personal Email</span>
+            <span class="step-tag">Hotel Details</span>
+            <span class="step-tag">Trip Dates</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step">
+        <div class="step-icon-wrap">
+          <div class="step-number-bg"></div>
+          <div class="step-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="step-num">Step 2</div>
+          <div class="step-title">Review the Hotel</div>
+          <div class="step-desc">See everything you need: hotel name, photo, star rating, check-in and check-out dates, and the address with a map link. It's all laid out cleanly so you know exactly what you're booking.</div>
+          <div class="step-detail">
+            <span class="step-tag">Photo &amp; Rating</span>
+            <span class="step-tag">Exact Dates</span>
+            <span class="step-tag">Location Map</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="step">
+        <div class="step-icon-wrap">
+          <div class="step-number-bg"></div>
+          <div class="step-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
+            </svg>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="step-num">Step 3</div>
+          <div class="step-title">Pick Your Booking Provider</div>
+          <div class="step-desc">Choose whichever Online Travel Agency you prefer — your loyalty points, your choice. TeamLodgr pre-fills the dates and hotel so you land right on the booking page.</div>
+          <div class="step-detail">
+            <span class="step-tag">Booking.com</span>
+            <span class="step-tag">Hotels.com</span>
+            <span class="step-tag">Expedia</span>
+            <span class="step-tag">Agoda</span>
+            <span class="step-tag">Priceline</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="step">
+        <div class="step-icon-wrap">
+          <div class="step-number-bg"></div>
+          <div class="step-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="step-num">Step 4</div>
+          <div class="step-title">Book Your Room</div>
+          <div class="step-desc">Complete the booking directly on your chosen provider's website. Use your own account, your own rewards, and your preferred payment method. Totally straightforward.</div>
+          <div class="step-detail">
+            <span class="step-tag">Your OTA Account</span>
+            <span class="step-tag">Your Rewards Points</span>
+            <span class="step-tag">Dates Pre-Filled</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Done -->
+    <div class="done-card green">
+      <div class="done-icon">✅</div>
+      <div>
+        <h3>Click "I've Booked ✅" — Let Your Team Know</h3>
+        <p>Hit the button in the email to mark yourself as booked. Your organizer's dashboard updates in real-time so they can track the whole team's progress.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+
+<!-- ══════════════════════════════════════════
+     BEHIND THE SCENES
+══════════════════════════════════════════ -->
+<section id="behind" style="background: var(--gray-100);">
+  <div class="section-wrap theme-hotel">
+    <div class="section-header">
+      <div class="section-label label-hotel">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+        </svg>
+        Behind the Scenes
+      </div>
+      <h2 class="section-title">The Hotel RFP — Automated</h2>
+      <p class="section-sub">While your team books, TeamLodgr is quietly negotiating group rates on your behalf — no extra effort required.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start;">
+
+      <!-- Left: Flow -->
+      <div>
+        <div class="email-flow">
+          <div class="email-node">
+            <div class="email-node-icon" style="background: #dbeafe; font-size: 22px;">🏃</div>
+            <div class="email-node-body">
+              <strong>Organizer Confirms</strong>
+              <span>Clicks "Confirm &amp; Notify My Team" on TeamLodgr</span>
+            </div>
+          </div>
+
+          <div class="email-arrow">
+            <div class="email-arrow-line"></div>
+            <div class="email-arrow-label">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+              Auto-generated
+            </div>
+          </div>
+
+          <div class="email-node">
+            <div class="email-node-icon" style="background: #e0f2fe; font-size: 22px;">📨</div>
+            <div class="email-node-body">
+              <strong>TeamLodgr Sends Group Rate RFP</strong>
+              <span>Automatic email to hotel with dates, room count, group details &amp; organizer contact</span>
+            </div>
+          </div>
+
+          <div class="email-arrow">
+            <div class="email-arrow-line"></div>
+            <div class="email-arrow-label">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+              Hotel replies
+            </div>
+          </div>
+
+          <div class="email-node">
+            <div class="email-node-icon" style="background: #fef3c7; font-size: 22px;">🏨</div>
+            <div class="email-node-body">
+              <strong>Hotel Responds with Group Rate</strong>
+              <span>Offer received and tracked in TeamLodgr's system</span>
+            </div>
+          </div>
+
+          <div class="email-arrow">
+            <div class="email-arrow-line"></div>
+            <div class="email-arrow-label">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+              Forwarded
+            </div>
+          </div>
+
+          <div class="email-node">
+            <div class="email-node-icon" style="background: #dbeafe; font-size: 22px;">📬</div>
+            <div class="email-node-body">
+              <strong>Organizer Receives the Offer</strong>
+              <span>TeamLodgr forwards hotel's reply directly to you</span>
+            </div>
+          </div>
+
+          <div class="email-arrow">
+            <div class="email-arrow-line"></div>
+            <div class="email-arrow-label">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+              Organizer replies
+            </div>
+          </div>
+
+          <div class="email-node">
+            <div class="email-node-icon" style="background: #d1fae5; font-size: 22px;">🤝</div>
+            <div class="email-node-body">
+              <strong>Full Email Chain — Managed &amp; Tracked</strong>
+              <span>TeamLodgr relays all replies between organizer and hotel seamlessly</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Callouts -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div style="background: white; border-radius: var(--radius); padding: 24px; border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm);">
+          <div style="font-size: 28px; margin-bottom: 12px;">🎯</div>
+          <h4 style="font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 8px;">Zero Extra Effort</h4>
+          <p style="font-size: 14px; color: var(--gray-600); line-height: 1.6;">You don't need to contact the hotel yourself. TeamLodgr sends the RFP automatically the moment you confirm — using your group size and trip details.</p>
+        </div>
+
+        <div style="background: white; border-radius: var(--radius); padding: 24px; border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm);">
+          <div style="font-size: 28px; margin-bottom: 12px;">🔗</div>
+          <h4 style="font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 8px;">Full Email Chain Tracked</h4>
+          <p style="font-size: 14px; color: var(--gray-600); line-height: 1.6;">Every message between you and the hotel is logged in one place. Reply directly from your inbox — TeamLodgr handles the routing both ways.</p>
+        </div>
+
+        <div style="background: white; border-radius: var(--radius); padding: 24px; border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm);">
+          <div style="font-size: 28px; margin-bottom: 12px;">🏅</div>
+          <h4 style="font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 8px;">IATAN-Accredited</h4>
+          <p style="font-size: 14px; color: var(--gray-600); line-height: 1.6;">TeamLodgr earns a commission from the hotel on group bookings through its IATAN accreditation — at no extra cost to you or your team.</p>
+        </div>
+
+        <div style="background: linear-gradient(135deg, var(--navy), var(--navy-light)); border-radius: var(--radius); padding: 24px; color: white;">
+          <div style="font-size: 28px; margin-bottom: 12px;">📊</div>
+          <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Live Booking Tracker</h4>
+          <p style="font-size: 14px; color: rgba(255,255,255,.75); line-height: 1.6;">Your organizer dashboard shows who's booked, who's pending, and the status of your group rate negotiation — all in one place.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CTA at bottom -->
+    <div style="text-align: center; margin-top: 64px;">
+      <h3 style="font-size: 28px; font-weight: 800; color: var(--navy); letter-spacing: -0.5px; margin-bottom: 12px;">Ready to simplify your next team trip?</h3>
+      <p style="font-size: 16px; color: var(--gray-600); margin-bottom: 28px;">Set up your hotel block in minutes. No credit card required.</p>
+      <a href="https://teamlodgr.com" style="display: inline-flex; align-items: center; gap: 8px; background: var(--blue); color: white; font-size: 16px; font-weight: 600; padding: 14px 32px; border-radius: 10px; text-decoration: none; box-shadow: 0 4px 16px rgba(26,111,212,.35); transition: all .2s;">
+        Get Started on TeamLodgr
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════ -->
+<footer>
+  <div class="footer-logo">TeamLodgr</div>
+  <p>Group hotel booking for sports teams. Simple for organizers, easy for members.</p>
+  <p><a href="https://teamlodgr.com">teamlodgr.com</a></p>
+  <div class="footer-bottom">
+    © 2025 TeamLodgr. All rights reserved.
+  </div>
+</footer>
+
+</body>
+</html>

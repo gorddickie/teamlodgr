@@ -509,8 +509,8 @@ function renderSerpHotelCard(h, params) {
 
 // ── Hotel map initialiser (Leaflet) ─────────────────────────────────────────
 function initHotelMap(containerId, hotelLat, hotelLng, hotelName, venueLat, venueLng, venueName) {
-  // Wait for DOM paint so Leaflet can measure the container
-  requestAnimationFrame(() => {
+  // Small delay so the card is fully painted before Leaflet measures the container
+  setTimeout(() => {
     const el = document.getElementById(containerId);
     if (!el || typeof L === 'undefined') return;
 
@@ -562,12 +562,15 @@ function initHotelMap(containerId, hotelLat, hotelLng, hotelName, venueLat, venu
       map.fitBounds(L.latLngBounds(points), { padding: [20, 20], maxZoom: 15 });
     }
 
+    // Force Leaflet to recalculate size after layout
+    setTimeout(() => map.invalidateSize(), 100);
+
     // Add compact legend
     const legend = document.createElement('div');
     legend.className = 'map-legend';
     legend.innerHTML = '🏨 Hotel' + (venueLat ? '<br>🏒 Venue' : '');
     el.appendChild(legend);
-  });
+  }, 50);
 }
 
 function fuzzyScore(a, b) {

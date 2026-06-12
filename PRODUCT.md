@@ -70,11 +70,52 @@ Group hotel booking for sports teams. A Organizer searches for hotels, picks the
 - Table: `team_members` — FK references `bookings.id`
 - Key columns added Jun 11, 2026: `confirm_token`, `confirmed_at`, `organizer_name`, `organizer_email`, `tournament_name`, `hotel_photo`
 
+## RFP & Hotel Email Chain Flow
+TeamLodgr acts as an intermediary between the organizer and hotel for group rate negotiation.
+
+### Flow
+1. Organizer searches → picks hotel
+2. `share.html` loads → `/api/hotel-email` scrapes hotel website for contact email in background
+3. Scraped email + website stored in `bookings.hotel_email` + `bookings.hotel_website`
+4. Organizer fills out form (their email + team emails) → clicks Send
+5. Organizer gets confirmation email → clicks "Confirm & Notify My Team"
+6. `/api/confirm.js` fires:
+   - Marks `confirmed_at` on booking
+   - Sends team member invite emails via `/api/notify`
+   - Sends RFP email to hotel via `/api/rfp-send`
+7. Hotel receives professional RFP from `rfp@teamlodgr.com` with group details
+8. Hotel replies to `rfp+BOOKINGID@jrumaxi.resend.app`
+9. Resend inbound polling (cron, every 5 min) picks up reply → `/api/rfp-reply`
+10. Reply logged to `rfp_emails` table + forwarded to organizer
+11. Organizer replies → routed back to hotel via TeamLodgr
+12. All emails tracked in `rfp_emails` (direction: inbound/outbound)
+
+### Business Model (IATAN)
+- TeamLodgr will be IATAN-accredited under Arlington Development Group (DBA: TeamLodgr)
+- Hotels pay **~10% commission** directly to TeamLodgr on group bookings
+- Much better than 4% affiliate commissions
+- IATAN number gives credibility with hotel group sales teams
+
+### RFP Email Files
+- `/api/rfp-send.js` — sends RFP to hotel, logs to `rfp_emails`
+- `/api/rfp-reply.js` — receives inbound hotel reply, forwards to organizer
+- `/api/hotel-email.js` — scrapes hotel website for contact email
+- Reply-to address: `rfp+BOOKINGID@jrumaxi.resend.app` (Resend inbound domain)
+
+### Resend Inbound Setup
+- Inbound domain: `jrumaxi.resend.app`
+- Polling via cron every 5 min (not webhook — Resend inbound uses poll API)
+- All emails to `<anything>@jrumaxi.resend.app` received by Resend
+- Booking ID extracted from `rfp+BOOKINGID@jrumaxi.resend.app`
+
 ## Next Steps (as of June 11, 2026)
+- [ ] Build cron job to poll Resend inbound API every 5 min + route hotel replies
 - [ ] Add hotel name warning above Booking.com button on book.html (wrong-hotel risk)
 - [ ] Build "I've Booked ✅" button on book.html + /api/booked.js
 - [ ] Apply to **Booking.com** on CJ (program opened June 1, 2026)
 - [ ] Sign up for **Rakuten Advertising** — needed for Marriott + Hilton affiliate links
 - [ ] Apply to **Marriott** + **Hilton** on Rakuten
 - [ ] Register **TeamLodgr** trade name under Arlington Development Group (NS Registry ~\$120 CAD)
-- [ ] Apply for **IATAN accreditation** under Arlington Development Group (\ $280 USD) once trade name registered
+- [ ] Apply for **IATAN accreditation** under Arlington Development Group ($280 USD) once trade name registered
+- [ ] Set up Hotelbeds Hotel Content API credentials (has hotel contact info)
+- [ ] Build organizer dashboard — see RFP status, team booking progress, email thread

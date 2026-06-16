@@ -25,6 +25,61 @@ async function supabaseRequest(path, method, body, serviceRole = true) {
   return res.json();
 }
 
+// ── Send hotel group booking notice ──────────────────────────────────────────
+async function sendHotelNoticeEmail({ resendApiKey, hotelEmail, hotelName, checkin, checkout, rooms, organizerName, organizerEmail, tournamentName, memberCount }) {
+  if (!resendApiKey || !hotelEmail) return false;
+  const ci = checkin  ? new Date(checkin  + 'T00:00:00').toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric' }) : checkin;
+  const co = checkout ? new Date(checkout + 'T00:00:00').toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric' }) : checkout;
+  const nights = (checkin && checkout)
+    ? Math.round((new Date(checkout) - new Date(checkin)) / 86400000)
+    : null;
+  try {
+    const emailRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${resendApiKey}` },
+      body: JSON.stringify({
+        from: 'TeamLodgr <bookings@teamlodgr.com>',
+        reply_to: organizerEmail || undefined,
+        to: [hotelEmail],
+        subject: `Group Booking Notice — ${rooms} room${rooms !== 1 ? 's' : ''}${tournamentName ? ` for ${tournamentName}` : ''} (${ci} – ${co})`,
+        html: `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:40px 20px;background:#ffffff;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;">
+    <tr><td style="padding-bottom:28px;border-bottom:2px solid #0d1b3e;">
+      <img src="https://www.teamlodgr.com/logo.png" alt="TeamLodgr" height="40" style="display:block;height:40px;width:auto;">
+    </td></tr>
+    <tr><td style="padding:32px 0 28px;">
+      <p style="margin:0 0 6px;font-size:16px;color:#111827;">Hello ${hotelName || 'Hotel Team'},</p>
+      <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">
+        A sports team${tournamentName ? ` attending <strong>${tournamentName}</strong>` : ''} has selected your property through <strong>TeamLodgr</strong>.
+        ${memberCount ? `<strong>${memberCount} team member${memberCount !== 1 ? 's' : ''}</strong> are in the process of booking their rooms individually.` : ''}
+      </p>
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6fa;border-radius:10px;padding:20px;margin-bottom:24px;">
+        <tr><td style="padding:6px 0;font-size:14px;color:#374151;"><strong>Check-in:</strong> &nbsp; ${ci || '—'}</td></tr>
+        <tr><td style="padding:6px 0;font-size:14px;color:#374151;"><strong>Check-out:</strong> &nbsp; ${co || '—'}</td></tr>
+        ${nights !== null ? `<tr><td style="padding:6px 0;font-size:14px;color:#374151;"><strong>Nights:</strong> &nbsp; ${nights}</td></tr>` : ''}
+        <tr><td style="padding:6px 0;font-size:14px;color:#374151;"><strong>Rooms:</strong> &nbsp; ${rooms}</td></tr>
+        ${organizerName ? `<tr><td style="padding:6px 0;font-size:14px;color:#374151;"><strong>Organizer:</strong> &nbsp; ${organizerName}</td></tr>` : ''}
+        ${organizerEmail ? `<tr><td style="padding:6px 0;font-size:14px;color:#374151;"><strong>Contact:</strong> &nbsp; <a href="mailto:${organizerEmail}" style="color:#1a6fd4;">${organizerEmail}</a></td></tr>` : ''}
+      </table>
+      <p style="margin:0 0 16px;font-size:14px;color:#6b7280;line-height:1.6;">Each team member books and pays for their own room directly. If you have group rate availability or need to coordinate, please reply to this email or contact the organizer directly.</p>
+      <p style="margin:0;font-size:13px;color:#9ca3af;">Sent by <a href="https://teamlodgr.com" style="color:#1a6fd4;">TeamLodgr</a> — Group hotel booking for sports teams.</p>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+      }),
+    });
+    return emailRes.ok;
+  } catch (e) {
+    console.error('Hotel notice email error:', e.message);
+    return false;
+  }
+}
+
 // ── Send organizer confirmation email ──────────────────────────────────────
 async function sendOrganizerConfirmEmail({ resendApiKey, confirmUrl, hotelName, hotelPhoto, checkin, checkout, rooms, organizerEmail, organizerName, tournamentName, memberCount }) {
   if (!resendApiKey || !organizerEmail) return false;
@@ -97,6 +152,38 @@ module.exports = async (req, res) => {
       tournamentName,
       memberCount,
     });
+
+    // ── Fire hotel notice in background (non-blocking) ──────────────────────
+    // Fetch hotel_email from the booking row, then send notice
+    const { bookingId: bId } = req.body;
+    if (bId) {
+      (async () => {
+        try {
+          const rows = await supabaseRequest(`/bookings?id=eq.${bId}&select=hotel_email,hotel_name`, 'GET', null);
+          const hotelEmail = rows?.[0]?.hotel_email;
+          if (hotelEmail) {
+            const hotelSent = await sendHotelNoticeEmail({
+              resendApiKey: process.env.RESEND_API_KEY,
+              hotelEmail,
+              hotelName:     req.body.hotelName,
+              checkin:       req.body.checkin,
+              checkout:      req.body.checkout,
+              rooms:         req.body.rooms,
+              organizerName,
+              organizerEmail,
+              tournamentName,
+              memberCount,
+            });
+            console.log('[TeamLodgr] Hotel notice email sent:', hotelSent, hotelEmail);
+          } else {
+            console.log('[TeamLodgr] No hotel_email on booking', bId, '— skipping hotel notice');
+          }
+        } catch (e) {
+          console.error('[TeamLodgr] Hotel notice background error:', e.message);
+        }
+      })();
+    }
+
     return res.status(200).json({ ok: true, emailSent: sent });
   }
 

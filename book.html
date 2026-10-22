@@ -755,8 +755,9 @@
     try {
       // Load group booking via shared Supabase client
       const { data: bookings, error } = await db
+
         .from('bookings')
-        .select('id,hotel_name,hotel_url,affiliate_code,checkin,checkout,rooms_needed,city,providers')
+        .select('id,hotel_name,hotel_url,affiliate_code,checkin,checkout,rooms_needed,city,providers,share_token,organizer_email')
         .eq('share_token', token)
         .limit(1);
 
@@ -811,26 +812,41 @@
   }
 
   async function markBooked() {
-    const email     = document.getElementById('email-input').value.trim();
-    const btn       = document.getElementById('btn-confirm');
+    const email      = document.getElementById('email-input').value.trim();
+    const btn        = document.getElementById('btn-confirm');
     const successMsg = document.getElementById('success-msg');
-    const errorMsg  = document.getElementById('error-msg');
+    const errorMsg   = document.getElementById('error-msg');
 
-    if (!email || !bookingId) return;
+    if (!email || !bookingData) return;
 
     btn.disabled    = true;
     btn.textContent = 'Saving...';
     errorMsg.classList.remove('show');
 
     try {
-      const { data, error } = await db
-        .from('team_members')
-        .update({ booked_at: new Date().toISOString() })
-        .eq('booking_id', bookingId)
-        .eq('email', email)
-        .select();
+      const res = await fetch('/api/booked', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ token: bookingData.share_token, email }),
+      });
 
-      if (error || !data || data.length === 0) throw new Error('no match');
+      const json = await res.json();
+      if (!res.ok || !json.ok) throw new Error(json.error || 'Server error');
+
+      // Update progress bar with live count from server
+      if (json.progress) {
+        const { booked, total, remaining, allBooked } = json.progress;
+        const pct  = total > 0 ? Math.round((booked / total) * 100) : 0;
+        document.getElementById('progress-fill').style.width = Math.min(pct, 100) + '%';
+        document.getElementById('progress-text').textContent  = `${booked} of ${total} booked`;
+        const pill = document.getElementById('urgency-pill');
+        if (allBooked) {
+          pill.textContent = '✅ All rooms booked!';
+          pill.classList.add('sold-out');
+        } else {
+          pill.textContent = `⚡ ${remaining} room${remaining === 1 ? '' : 's'} remaining`;
+        }
+      }
 
       btn.style.display = 'none';
       successMsg.classList.add('show');

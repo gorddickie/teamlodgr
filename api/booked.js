@@ -141,10 +141,13 @@ async function sendOrganizerEmail({ booking, bookedCount, totalMembers, memberEm
         </tr>
       </table>
 
-      <p style="margin:0 0 8px;font-size:15px;color:#6b7280;">
+      <p style="margin:0 0 20px;font-size:15px;color:#6b7280;">
         📅 ${booking.checkin} → ${booking.checkout}<br>
         🏨 ${booking.hotel_name}${booking.city ? ', ' + booking.city : ''}
       </p>
+      <a href="https://teamlodgr.com/dashboard.html?token=${encodeURIComponent(booking.share_token)}" style="display:inline-block;background:#f1f5f9;color:#0d1b3e;text-decoration:none;font-size:14px;font-weight:700;padding:10px 18px;border-radius:8px;border:1px solid #e2e8f0;">
+        📊 View Full Dashboard →
+      </a>
     </td></tr>
 
     <!-- Footer -->

@@ -81,7 +81,7 @@ async function sendHotelNoticeEmail({ resendApiKey, hotelEmail, hotelName, check
 }
 
 // ── Send organizer confirmation email ──────────────────────────────────────
-async function sendOrganizerConfirmEmail({ resendApiKey, confirmUrl, hotelName, hotelPhoto, checkin, checkout, rooms, organizerEmail, organizerName, tournamentName, memberCount }) {
+async function sendOrganizerConfirmEmail({ resendApiKey, confirmUrl, dashboardUrl, hotelName, hotelPhoto, checkin, checkout, rooms, organizerEmail, organizerName, tournamentName, memberCount }) {
   if (!resendApiKey || !organizerEmail) return false;
   const ci = checkin  ? new Date(checkin  + 'T00:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }) : checkin;
   const co = checkout ? new Date(checkout + 'T00:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }) : checkout;
@@ -110,6 +110,7 @@ async function sendOrganizerConfirmEmail({ resendApiKey, confirmUrl, hotelName, 
       ${ci && co ? `<p style="margin:0 0 20px;font-size:15px;color:#6b7280;">📅 ${ci} → ${co} &nbsp;·&nbsp; 🛏️ ${rooms} room${rooms !== 1 ? 's' : ''}</p>` : ''}
       <a href="${confirmUrl}" style="display:block;background:#0d1b3e;color:#ffffff;text-decoration:none;text-align:center;font-size:18px;font-weight:700;padding:18px 24px;border-radius:8px;">✅ Confirm &amp; Notify My Team</a>
       <p style="margin:16px 0 0;font-size:13px;color:#9ca3af;text-align:center;">Your team won't receive anything until you click this button.</p>
+      ${dashboardUrl ? `<p style="margin:20px 0 0;text-align:center;"><a href="${dashboardUrl}" style="font-size:13px;color:#1a6fd4;font-weight:600;">📊 View Booking Dashboard →</a></p>` : ''}
     </td></tr>
     <tr><td style="padding-top:20px;border-top:1px solid #e5e7eb;">
       <p style="margin:0;font-size:13px;color:#9ca3af;">Sent by TeamLodgr. Questions? Reply to this email.</p>
@@ -139,9 +140,13 @@ module.exports = async (req, res) => {
     if (!organizerEmail || !confirmUrl) {
       return res.status(400).json({ error: 'Missing organizerEmail or confirmUrl' });
     }
+    // Build dashboard URL from share token
+    const siteBaseOrg = req.body.baseUrl || req.body.shareUrl?.replace(/\/share\.html.*$/, '') || 'https://teamlodgr.com';
+    const dashboardUrl = shareToken ? `${siteBaseOrg}/dashboard.html?token=${encodeURIComponent(shareToken)}` : null;
     const sent = await sendOrganizerConfirmEmail({
       resendApiKey: process.env.RESEND_API_KEY,
       confirmUrl,
+      dashboardUrl,
       hotelName: req.body.hotelName,
       hotelPhoto: req.body.hotelPhoto,
       checkin: req.body.checkin,

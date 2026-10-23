@@ -561,7 +561,6 @@
 
     const providers = [];
     if (directProvider) providers.push({ label: '🏨 Book Direct', url: directProvider.url, price: directProvider.price });
-    providers.push({ label: 'Booking.com', url: bookingUrl  });
     providers.push({ label: 'Hotels.com',  url: hotelsUrl   });
     providers.push({ label: 'Expedia',     url: expediaUrl  });
     providers.push({ label: 'Agoda',       url: agodaUrl    });
@@ -698,12 +697,6 @@
       altList.innerHTML = '';
 
       const providers = [
-        {
-          label: 'Booking.com',
-          price: bookingPrice ? `$${bookingPrice} CAD` : null,
-          url:   bookingComUrl(hotelId, checkin, checkout, hotelName, b.city),
-          show:  !soldOut,
-        },
         {
           label: 'Hotels.com',
           price: bookingPrice ? `$${bookingPrice} CAD` : null,

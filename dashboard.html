@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TeamLodgr — Booking Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0d1b3e;
+      --blue: #1a6fd4;
+      --white: #ffffff;
+      --gray: #f4f6fa;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --green: #16a34a;
+      --orange: #ea580c;
+      --red: #dc2626;
+    }
+    body { font-family: 'Inter', sans-serif; background: #e5e7eb; color: var(--text); min-height: 100vh; }
+    nav { background: var(--navy); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+    nav img { height: 36px; }
+    nav span { color: rgba(255,255,255,0.5); font-size: 0.85rem; }
+
+    #loading, #error-state { text-align: center; padding: 80px 24px; color: var(--muted); }
+    #error-state { color: var(--red); }
+
+    .page { max-width: 760px; margin: 0 auto; padding: 28px 20px 60px; }
+
+    /* Header card */
+    .header-card {
+      background: linear-gradient(135deg, var(--navy) 0%, #1a3a70 100%);
+      color: white;
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 40px rgba(13,27,62,0.15);
+    }
+    .header-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 4px 12px;
+      margin-bottom: 12px;
+      color: #b0c8f0;
+      text-transform: uppercase;
+    }
+    .hotel-name { font-size: clamp(1.3rem, 4vw, 1.7rem); font-weight: 900; margin-bottom: 10px; }
+    .dates { font-size: 0.95rem; color: #b0c8f0; font-weight: 600; margin-bottom: 20px; }
+
+    /* Progress */
+    .progress-row { display: flex; align-items: center; gap: 16px; margin-bottom: 10px; }
+    .progress-label { font-size: 0.95rem; font-weight: 700; }
+    .progress-pct { font-size: 0.85rem; color: #b0c8f0; margin-left: auto; }
+    .progress-track { height: 8px; background: rgba(255,255,255,0.15); border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
+    .progress-fill { height: 100%; background: #10b981; border-radius: 99px; transition: width 0.6s ease; }
+    .progress-sub { font-size: 0.8rem; color: #b0c8f0; }
+
+    /* Stats row */
+    .stats { display: flex; gap: 12px; margin-bottom: 16px; }
+    .stat { background: white; border-radius: 14px; padding: 18px 20px; flex: 1; box-shadow: 0 2px 12px rgba(13,27,62,0.07); text-align: center; }
+    .stat .num { font-size: 2rem; font-weight: 900; }
+    .stat .lbl { font-size: 0.78rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+    .stat.green .num { color: var(--green); }
+    .stat.orange .num { color: var(--orange); }
+    .stat.blue .num { color: var(--blue); }
+
+    /* Action bar */
+    .action-bar { display: flex; gap: 10px; margin-bottom: 16px; }
+    .btn { border: none; border-radius: 9px; padding: 11px 18px; font-size: 0.88rem; font-weight: 700; font-family: inherit; cursor: pointer; transition: 0.15s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: var(--blue); color: white; }
+    .btn-primary:hover { background: #1458b0; }
+    .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
+    .btn-secondary { background: white; color: var(--navy); border: 1.5px solid #d1d5db; }
+    .btn-secondary:hover { background: #f9fafb; }
+
+    /* Member list */
+    .members-card { background: white; border-radius: 20px; box-shadow: 0 4px 24px rgba(13,27,62,0.08); overflow: hidden; }
+    .members-header { padding: 18px 24px; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; justify-content: space-between; }
+    .members-title { font-size: 0.9rem; font-weight: 700; color: var(--navy); }
+    .filter-tabs { display: flex; gap: 4px; }
+    .filter-tab { border: none; background: none; padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--muted); font-family: inherit; }
+    .filter-tab.active { background: #eff6ff; color: var(--blue); }
+
+    .member-row { display: flex; align-items: center; padding: 14px 24px; border-bottom: 1px solid #f9fafb; gap: 14px; }
+    .member-row:last-child { border-bottom: none; }
+    .member-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem; flex-shrink: 0; }
+    .avatar-booked { background: #dcfce7; color: var(--green); }
+    .avatar-pending { background: #fef3c7; color: #92400e; }
+    .member-info { flex: 1; min-width: 0; }
+    .member-email { font-size: 0.9rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .member-sub { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .member-badge { font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+    .badge-booked { background: #dcfce7; color: var(--green); }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+
+    .empty-state { text-align: center; padding: 40px 24px; color: var(--muted); font-size: 0.9rem; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 20px; border-radius: 10px; font-size: 0.88rem; font-weight: 600; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; white-space: nowrap; }
+    .toast.show { opacity: 1; }
+
+    footer { text-align: center; padding: 24px; font-size: 0.8rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/"><img src="/logo.png" alt="TeamLodgr"/></a>
+  <span>Organizer Dashboard</span>
+</nav>
+
+<div id="loading">Loading booking status...</div>
+<div id="error-state" style="display:none">
+  <h2>Dashboard not found</h2>
+  <p>Check your link and try again.</p>
+</div>
+
+<div class="page" id="main-content" style="display:none">
+
+  <!-- Header -->
+  <div class="header-card">
+    <div class="header-badge">🏒 Organizer Dashboard</div>
+    <div class="hotel-name" id="hotel-name">Loading...</div>
+    <div class="dates" id="dates">—</div>
+    <div class="progress-row">
+      <span class="progress-label" id="progress-label">0 of 0 booked</span>
+      <span class="progress-pct" id="progress-pct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-sub" id="progress-sub"></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat green">
+      <div class="num" id="stat-booked">0</div>
+      <div class="lbl">Booked</div>
+    </div>
+    <div class="stat orange">
+      <div class="num" id="stat-pending">0</div>
+      <div class="lbl">Pending</div>
+    </div>
+    <div class="stat blue">
+      <div class="num" id="stat-total">0</div>
+      <div class="lbl">Total</div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="action-bar">
+    <button class="btn btn-primary" id="remind-btn" onclick="sendReminders()">
+      📧 Remind Unbooked
+    </button>
+    <button class="btn btn-secondary" onclick="refresh()">
+      🔄 Refresh
+    </button>
+  </div>
+
+  <!-- Member list -->
+  <div class="members-card">
+    <div class="members-header">
+      <span class="members-title">Team Members</span>
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterMembers('all', this)">All</button>
+        <button class="filter-tab" onclick="filterMembers('booked', this)">Booked</button>
+        <button class="filter-tab" onclick="filterMembers('pending', this)">Pending</button>
+      </div>
+    </div>
+    <div id="member-list">
+      <div class="empty-state">Loading members...</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer>TeamLodgr &middot; <a href="https://teamlodgr.com">teamlodgr.com</a></footer>
+
+<script src="/supabase.js" defer></script>
+<script>
+  // Wait for supabase.js to load
+  window.addEventListener('load', init);
+
+  let allMembers = [];
+  let bookingData = null;
+  let shareToken  = null;
+
+  function fmtDate(d) {
+    if (!d) return '—';
+    const [y, m, day] = d.split('-');
+    return new Date(y, m-1, day).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function initials(email) {
+    return (email || '?')[0].toUpperCase();
+  }
+
+  function toast(msg, duration = 3000) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), duration);
+  }
+
+  function renderMembers(filter = 'all') {
+    const list = document.getElementById('member-list');
+    let filtered = allMembers;
+    if (filter === 'booked')  filtered = allMembers.filter(m => m.booked_at);
+    if (filter === 'pending') filtered = allMembers.filter(m => !m.booked_at);
+
+    if (!filtered.length) {
+      list.innerHTML = `<div class="empty-state">${filter === 'booked' ? 'Nobody has booked yet.' : filter === 'pending' ? 'Everyone has booked! 🎉' : 'No members found.'}</div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(m => {
+      const booked = !!m.booked_at;
+      const bookedDate = booked ? new Date(m.booked_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) : null;
+      const notified   = m.notified_at ? new Date(m.notified_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) : null;
+      return `
+        <div class="member-row">
+          <div class="member-avatar ${booked ? 'avatar-booked' : 'avatar-pending'}">${initials(m.email)}</div>
+          <div class="member-info">
+            <div class="member-email">${m.name ? `<strong>${m.name}</strong> — ` : ''}${m.email}</div>
+            <div class="member-sub">${booked ? `✅ Booked ${bookedDate}` : notified ? `📧 Reminded ${notified}` : 'Not yet booked'}</div>
+          </div>
+          <span class="member-badge ${booked ? 'badge-booked' : 'badge-pending'}">${booked ? '✅ Booked' : '⏳ Pending'}</span>
+        </div>`;
+    }).join('');
+  }
+
+  function filterMembers(filter, btn) {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderMembers(filter);
+  }
+
+  function updateStats(members, roomsNeeded) {
+    const booked    = members.filter(m => m.booked_at).length;
+    const pending   = members.filter(m => !m.booked_at).length;
+    const total     = members.length;
+    const pct       = roomsNeeded > 0 ? Math.round((booked / roomsNeeded) * 100) : 0;
+    const remaining = Math.max(0, roomsNeeded - booked);
+
+    document.getElementById('stat-booked').textContent  = booked;
+    document.getElementById('stat-pending').textContent  = pending;
+    document.getElementById('stat-total').textContent   = total;
+    document.getElementById('progress-fill').style.width = Math.min(pct, 100) + '%';
+    document.getElementById('progress-pct').textContent  = pct + '%';
+    document.getElementById('progress-label').textContent = `${booked} of ${roomsNeeded} rooms booked`;
+    document.getElementById('progress-sub').textContent   = remaining === 0
+      ? '🎉 All rooms booked!'
+      : `${remaining} room${remaining === 1 ? '' : 's'} still needed`;
+
+    // Disable remind button if all booked
+    const remindBtn = document.getElementById('remind-btn');
+    if (pending === 0) {
+      remindBtn.disabled = true;
+      remindBtn.textContent = '✅ All booked!';
+    }
+  }
+
+  async function refresh() {
+    if (!shareToken) return;
+    try {
+      const { data: members } = await db
+        .from('team_members')
+        .select('email, name, booked_at, notified_at')
+        .eq('booking_id', bookingData.id)
+        .order('booked_at', { ascending: false, nullsFirst: false });
+
+      allMembers = members || [];
+      updateStats(allMembers, bookingData.rooms_needed);
+      renderMembers();
+      toast('Refreshed ✓');
+    } catch (e) {
+      toast('Refresh failed');
+    }
+  }
+
+  async function sendReminders() {
+    const btn = document.getElementById('remind-btn');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    try {
+      const res  = await fetch('/api/remind', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: shareToken }),
+      });
+      const json = await res.json();
+      if (json.ok) {
+        toast(`📧 Sent ${json.sent} reminder${json.sent === 1 ? '' : 's'}!`);
+        await refresh();
+      } else {
+        toast('Failed to send reminders');
+      }
+    } catch (e) {
+      toast('Error sending reminders');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '📧 Remind Unbooked';
+    }
+  }
+
+  async function init() {
+    const params = new URLSearchParams(location.search);
+    shareToken = params.get('token');
+
+    if (!shareToken) {
+      document.getElementById('loading').style.display     = 'none';
+      document.getElementById('error-state').style.display = 'block';
+      return;
+    }
+
+    try {
+      const { data: bookings, error } = await db
+        .from('bookings')
+        .select('id, hotel_name, city, checkin, checkout, rooms_needed, share_token, tournament_name, organizer_email')
+        .eq('share_token', shareToken)
+        .limit(1);
+
+      if (error || !bookings?.length) {
+        document.getElementById('loading').style.display     = 'none';
+        document.getElementById('error-state').style.display = 'block';
+        return;
+      }
+
+      bookingData = bookings[0];
+
+      document.getElementById('hotel-name').textContent = bookingData.hotel_name || 'Your Hotel';
+      document.getElementById('dates').textContent =
+        `${fmtDate(bookingData.checkin)} → ${fmtDate(bookingData.checkout)}` +
+        (bookingData.tournament_name ? ` · ${bookingData.tournament_name}` : '');
+
+      const { data: members } = await db
+        .from('team_members')
+        .select('email, name, booked_at, notified_at')
+        .eq('booking_id', bookingData.id)
+        .order('booked_at', { ascending: false, nullsFirst: false });
+
+      allMembers = members || [];
+      updateStats(allMembers, bookingData.rooms_needed);
+      renderMembers();
+
+      document.getElementById('loading').style.display      = 'none';
+      document.getElementById('main-content').style.display = 'block';
+
+    } catch (e) {
+      console.error(e);
+      document.getElementById('loading').style.display     = 'none';
+      document.getElementById('error-state').style.display = 'block';
+    }
+  }
+</script>
+</body>
+</html>

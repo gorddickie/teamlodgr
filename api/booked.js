@@ -34,6 +34,60 @@ async function supabaseRequest(path, method, body) {
   return text ? JSON.parse(text) : [];
 }
 
+async function sendPlayerConfirmationEmail({ email, name, booking }) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return false;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:40px 20px;background:#ffffff;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;">
+    <tr><td style="padding-bottom:28px;border-bottom:2px solid #0d1b3e;">
+      <img src="https://www.teamlodgr.com/logo.png" alt="TeamLodgr" height="40" style="display:block;">
+    </td></tr>
+    <tr><td style="padding:32px 0 28px;">
+      <p style="margin:0 0 8px;font-size:28px;">✅</p>
+      <p style="margin:0 0 12px;font-size:20px;font-weight:700;color:#111827;">You're booked!</p>
+      <p style="margin:0 0 20px;font-size:15px;color:#6b7280;line-height:1.6;">
+        Your room at <strong style="color:#0d1b3e;">${booking.hotel_name}</strong> has been confirmed.
+        We've let your team manager know.
+      </p>
+      <table width="100%" cellpadding="12" style="background:#f9fafb;border-radius:8px;margin-bottom:24px;">
+        <tr><td style="font-size:15px;color:#374151;">
+          🏨 <strong>${booking.hotel_name}</strong>${booking.city ? ', ' + booking.city : ''}<br>
+          📅 ${booking.checkin} → ${booking.checkout}
+          ${booking.tournament_name ? '<br>🏆 ' + booking.tournament_name : ''}
+        </td></tr>
+      </table>
+      <p style="margin:0;font-size:14px;color:#6b7280;">See you there! 🎉</p>
+    </td></tr>
+    <tr><td style="padding-top:20px;border-top:1px solid #e5e7eb;">
+      <p style="margin:0;font-size:13px;color:#9ca3af;">Sent via TeamLodgr · <a href="https://teamlodgr.com" style="color:#9ca3af;">teamlodgr.com</a></p>
+    </td></tr>
+  </table>
+</body>
+</html>`.trim();
+
+  try {
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+      body: JSON.stringify({
+        from: 'TeamLodgr <bookings@teamlodgr.com>',
+        to: [email],
+        subject: `✅ You're booked at ${booking.hotel_name}!`,
+        html,
+      }),
+    });
+    return r.ok;
+  } catch (e) {
+    console.error('Resend player confirm error:', e.message);
+    return false;
+  }
+}
+
 async function sendOrganizerEmail({ booking, bookedCount, totalMembers, memberEmail, memberName }) {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
@@ -188,16 +242,22 @@ module.exports = async (req, res) => {
     const totalMembers = allMembers.length;
     const remaining    = Math.max(0, booking.rooms_needed - bookedCount);
 
-    // 5. Email organizer (only if this is a new booking, and organizer email exists)
+    // 5. Send emails (only on new booking)
     let emailSent = false;
-    if (!alreadyBooked && booking.organizer_email) {
-      emailSent = await sendOrganizerEmail({
-        booking,
-        bookedCount,
-        totalMembers,
-        memberEmail: email,
-        memberName: member.name || null,
-      });
+    if (!alreadyBooked) {
+      // Confirmation to player
+      await sendPlayerConfirmationEmail({ email, name: member.name, booking });
+
+      // Notify organizer
+      if (booking.organizer_email) {
+        emailSent = await sendOrganizerEmail({
+          booking,
+          bookedCount,
+          totalMembers,
+          memberEmail: email,
+          memberName: member.name || null,
+        });
+      }
     }
 
     return res.status(200).json({

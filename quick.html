@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quick Search — TeamLodgr</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0d1b3e;
+      --blue: #1a6fd4;
+      --blue-light: #3a8af0;
+      --white: #ffffff;
+      --muted: #6b7280;
+    }
+    body { font-family: 'Inter', sans-serif; background: #d1d5db; color: var(--navy); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px 36px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .logo { font-size: 1.6rem; font-weight: 900; color: var(--navy); margin-bottom: 8px; }
+    .logo span { color: var(--blue); }
+    .tagline { color: var(--muted); font-size: 0.95rem; margin-bottom: 28px; }
+
+    label { display: block; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--navy); margin-bottom: 6px; }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus { border-color: var(--blue); }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: var(--blue-light); }
+
+    .defaults {
+      margin-top: 20px;
+      padding: 14px 16px;
+      background: #f4f6fa;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .defaults strong { color: var(--navy); }
+
+    .back { margin-top: 20px; text-align: center; font-size: 0.85rem; }
+    .back a { color: var(--blue); text-decoration: none; }
+
+    #results-section { display: none; width: 100%; max-width: 960px; margin-top: 32px; }
+    #results-grid { display: grid; gap: 20px; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">Team<span>Lodgr</span></div>
+  <div class="tagline">Just enter a city — we'll handle the rest.</div>
+
+  <form id="quick-form" onsubmit="doSearch(event)">
+    <label>Destination City</label>
+    <input type="text" id="city" placeholder="e.g. Halifax, NS" required autofocus/>
+
+    <button class="btn" type="submit">Search Hotels →</button>
+  </form>
+
+  <div class="defaults" id="defaults-box">
+    <!-- filled by JS -->
+  </div>
+
+  <div class="back"><a href="/">← Full search</a> &nbsp;|&nbsp; <a href="/rfp.html">Send RFP to Hotels</a></div>
+</div>
+
+<div id="results-section">
+  <div id="results-grid"></div>
+</div>
+
+<script src="search.js"></script>
+<script>
+  // Default values used for the quick search
+  const ci = new Date(); ci.setDate(ci.getDate() + 30);
+  const co = new Date(); co.setDate(co.getDate() + 33);
+  const fmt = d => d.toISOString().split('T')[0];
+
+  const DEFAULTS = {
+    checkin: fmt(ci),
+    checkout: fmt(co),
+    rooms: 15,
+    organizerName: 'Coach Gord',
+    organizerEmail: 'gorddickie@gmail.com',
+    tournamentName: 'Test Tournament'
+  };
+
+  // Show defaults to user
+  document.getElementById('defaults-box').innerHTML = `
+    <strong>Using defaults:</strong> Check-in ${ci.toLocaleDateString('en-CA', {month:'short',day:'numeric'})} → ${co.toLocaleDateString('en-CA', {month:'short',day:'numeric'})} &nbsp;·&nbsp; ${DEFAULTS.rooms} rooms &nbsp;·&nbsp; Organizer: ${DEFAULTS.organizerName}
+  `;
+
+  function doSearch(e) {
+    e.preventDefault();
+    const city = document.getElementById('city').value.trim();
+    if (!city) return;
+
+    // Inject defaults into hidden fields expected by search.js
+    // We stub out the DOM elements search.js reads from
+    const stub = (id, val) => {
+      let el = document.getElementById(id);
+      if (!el) {
+        el = document.createElement('input');
+        el.type = 'hidden';
+        el.id = id;
+        document.body.appendChild(el);
+      }
+      el.value = val;
+    };
+
+    stub('checkin', DEFAULTS.checkin);
+    stub('checkout', DEFAULTS.checkout);
+    stub('rooms', DEFAULTS.rooms);
+    stub('organizer-name', DEFAULTS.organizerName);
+    stub('organizer-email', DEFAULTS.organizerEmail);
+    stub('tournament-name', DEFAULTS.tournamentName);
+    stub('venue-input', '');
+
+    // Trigger search
+    document.getElementById('results-section').style.display = 'block';
+    window.scrollTo({ top: document.getElementById('results-section').offsetTop - 20, behavior: 'smooth' });
+
+    if (typeof runSearch === 'function') {
+      runSearch();
+    } else {
+      // Fallback: redirect to main site with params
+      const params = new URLSearchParams({
+        city,
+        checkin: DEFAULTS.checkin,
+        checkout: DEFAULTS.checkout,
+        rooms: DEFAULTS.rooms
+      });
+      window.location.href = `/?${params}`;
+    }
+  }
+</script>
+</body>
+</html>

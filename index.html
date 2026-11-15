@@ -557,11 +557,53 @@
 <section id="results-section" style="display:none; padding: 40px; background: #d1d5db;">
   <div style="max-width:960px; margin:0 auto;">
     <h2 style="font-size:1.4rem; font-weight:800; color:#0d1b3e; margin-bottom:8px;">Top Hotels for Your Group</h2>
-    <p style="color:#6b7280; margin-bottom:28px; font-size:0.95rem;">Showing hotels with enough rooms for your entire team. Pick one and share the link.</p>
+    <p style="color:#6b7280; margin-bottom:4px; font-size:0.95rem;">Showing hotels with enough rooms for your entire team. Pick one and share the link.</p>
+    <p id="rfp-hint" style="color:#1a6fd4; font-size:0.9rem; margin-bottom:24px; font-weight:500;">💡 Found hotels? Check the <strong>Request Bid</strong> boxes to send a room block request directly to multiple hotels — or click a provider button to book individually.</p>
     <div id="loading" style="display:none;"></div>
     <div id="results-grid"></div>
   </div>
 </section>
+
+<!-- RFP STICKY PANEL -->
+<div id="rfp-panel" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#0d1b3e; color:white; padding:16px 24px; z-index:1000; align-items:center; justify-content:space-between; gap:16px; box-shadow:0 -4px 20px rgba(0,0,0,0.3);">
+  <div>
+    <strong id="rfp-count">0 hotels selected</strong>
+    <span style="color:#b0c8f0; font-size:0.9rem; margin-left:8px;">for room block bid</span>
+  </div>
+  <button onclick="sendRfpToSelected()" style="background:#1a6fd4; color:white; border:none; padding:12px 24px; border-radius:8px; font-weight:700; font-size:1rem; cursor:pointer;">
+    Send RFP to Selected Hotels →
+  </button>
+</div>
+
+<!-- RFP MODAL -->
+<div id="rfp-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:2000; align-items:center; justify-content:center; padding:20px; overflow-y:auto;">
+  <div style="background:white; border-radius:16px; padding:36px; max-width:600px; width:100%; box-shadow:0 24px 60px rgba(0,0,0,0.25); position:relative; max-height:90vh; overflow-y:auto;">
+    <h2 style="font-size:1.4rem; font-weight:800; color:#0d1b3e; margin-bottom:6px;">Send Room Block Request</h2>
+    <p style="color:#6b7280; font-size:0.9rem; margin-bottom:24px;">We'll send your group room request to the selected hotels. They'll reply directly to your email with their best rates.</p>
+
+    <div style="display:grid; gap:14px; margin-bottom:20px;">
+      <div>
+        <label style="display:block; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#0d1b3e; margin-bottom:6px;">Your Name</label>
+        <input type="text" id="rfp-modal-name" placeholder="e.g. Coach Mike" style="width:100%; padding:11px 13px; border:1.5px solid #d1d5db; border-radius:8px; font-size:0.95rem; font-family:inherit; outline:none;"/>
+      </div>
+      <div>
+        <label style="display:block; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#0d1b3e; margin-bottom:6px;">Your Email <span style="color:#dc2626;">*</span></label>
+        <input type="email" id="rfp-modal-email" placeholder="e.g. coach@hockeyteam.ca" style="width:100%; padding:11px 13px; border:1.5px solid #d1d5db; border-radius:8px; font-size:0.95rem; font-family:inherit; outline:none;"/>
+      </div>
+      <div>
+        <label style="display:block; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#0d1b3e; margin-bottom:6px;">Special Requests / Notes <span style="font-weight:400; text-transform:none; color:#6b7280;">(optional)</span></label>
+        <textarea id="rfp-modal-notes" rows="3" placeholder="e.g. Need accessible rooms, early check-in, shuttle service..." style="width:100%; padding:11px 13px; border:1.5px solid #d1d5db; border-radius:8px; font-size:0.95rem; font-family:inherit; outline:none; resize:vertical;"></textarea>
+      </div>
+    </div>
+
+    <div id="rfp-hotel-list" style="margin-bottom:24px;"></div>
+
+    <div style="display:flex; gap:12px; justify-content:flex-end;">
+      <button onclick="closeRfpModal()" style="padding:12px 22px; border:1.5px solid #d1d5db; border-radius:8px; font-weight:600; font-size:0.95rem; background:white; cursor:pointer; font-family:inherit;">Cancel</button>
+      <button id="rfp-submit-btn" onclick="submitRfp()" style="padding:12px 28px; background:#1a6fd4; color:white; border:none; border-radius:8px; font-weight:700; font-size:0.95rem; cursor:pointer; font-family:inherit;">Send to Hotels →</button>
+    </div>
+  </div>
+</div>
 
 <style>
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -1043,6 +1085,134 @@
 
 <script src="search.js"></script>
 <script>
+  // ── RFP Selection & Modal ─────────────────────────────────────────────────
+  let selectedHotels = [];
+
+  function updateRfpPanel() {
+    const checkboxes = document.querySelectorAll('.hotel-bid-cb:checked');
+    selectedHotels = Array.from(checkboxes).map(cb => ({
+      name: cb.dataset.hotelName,
+      rating: cb.dataset.hotelRating,
+      address: cb.dataset.hotelAddress,
+      email: ''
+    }));
+    const panel = document.getElementById('rfp-panel');
+    const count = document.getElementById('rfp-count');
+    if (selectedHotels.length > 0) {
+      panel.style.display = 'flex';
+      count.textContent = `${selectedHotels.length} hotel${selectedHotels.length > 1 ? 's' : ''} selected`;
+    } else {
+      panel.style.display = 'none';
+    }
+  }
+
+  function sendRfpToSelected() {
+    showRfpModal();
+  }
+
+  function showRfpModal() {
+    // Pre-fill organizer info from search form
+    const nameInput  = document.getElementById('rfp-modal-name');
+    const emailInput = document.getElementById('rfp-modal-email');
+    if (nameInput  && currentParams.organizerName)  nameInput.value  = currentParams.organizerName;
+    if (emailInput && currentParams.organizerEmail) emailInput.value = currentParams.organizerEmail;
+
+    // Build hotel list with email inputs
+    const listEl = document.getElementById('rfp-hotel-list');
+    listEl.innerHTML = `
+      <div style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#0d1b3e; margin-bottom:12px;">Selected Hotels (${selectedHotels.length})</div>
+      ${selectedHotels.map((h, i) => `
+        <div style="border:1.5px solid #e5e7eb; border-radius:10px; padding:14px 16px; margin-bottom:10px; background:#f9fafb;">
+          <div style="font-weight:700; color:#0d1b3e; margin-bottom:2px;">${h.name}</div>
+          ${h.address ? `<div style="font-size:0.82rem; color:#6b7280; margin-bottom:8px;">📍 ${h.address}</div>` : ''}
+          <label style="display:block; font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:#6b7280; margin-bottom:4px;">Group Sales Email <span style="font-weight:400; text-transform:none;">(leave blank to skip)</span></label>
+          <input type="email" class="rfp-hotel-email" data-idx="${i}" placeholder="groupsales@${h.name.toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,12)}.com" style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:0.88rem; font-family:inherit; outline:none;"/>
+        </div>
+      `).join('')}
+    `;
+
+    // Update submit button label
+    const btn = document.getElementById('rfp-submit-btn');
+    if (btn) btn.textContent = `Send to ${selectedHotels.length} Hotel${selectedHotels.length > 1 ? 's' : ''} →`;
+
+    const modal = document.getElementById('rfp-modal');
+    modal.style.display = 'flex';
+  }
+
+  function closeRfpModal() {
+    document.getElementById('rfp-modal').style.display = 'none';
+  }
+
+  async function submitRfp() {
+    const name  = document.getElementById('rfp-modal-name').value.trim();
+    const email = document.getElementById('rfp-modal-email').value.trim();
+    const notes = document.getElementById('rfp-modal-notes').value.trim();
+
+    if (!email) {
+      alert('Please enter your email so hotels can reply to you.');
+      return;
+    }
+
+    // Collect hotel emails from modal inputs
+    const hotelEmails = document.querySelectorAll('.rfp-hotel-email');
+    const hotels = selectedHotels.map((h, i) => ({
+      ...h,
+      email: hotelEmails[i]?.value.trim() || ''
+    })).filter(h => h.email); // only include hotels with an email
+
+    if (hotels.length === 0) {
+      alert('Please enter at least one hotel group sales email to send your request.');
+      return;
+    }
+
+    const btn = document.getElementById('rfp-submit-btn');
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+
+    try {
+      const payload = {
+        organizerName:  name,
+        organizerEmail: email,
+        eventName:      currentParams.tournamentName || '',
+        city:           currentParams.city || '',
+        checkin:        currentParams.checkin || '',
+        checkout:       currentParams.checkout || '',
+        rooms:          currentParams.rooms || '',
+        notes:          notes,
+        hotels:         hotels
+      };
+
+      const res  = await fetch('/api/rfp?action=create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data.id || data.rfpId) {
+        const rfpId = data.id || data.rfpId;
+        window.location.href = `rfp-dashboard.html?rfp=${rfpId}&email=${encodeURIComponent(email)}`;
+      } else if (data.error) {
+        alert('Error: ' + data.error);
+        btn.textContent = `Send to ${selectedHotels.length} Hotel${selectedHotels.length > 1 ? 's' : ''} →`;
+        btn.disabled = false;
+      } else {
+        // Fallback: redirect anyway with email
+        window.location.href = `rfp-dashboard.html?email=${encodeURIComponent(email)}`;
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Something went wrong. Please try again.');
+      btn.textContent = `Send to ${selectedHotels.length} Hotel${selectedHotels.length > 1 ? 's' : ''} →`;
+      btn.disabled = false;
+    }
+  }
+
+  // Close modal when clicking backdrop
+  document.getElementById('rfp-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeRfpModal();
+  });
+
   function autoSetCheckout(checkinInput) {
     const checkin = new Date(checkinInput.value);
     if (!checkinInput.value) return;

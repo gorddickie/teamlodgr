@@ -270,7 +270,20 @@ function renderHotelCard(h, params) {
   const card = document.createElement('div');
   card.className = 'hotel-card';
   card.id = `hotel-card-${h.hotel_id}`;
+  const _legacyName    = (prop.name || '').replace(/"/g, '&quot;');
+  const _legacyRating  = (prop.reviewScore ? String(prop.reviewScore) : '').replace(/"/g, '&quot;');
+  const _legacyAddress = (params.city || '').replace(/"/g, '&quot;');
+
   card.innerHTML = `
+    <label style="position:absolute; top:12px; right:12px; display:flex; align-items:center; gap:6px; cursor:pointer; background:white; padding:6px 10px; border-radius:20px; box-shadow:0 2px 8px rgba(0,0,0,0.12); font-size:0.85rem; font-weight:600; color:#0d1b3e; z-index:5;">
+      <input type="checkbox" class="hotel-bid-cb"
+        data-hotel-name="${_legacyName}"
+        data-hotel-rating="${_legacyRating}"
+        data-hotel-address="${_legacyAddress}"
+        onchange="updateRfpPanel()"
+        style="width:16px;height:16px;cursor:pointer;"/>
+      Request Bid
+    </label>
     ${photo ? `<img src="${photo}" alt="${prop.name}" class="hotel-photo" onerror="this.style.display='none'"/>` : ''}
     <div class="hotel-body">
       <div class="hotel-rank-name">
@@ -411,7 +424,20 @@ function renderSerpHotelCard(h, params) {
   const card = document.createElement('div');
   card.className = 'hotel-card loading';
   card.id = `hotel-card-${hotelId}`;
+  const _escapedName    = (h.name || '').replace(/"/g, '&quot;');
+  const _escapedAddress = (h.address || params.city || '').replace(/"/g, '&quot;');
+  const _escapedRating  = (h.rating ? String(h.rating) : '').replace(/"/g, '&quot;');
+
   card.innerHTML = `
+    <label style="position:absolute; top:12px; right:12px; display:flex; align-items:center; gap:6px; cursor:pointer; background:white; padding:6px 10px; border-radius:20px; box-shadow:0 2px 8px rgba(0,0,0,0.12); font-size:0.85rem; font-weight:600; color:#0d1b3e; z-index:5;">
+      <input type="checkbox" class="hotel-bid-cb"
+        data-hotel-name="${_escapedName}"
+        data-hotel-rating="${_escapedRating}"
+        data-hotel-address="${_escapedAddress}"
+        onchange="updateRfpPanel()"
+        style="width:16px;height:16px;cursor:pointer;"/>
+      Request Bid
+    </label>
     <div class="hotel-loading-badge" id="loading-badge-${hotelId}"><div class="spin"></div> Checking availability...</div>
     ${h.photo ? `<img src="${h.photo}" alt="${h.name}" class="hotel-photo" onerror="this.style.display='none'"/>` : ''}
     <div class="hotel-body">

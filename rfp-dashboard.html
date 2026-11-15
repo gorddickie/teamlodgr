@@ -47,7 +47,7 @@
     .rfp-meta-item { font-size: 0.88rem; color: #c0d8f8; }
     .rfp-meta-item strong { color: white; }
 
-    .main { max-width: 900px; margin: 0 auto; padding: 32px 20px 60px; }
+    .main { max-width: 960px; margin: 0 auto; padding: 32px 20px 60px; }
 
     .card {
       background: white;
@@ -58,120 +58,139 @@
     }
     .card h2 { font-size: 1.1rem; font-weight: 800; color: var(--navy); margin-bottom: 16px; }
 
-    /* Hotel bid cards */
-    .hotel-bid-card {
-      background: var(--gray);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 14px;
-      border: 1.5px solid #e5e7eb;
-      transition: border-color 0.2s;
-    }
-    .hotel-bid-card:last-child { margin-bottom: 0; }
-    .hotel-bid-card.winner { border-color: #16a34a; background: #f0fdf4; }
-
-    .hotel-bid-header {
+    /* Summary bar */
+    .summary-bar {
+      background: white;
+      border-radius: 16px;
+      padding: 20px 28px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
       flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 12px;
+      gap: 0;
+      align-items: center;
     }
-    .hotel-bid-name { font-size: 1.05rem; font-weight: 800; color: var(--navy); }
-    .hotel-bid-email { font-size: 0.82rem; color: var(--muted); }
+    .summary-stat {
+      flex: 1;
+      min-width: 130px;
+      text-align: center;
+      padding: 10px 16px;
+      border-right: 1px solid #e5e7eb;
+    }
+    .summary-stat:last-child { border-right: none; }
+    .summary-stat .stat-value {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--navy);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .summary-stat .stat-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .summary-stat.stat-green .stat-value { color: #16a34a; }
+    .summary-stat.stat-yellow .stat-value { color: #d97706; }
+    .summary-stat.stat-blue .stat-value { color: var(--blue); }
+
+    /* Status table */
+    .status-table-wrapper { overflow-x: auto; }
+    table.status-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    table.status-table th {
+      text-align: left;
+      padding: 10px 14px;
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 2px solid #e5e7eb;
+      background: var(--gray);
+    }
+    table.status-table td {
+      padding: 14px 14px;
+      border-bottom: 1px solid #f0f2f7;
+      vertical-align: top;
+    }
+    table.status-table tr:last-child td { border-bottom: none; }
+    table.status-table tr.row-declined td { opacity: 0.5; }
+    table.status-table tr.row-winner { background: #f0fdf4; }
+
+    .hotel-name { font-weight: 700; color: var(--navy); }
+    .hotel-email { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
 
     .badge {
       display: inline-block;
-      padding: 4px 12px;
+      padding: 4px 10px;
       border-radius: 50px;
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       font-weight: 700;
+      white-space: nowrap;
     }
-    .badge-pending { background: #fef9c3; color: #b45309; }
-    .badge-submitted { background: #dcfce7; color: #16a34a; }
+    .badge-pending  { background: #fef9c3; color: #b45309; }
+    .badge-submitted{ background: #dcfce7; color: #16a34a; }
     .badge-declined { background: #fee2e2; color: #dc2626; }
-    .badge-winner { background: #16a34a; color: white; }
+    .badge-winner   { background: #16a34a; color: white; }
 
-    .bid-details {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 10px;
-      margin: 12px 0;
-    }
-    .bid-detail-item { font-size: 0.88rem; }
-    .bid-detail-item .label { color: var(--muted); font-weight: 500; font-size: 0.78rem; margin-bottom: 2px; }
-    .bid-detail-item .value { color: var(--navy); font-weight: 700; }
+    .rate-cell { font-weight: 700; color: var(--blue); }
+    .rate-dash { color: var(--muted); }
 
-    .bid-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-
-    .btn-sm {
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 0.85rem;
+    .action-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+    .btn-xs {
+      padding: 6px 12px;
+      border-radius: 7px;
+      font-size: 0.78rem;
       font-weight: 700;
       cursor: pointer;
       font-family: inherit;
       border: none;
-      transition: background 0.2s, opacity 0.2s;
+      white-space: nowrap;
+      transition: background 0.15s, opacity 0.15s;
     }
-    .btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-question { background: var(--blue-pale); color: var(--blue); }
-    .btn-question:hover { background: #d8ecff; }
-    .btn-winner { background: #16a34a; color: white; }
+    .btn-xs:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-nudge     { background: #e8f0fd; color: var(--blue); }
+    .btn-nudge:hover { background: #d8e8ff; }
+    .btn-nudge.nudged { background: #d1fae5; color: #059669; cursor: default; }
+    .btn-decline   { background: #fee2e2; color: #dc2626; }
+    .btn-decline:hover { background: #fecaca; }
+    .btn-view      { background: var(--blue-pale); color: var(--blue); }
+    .btn-view:hover{ background: #d8e8ff; }
+    .btn-winner    { background: #16a34a; color: white; }
     .btn-winner:hover { background: #15803d; }
+    .btn-remove    { background: #f3f4f6; color: var(--muted); }
+    .btn-remove:hover { background: #e5e7eb; }
 
-    /* Message modal overlay */
-    .modal-overlay {
+    /* Expandable bid panel */
+    .bid-panel {
       display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 999;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+      background: #f8faff;
+      border: 1.5px solid #d8e8ff;
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-top: 10px;
     }
-    .modal-overlay.active { display: flex; }
-    .modal {
-      background: white;
-      border-radius: 16px;
-      padding: 32px;
-      width: 100%;
-      max-width: 480px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    .bid-panel.open { display: block; }
+    .bid-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
     }
-    .modal h3 { font-size: 1.1rem; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
-    .modal p { color: var(--muted); font-size: 0.88rem; margin-bottom: 16px; }
-    .modal textarea {
-      width: 100%;
-      padding: 12px 14px;
-      border: 1.5px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-family: inherit;
-      outline: none;
-      resize: vertical;
-      transition: border-color 0.2s;
-    }
-    .modal textarea:focus { border-color: var(--blue); }
-    .modal-actions { display: flex; gap: 10px; margin-top: 14px; }
-    .btn-cancel { background: var(--gray); color: var(--muted); padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; border: none; font-family: inherit; }
-    .btn-send { background: var(--blue); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; border: none; font-family: inherit; flex: 1; }
-    .btn-send:hover { background: var(--blue-light); }
-    .btn-send:disabled { opacity: 0.6; cursor: not-allowed; }
+    .bid-item .bid-label { font-size: 0.72rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 3px; }
+    .bid-item .bid-value { font-weight: 700; color: var(--navy); font-size: 0.95rem; }
+    .bid-item.full { grid-column: 1 / -1; }
+    .bid-item.full .bid-value { font-weight: 500; }
 
-    .modal-status { font-size: 0.88rem; margin-top: 8px; display: none; }
-    .modal-status.success { color: #16a34a; }
-    .modal-status.error { color: #dc2626; }
-
-    /* Messages inline */
+    /* Message thread inside bid panel */
     .msg-thread { margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb; }
+    .msg-thread-title { font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
     .msg-bubble {
       padding: 10px 14px;
       border-radius: 8px;
@@ -183,7 +202,54 @@
     .msg-bubble.from-hotel { background: white; border: 1px solid #e5e7eb; }
     .msg-meta { font-size: 0.72rem; color: var(--muted); margin-bottom: 3px; font-weight: 600; }
 
-    /* Success banner */
+    .reply-area {
+      margin-top: 10px;
+    }
+    .reply-area textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      outline: none;
+      resize: vertical;
+      min-height: 70px;
+    }
+    .reply-area textarea:focus { border-color: var(--blue); }
+    .reply-row { display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end; }
+    .btn-reply { background: var(--blue); color: white; padding: 8px 18px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; border: none; font-family: inherit; }
+    .btn-reply:hover { background: var(--blue-light); }
+    .btn-reply:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Mobile card view (replaces table on small screens) */
+    .mobile-cards { display: none; }
+    .mob-card {
+      background: var(--gray);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1.5px solid #e5e7eb;
+    }
+    .mob-card.mob-declined { opacity: 0.55; }
+    .mob-card.mob-winner { border-color: #16a34a; background: #f0fdf4; }
+    .mob-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .mob-row { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 4px 0; }
+    .mob-row .label { color: var(--muted); }
+    .mob-row .value { font-weight: 600; }
+    .mob-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+
+    @media (max-width: 700px) {
+      .status-table-wrapper { display: none; }
+      .mobile-cards { display: block; }
+      .summary-bar { flex-direction: column; gap: 0; }
+      .summary-stat { border-right: none; border-bottom: 1px solid #e5e7eb; padding: 12px 0; }
+      .summary-stat:last-child { border-bottom: none; }
+      .hero { padding: 24px 20px 20px; }
+      .card { padding: 20px 16px; }
+    }
+
+    /* success/award banners */
     .success-banner {
       background: #dcfce7;
       border: 1.5px solid #16a34a;
@@ -203,12 +269,6 @@
       padding: 20px;
     }
     footer a { color: var(--blue); text-decoration: none; font-weight: 600; }
-
-    @media (max-width: 600px) {
-      .hero { padding: 24px 20px 20px; }
-      .card { padding: 20px 16px; }
-      .modal { padding: 24px 20px; }
-    }
   </style>
 </head>
 <body>
@@ -232,35 +292,17 @@
   </div>
 </div>
 
-<!-- Message Modal -->
-<div class="modal-overlay" id="msg-modal">
-  <div class="modal">
-    <h3>Ask a Question</h3>
-    <p id="modal-hotel-name">Sending message to hotel…</p>
-    <textarea id="modal-msg" rows="4" placeholder="e.g. Do you offer a complimentary breakfast package? Can you accommodate late check-out?"></textarea>
-    <div id="modal-status" class="modal-status"></div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-send" id="modal-send-btn" onclick="sendMessage()">Send Message →</button>
-    </div>
-  </div>
-</div>
-
 <script>
 const params = new URLSearchParams(window.location.search);
 const RFP_ID = params.get('rfp');
 const ORG_EMAIL = params.get('email');
 
-let currentModalToken = null;
+// Track open bid panels
+const openPanels = new Set();
 
 async function load() {
-  if (!RFP_ID) {
-    renderError('No RFP ID provided.');
-    return;
-  }
-
+  if (!RFP_ID) { renderError('No RFP ID provided.'); return; }
   try {
-    // Load all hotels for this RFP via rfp-load with rfp_id
     const res = await fetch(`/api/rfp-load?rfp_id=${RFP_ID}&email=${encodeURIComponent(ORG_EMAIL || '')}`);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to load');
@@ -281,13 +323,24 @@ function renderError(msg) {
 
 function fmt(dateStr) {
   if (!dateStr) return '—';
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric' });
+}
+
+function fmtFull(dateStr) {
+  if (!dateStr) return '—';
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function statusBadge(status) {
-  const map = { pending: 'badge-pending', submitted: 'badge-submitted', declined: 'badge-declined', winner: 'badge-winner' };
+  const map   = { pending: 'badge-pending', submitted: 'badge-submitted', declined: 'badge-declined', winner: 'badge-winner' };
   const labels = { pending: '⏳ Pending', submitted: '✅ Bid Received', declined: '❌ Declined', winner: '🏆 Winner' };
   return `<span class="badge ${map[status] || 'badge-pending'}">${labels[status] || status}</span>`;
+}
+
+function daysUntil(dateStr) {
+  if (!dateStr) return null;
+  const diff = new Date(dateStr + 'T00:00:00') - new Date();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
 function render({ rfp, hotels }) {
@@ -296,58 +349,138 @@ function render({ rfp, hotels }) {
   document.getElementById('rfp-title').textContent = rfp.event_name;
   document.getElementById('rfp-sub').textContent = `Organizer: ${rfp.organizer_name || rfp.organizer_email}`;
   document.getElementById('rfp-meta').innerHTML = `
-    <div class="rfp-meta-item">📅 Check-In: <strong>${fmt(rfp.check_in)}</strong></div>
-    <div class="rfp-meta-item">📅 Check-Out: <strong>${fmt(rfp.check_out)}</strong></div>
+    <div class="rfp-meta-item">📅 Check-In: <strong>${fmtFull(rfp.check_in)}</strong></div>
+    <div class="rfp-meta-item">📅 Check-Out: <strong>${fmtFull(rfp.check_out)}</strong></div>
     <div class="rfp-meta-item">🛏️ Rooms: <strong>${rfp.rooms_needed}</strong></div>
     <div class="rfp-meta-item">📊 Status: <strong>${rfp.status.toUpperCase()}</strong></div>
   `;
 
   const awarded = rfp.status === 'awarded';
 
-  const hotelCards = hotels.map(h => {
-    const isWinner = h.bid_status === 'winner';
-    const hasSubmitted = h.bid_status === 'submitted' || isWinner;
-    const bid = h.bid;
-    const messages = h.messages || [];
+  // --- Summary bar stats ---
+  const total = hotels.length;
+  const received = hotels.filter(h => h.bid_status === 'submitted' || h.bid_status === 'winner').length;
+  const pending = hotels.filter(h => h.bid_status === 'pending').length;
+  const days = daysUntil(rfp.check_in);
+  const daysLabel = days === null ? '—' : (days < 0 ? 'Passed' : days + 'd');
+  const daysClass = days !== null && days <= 7 ? 'stat-yellow' : 'stat-blue';
 
-    const messagesHtml = messages.length > 0
-      ? `<div class="msg-thread">
-          ${messages.map(m => `
-            <div class="msg-bubble from-${m.sender}">
-              <div class="msg-meta">${m.sender === 'organizer' ? '📋 You' : '🏨 ' + h.hotel_name} · ${new Date(m.created_at).toLocaleString()}</div>
-              ${m.message}
-            </div>`).join('')}
-        </div>`
-      : '';
-
-    const bidDetailsHtml = bid ? `
-      <div class="bid-details">
-        <div class="bid-detail-item"><div class="label">Nightly Rate</div><div class="value" style="color:var(--blue);font-size:1.1rem;">$${bid.nightly_rate}/night</div></div>
-        <div class="bid-detail-item"><div class="label">Total Estimate</div><div class="value">${bid.total_estimate ? '$' + bid.total_estimate : '—'}</div></div>
-        <div class="bid-detail-item"><div class="label">Cutoff Date</div><div class="value">${fmt(bid.cutoff_date)}</div></div>
-        ${bid.perks ? `<div class="bid-detail-item" style="grid-column:1/-1;"><div class="label">Perks</div><div class="value" style="font-weight:600;">${bid.perks}</div></div>` : ''}
-        ${bid.notes ? `<div class="bid-detail-item" style="grid-column:1/-1;"><div class="label">Notes</div><div class="value" style="font-weight:400;">${bid.notes}</div></div>` : ''}
-      </div>` : '';
-
-    const actionsHtml = `<div class="bid-actions">
-      <button class="btn-sm btn-question" onclick="openModal('${h.id}', '${h.token}', '${h.hotel_name.replace(/'/g, "\\'")}')">💬 Ask a Question</button>
-      ${hasSubmitted && !awarded && !isWinner
-        ? `<button class="btn-sm btn-winner" onclick="selectWinner('${rfp.id}', '${h.id}', '${ORG_EMAIL}')">🏆 Select as Winner</button>`
-        : ''}
+  const summaryBar = `
+    <div class="summary-bar">
+      <div class="summary-stat">
+        <div class="stat-value">${total}</div>
+        <div class="stat-label">Hotels Contacted</div>
+      </div>
+      <div class="summary-stat stat-green">
+        <div class="stat-value">${received}</div>
+        <div class="stat-label">Bids Received</div>
+      </div>
+      <div class="summary-stat stat-yellow">
+        <div class="stat-value">${pending}</div>
+        <div class="stat-label">Pending</div>
+      </div>
+      <div class="summary-stat ${daysClass}">
+        <div class="stat-value">${daysLabel}</div>
+        <div class="stat-label">Until Check-In</div>
+      </div>
     </div>`;
 
+  // --- Desktop table rows ---
+  const tableRows = hotels.map(h => {
+    const isWinner = h.bid_status === 'winner';
+    const hasSubmitted = h.bid_status === 'submitted' || isWinner;
+    const isDeclined = h.bid_status === 'declined';
+    const displayStatus = isWinner ? 'winner' : h.bid_status;
+
+    const rateCell = hasSubmitted && h.bid?.nightly_rate
+      ? `<span class="rate-cell">$${h.bid.nightly_rate}/night</span>`
+      : `<span class="rate-dash">—</span>`;
+
+    // Actions
+    let actions = '';
+    if (isDeclined) {
+      actions = `<button class="btn-xs btn-remove" onclick="removeHotel('${h.id}')">Remove</button>`;
+    } else if (isWinner) {
+      actions = `<span style="font-size:0.8rem;color:#16a34a;font-weight:700;">🏆 Winner</span>`;
+    } else if (hasSubmitted) {
+      actions = `
+        <button class="btn-xs btn-view" onclick="toggleBidPanel('${h.id}')">View Bid</button>
+        ${!awarded ? `<button class="btn-xs btn-winner" onclick="selectWinner('${rfp.id}', '${h.id}', '${ORG_EMAIL}')">Select Winner</button>` : ''}
+      `;
+    } else {
+      const nudgeLabel = h.nudge_count > 0
+        ? `Nudged ✓ (${fmt(h.last_nudged_at ? h.last_nudged_at.split('T')[0] : '')})`
+        : '📨 Nudge';
+      const nudgeDisabled = h.nudge_count > 0 ? 'nudged' : '';
+      actions = `
+        <button class="btn-xs btn-nudge ${nudgeDisabled}" id="nudge-${h.id}"
+          onclick="nudgeHotel('${h.id}')" ${nudgeDisabled ? 'disabled' : ''}>${nudgeLabel}</button>
+        <button class="btn-xs btn-decline" onclick="markDeclined('${h.id}')">Mark Declined</button>
+      `;
+    }
+
+    // Bid + message panel (expandable)
+    const bidPanel = buildBidPanel(h, rfp);
+
     return `
-      <div class="hotel-bid-card${isWinner ? ' winner' : ''}" id="hotel-card-${h.id}">
-        <div class="hotel-bid-header">
+      <tr class="${isDeclined ? 'row-declined' : ''} ${isWinner ? 'row-winner' : ''}">
+        <td>
+          <div class="hotel-name">${h.hotel_name}</div>
+          <div class="hotel-email">${h.hotel_email}</div>
+        </td>
+        <td>${fmt(h.created_at ? h.created_at.split('T')[0] : '')}</td>
+        <td>${statusBadge(displayStatus)}</td>
+        <td>${rateCell}</td>
+        <td><div class="action-btns">${actions}</div></td>
+      </tr>
+      ${bidPanel ? `<tr id="panel-row-${h.id}" style="display:none;"><td colspan="5" style="padding:0 14px 14px;">${bidPanel}</td></tr>` : ''}
+    `;
+  }).join('');
+
+  // --- Mobile cards ---
+  const mobileCards = hotels.map(h => {
+    const isWinner = h.bid_status === 'winner';
+    const hasSubmitted = h.bid_status === 'submitted' || isWinner;
+    const isDeclined = h.bid_status === 'declined';
+    const displayStatus = isWinner ? 'winner' : h.bid_status;
+
+    let actions = '';
+    if (isDeclined) {
+      actions = `<button class="btn-xs btn-remove" onclick="removeHotel('${h.id}')">Remove</button>`;
+    } else if (isWinner) {
+      actions = `<span style="font-size:0.8rem;color:#16a34a;font-weight:700;">🏆 Winner Selected</span>`;
+    } else if (hasSubmitted) {
+      actions = `
+        <button class="btn-xs btn-view" onclick="toggleBidPanel('mob-${h.id}')">View Bid</button>
+        ${!awarded ? `<button class="btn-xs btn-winner" onclick="selectWinner('${rfp.id}', '${h.id}', '${ORG_EMAIL}')">Select Winner</button>` : ''}
+      `;
+    } else {
+      const nudgeLabel = h.nudge_count > 0
+        ? `Nudged ✓`
+        : '📨 Nudge';
+      const nudgeDisabled = h.nudge_count > 0 ? 'nudged' : '';
+      actions = `
+        <button class="btn-xs btn-nudge ${nudgeDisabled}" id="mob-nudge-${h.id}"
+          onclick="nudgeHotel('${h.id}')" ${nudgeDisabled ? 'disabled' : ''}>${nudgeLabel}</button>
+        <button class="btn-xs btn-decline" onclick="markDeclined('${h.id}')">Mark Declined</button>
+      `;
+    }
+
+    const bidPanel = buildBidPanel(h, rfp, 'mob-');
+
+    return `
+      <div class="mob-card ${isDeclined ? 'mob-declined' : ''} ${isWinner ? 'mob-winner' : ''}">
+        <div class="mob-card-header">
           <div>
-            <div class="hotel-bid-name">${h.hotel_name}</div>
-            <div class="hotel-bid-email">${h.hotel_email}</div>
+            <div class="hotel-name">${h.hotel_name}</div>
+            <div class="hotel-email">${h.hotel_email}</div>
           </div>
-          ${statusBadge(isWinner ? 'winner' : h.bid_status)}
+          ${statusBadge(displayStatus)}
         </div>
-        ${hasSubmitted ? bidDetailsHtml : '<p style="color:var(--muted);font-size:0.88rem;">Awaiting bid submission from hotel.</p>'}
-        ${messagesHtml}
-        ${actionsHtml}
+        <div class="mob-row"><span class="label">Sent</span><span class="value">${fmt(h.created_at ? h.created_at.split('T')[0] : '')}</span></div>
+        <div class="mob-row"><span class="label">Rate</span><span class="value">${hasSubmitted && h.bid?.nightly_rate ? '$' + h.bid.nightly_rate + '/night' : '—'}</span></div>
+        ${bidPanel ? `<div id="panel-mob-${h.id}" style="display:none;margin-top:10px;">${bidPanel}</div>` : ''}
+        <div class="mob-actions">${actions}</div>
       </div>`;
   }).join('');
 
@@ -360,64 +493,181 @@ function render({ rfp, hotels }) {
 
   document.getElementById('page-content').innerHTML = `
     ${successBanner}
+    ${summaryBar}
     <div class="card">
-      <h2>🏨 Hotel Bids (${hotels.length})</h2>
-      ${hotelCards || '<p style="color:var(--muted);">No hotels added to this RFP.</p>'}
+      <h2>🏨 Hotel Bids <span style="color:var(--muted);font-weight:500;font-size:0.95rem;">(${hotels.length})</span></h2>
+
+      <!-- Desktop table -->
+      <div class="status-table-wrapper">
+        <table class="status-table">
+          <thead>
+            <tr>
+              <th>Hotel</th>
+              <th>Sent</th>
+              <th>Status</th>
+              <th>Rate</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px;">No hotels added to this RFP.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile cards -->
+      <div class="mobile-cards">
+        ${mobileCards || '<p style="color:var(--muted);">No hotels added to this RFP.</p>'}
+      </div>
     </div>
     <footer>Powered by <a href="/">TeamLodgr</a> — Group hotel booking made simple</footer>
   `;
 }
 
-function openModal(hotelId, token, hotelName) {
-  currentModalToken = token;
-  document.getElementById('modal-hotel-name').textContent = `Sending to: ${hotelName}`;
-  document.getElementById('modal-msg').value = '';
-  document.getElementById('modal-status').style.display = 'none';
-  document.getElementById('modal-send-btn').disabled = false;
-  document.getElementById('modal-send-btn').textContent = 'Send Message →';
-  document.getElementById('msg-modal').classList.add('active');
+function buildBidPanel(h, rfp, prefix = '') {
+  const hasSubmitted = h.bid_status === 'submitted' || h.bid_status === 'winner';
+  const messages = h.messages || [];
+
+  if (!hasSubmitted && messages.length === 0) return null;
+
+  const bidSection = hasSubmitted && h.bid ? `
+    <div class="bid-grid">
+      <div class="bid-item">
+        <div class="bid-label">Nightly Rate</div>
+        <div class="bid-value" style="color:var(--blue);font-size:1.1rem;">$${h.bid.nightly_rate}/night</div>
+      </div>
+      <div class="bid-item">
+        <div class="bid-label">Total Estimate</div>
+        <div class="bid-value">${h.bid.total_estimate ? '$' + h.bid.total_estimate : '—'}</div>
+      </div>
+      <div class="bid-item">
+        <div class="bid-label">Cutoff Date</div>
+        <div class="bid-value">${fmtFull(h.bid.cutoff_date)}</div>
+      </div>
+      ${h.bid.perks ? `<div class="bid-item full"><div class="bid-label">Perks / Inclusions</div><div class="bid-value">${h.bid.perks}</div></div>` : ''}
+      ${h.bid.notes ? `<div class="bid-item full"><div class="bid-label">Hotel Notes</div><div class="bid-value" style="font-weight:500;">${h.bid.notes}</div></div>` : ''}
+    </div>` : '';
+
+  const threadHtml = messages.length > 0 ? `
+    <div class="msg-thread">
+      <div class="msg-thread-title">💬 Message Thread</div>
+      ${messages.map(m => `
+        <div class="msg-bubble from-${m.sender}">
+          <div class="msg-meta">${m.sender === 'organizer' ? '📋 You' : '🏨 ' + h.hotel_name} · ${new Date(m.created_at).toLocaleString()}</div>
+          ${m.message}
+        </div>`).join('')}
+    </div>` : '';
+
+  const panelId = `${prefix}${h.id}`;
+  const replyArea = `
+    <div class="reply-area" style="margin-top:14px;padding-top:12px;border-top:1px solid #e5e7eb;">
+      <div class="msg-thread-title">Send a Message</div>
+      <textarea id="reply-${panelId}" placeholder="Ask a question or send a follow-up…"></textarea>
+      <div class="reply-row">
+        <button class="btn-reply" onclick="sendReply('${h.token}', '${panelId}')">Send →</button>
+      </div>
+      <div id="reply-status-${panelId}" style="font-size:0.82rem;margin-top:6px;display:none;"></div>
+    </div>`;
+
+  return `<div class="bid-panel" id="bid-panel-${panelId}">${bidSection}${threadHtml}${replyArea}</div>`;
 }
 
-function closeModal() {
-  document.getElementById('msg-modal').classList.remove('active');
+function toggleBidPanel(id) {
+  const panel = document.getElementById(`bid-panel-${id}`);
+  const row = document.getElementById(`panel-row-${id}`);
+  const mobDiv = document.getElementById(`panel-mob-${id}`);
+  if (!panel) return;
+
+  const isOpen = panel.classList.contains('open');
+  panel.classList.toggle('open');
+  if (row) row.style.display = isOpen ? 'none' : 'table-row';
+  if (mobDiv) mobDiv.style.display = isOpen ? 'none' : 'block';
 }
 
-async function sendMessage() {
-  const btn = document.getElementById('modal-send-btn');
-  const statusEl = document.getElementById('modal-status');
-  const text = document.getElementById('modal-msg').value.trim();
-
+async function sendReply(token, panelId) {
+  const ta = document.getElementById(`reply-${panelId}`);
+  const statusEl = document.getElementById(`reply-status-${panelId}`);
+  const text = (ta?.value || '').trim();
   if (!text) return;
 
-  btn.disabled = true;
-  btn.textContent = 'Sending…';
-  statusEl.style.display = 'none';
+  statusEl.textContent = 'Sending…';
+  statusEl.style.display = 'block';
+  statusEl.style.color = 'var(--muted)';
 
   try {
     const res = await fetch('/api/rfp-message', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: currentModalToken, sender: 'organizer', message: text }),
+      body: JSON.stringify({ token, sender: 'organizer', message: text }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed');
-
-    statusEl.textContent = '✅ Message sent!';
-    statusEl.className = 'modal-status success';
-    statusEl.style.display = 'block';
-    setTimeout(() => { closeModal(); load(); }, 1200);
+    statusEl.textContent = '✅ Sent!';
+    statusEl.style.color = '#16a34a';
+    setTimeout(() => load(), 1000);
   } catch(e) {
     statusEl.textContent = '❌ ' + e.message;
-    statusEl.className = 'modal-status error';
-    statusEl.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = 'Send Message →';
+    statusEl.style.color = '#dc2626';
+  }
+}
+
+async function nudgeHotel(rfpHotelId) {
+  const btn = document.getElementById(`nudge-${rfpHotelId}`);
+  const mobBtn = document.getElementById(`mob-nudge-${rfpHotelId}`);
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+  if (mobBtn) { mobBtn.disabled = true; mobBtn.textContent = 'Sending…'; }
+
+  try {
+    const res = await fetch('/api/rfp-nudge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rfp_hotel_id: rfpHotelId }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    // Reload to reflect updated nudge state
+    load();
+  } catch(e) {
+    alert('Error nudging hotel: ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = '📨 Nudge'; }
+    if (mobBtn) { mobBtn.disabled = false; mobBtn.textContent = '📨 Nudge'; }
+  }
+}
+
+async function markDeclined(rfpHotelId) {
+  if (!confirm('Mark this hotel as declined?')) return;
+  try {
+    const res = await fetch('/api/rfp-status-update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rfp_hotel_id: rfpHotelId, status: 'declined' }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    load();
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+async function removeHotel(rfpHotelId) {
+  if (!confirm('Remove this hotel from the RFP?')) return;
+  try {
+    const res = await fetch('/api/rfp-status-update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rfp_hotel_id: rfpHotelId, status: 'removed' }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    load();
+  } catch(e) {
+    alert('Error: ' + e.message);
   }
 }
 
 async function selectWinner(rfpId, rfpHotelId, organizerEmail) {
   if (!confirm('Select this hotel as the winner? All hotels will be notified.')) return;
-
   try {
     const res = await fetch('/api/rfp-accept', {
       method: 'POST',
@@ -426,16 +676,11 @@ async function selectWinner(rfpId, rfpHotelId, organizerEmail) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed');
-    load(); // Reload to show updated state
+    load();
   } catch(e) {
     alert('Error: ' + e.message);
   }
 }
-
-// Close modal on overlay click
-document.getElementById('msg-modal').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('msg-modal')) closeModal();
-});
 
 load();
 </script>

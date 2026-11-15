@@ -35,6 +35,10 @@ create table rfp_bids (
   created_at timestamptz default now()
 );
 
+-- Nudge tracking columns (added for dashboard nudge feature)
+alter table rfp_hotels add column if not exists nudge_count int default 0;
+alter table rfp_hotels add column if not exists last_nudged_at timestamptz;
+
 create table rfp_messages (
   id uuid primary key default gen_random_uuid(),
   rfp_hotel_id uuid references rfp_hotels(id),

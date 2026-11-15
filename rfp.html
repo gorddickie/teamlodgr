@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Send Hotel RFP — TeamLodgr</title>
+  <meta name="description" content="Request proposals from multiple hotels for your team's room block. Hotels bid, you pick the winner."/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0d1b3e;
+      --blue: #1a6fd4;
+      --blue-light: #3a8af0;
+      --blue-pale: #e8f0fd;
+      --white: #ffffff;
+      --gray: #f4f6fa;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+    }
+    body { font-family: 'Inter', sans-serif; background: #d1d5db; color: var(--text); min-height: 100vh; }
+
+    nav {
+      background: var(--white);
+      border-bottom: 1px solid #e5e7eb;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    nav img { height: 40px; }
+    nav .nav-label { color: var(--muted); font-weight: 600; font-size: 0.92rem; }
+
+    .hero {
+      background: linear-gradient(135deg, var(--navy) 0%, #1a3a70 100%);
+      color: white;
+      text-align: center;
+      padding: 40px 20px 30px;
+    }
+    .hero h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 900; margin-bottom: 10px; }
+    .hero p { color: #b0c8f0; font-size: 1rem; max-width: 540px; margin: 0 auto; line-height: 1.6; }
+
+    .main { max-width: 760px; margin: -24px auto 60px; padding: 0 20px; }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .card h2 { font-size: 1.15rem; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+    .card .sub { font-size: 0.88rem; color: var(--muted); margin-bottom: 20px; }
+
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .field input, .field textarea, .field select {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+      background: white;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--blue); }
+    .field textarea { resize: vertical; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+    /* Hotel rows */
+    .hotel-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 10px;
+    }
+    .hotel-row input {
+      padding: 10px 13px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .hotel-row input:focus { border-color: var(--blue); }
+    .btn-remove {
+      background: none;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      width: 38px;
+      height: 38px;
+      cursor: pointer;
+      font-size: 1rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s, color 0.2s;
+      flex-shrink: 0;
+    }
+    .btn-remove:hover { border-color: #dc2626; color: #dc2626; }
+
+    .btn-add {
+      background: var(--blue-pale);
+      color: var(--blue);
+      border: 1.5px solid #c0d8f8;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s;
+      margin-top: 4px;
+    }
+    .btn-add:hover { background: #d8ecff; }
+
+    .btn-submit {
+      background: var(--blue);
+      color: white;
+      border: none;
+      padding: 15px 32px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      width: 100%;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+    .btn-submit:hover { background: var(--blue-light); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .error-msg { color: #dc2626; font-weight: 600; font-size: 0.9rem; margin-top: 10px; }
+    .success-msg { color: #16a34a; font-weight: 600; font-size: 0.9rem; margin-top: 10px; }
+
+    .hotels-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .hotels-label h3 { font-size: 1rem; font-weight: 700; color: var(--navy); }
+    .hotels-label span { font-size: 0.82rem; color: var(--muted); }
+
+    .col-labels {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .col-labels span {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--muted);
+      padding: 20px;
+    }
+    footer a { color: var(--blue); text-decoration: none; font-weight: 600; }
+
+    @media (max-width: 600px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .hotel-row { grid-template-columns: 1fr auto; }
+      .hotel-row input:nth-child(2) { grid-column: 1; }
+      .card { padding: 22px 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/"><img src="logo.png" alt="TeamLodgr"/></a>
+  <span class="nav-label">Hotel RFP — Request for Proposals</span>
+</nav>
+
+<div class="hero">
+  <h1>Send a Room Block RFP</h1>
+  <p>Tell hotels what you need. They bid. You pick the best deal — no email juggling required.</p>
+</div>
+
+<div class="main">
+
+  <!-- Event Details -->
+  <div class="card">
+    <h2>📋 Event Details</h2>
+    <p class="sub">Tell hotels about your group's needs.</p>
+
+    <div class="grid-2">
+      <div class="field">
+        <label>Your Name</label>
+        <input type="text" id="organizer-name" placeholder="e.g. Coach Sarah" required/>
+      </div>
+      <div class="field">
+        <label>Your Email</label>
+        <input type="email" id="organizer-email" placeholder="e.g. sarah@team.ca" required/>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Event / Tournament Name</label>
+      <input type="text" id="event-name" placeholder="e.g. 2026 Provincial Hockey Championships" required/>
+    </div>
+
+    <div class="grid-3">
+      <div class="field">
+        <label>Check-In Date</label>
+        <input type="date" id="check-in" required/>
+      </div>
+      <div class="field">
+        <label>Check-Out Date</label>
+        <input type="date" id="check-out" required/>
+      </div>
+      <div class="field">
+        <label>Rooms Needed</label>
+        <input type="number" id="rooms-needed" min="1" placeholder="e.g. 15" required/>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Special Requests / Notes <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;">(optional)</span></label>
+      <textarea id="notes" rows="3" placeholder="e.g. Need group breakfast option, prefer suites, require complimentary shuttle..."></textarea>
+    </div>
+  </div>
+
+  <!-- Hotels -->
+  <div class="card">
+    <div class="hotels-label">
+      <h3>🏨 Hotels to Contact</h3>
+      <span>Add at least 1 hotel</span>
+    </div>
+    <p class="sub" style="margin-bottom:16px;">Each hotel will get a unique link to submit their bid. Add as many as you like.</p>
+
+    <div class="col-labels">
+      <span>Hotel Name</span>
+      <span>Hotel Email</span>
+      <span></span>
+    </div>
+
+    <div id="hotels-list">
+      <!-- Rows injected by JS -->
+    </div>
+
+    <button class="btn-add" onclick="addHotelRow()">+ Add Another Hotel</button>
+  </div>
+
+  <!-- Submit -->
+  <div class="card">
+    <p style="font-size:0.9rem; color:var(--muted); margin-bottom:14px;">Each hotel will receive an email with a secure link to submit their bid. You'll get a dashboard link to track and compare all bids.</p>
+    <button class="btn-submit" id="submit-btn" onclick="submitRfp()">Send RFP to Hotels →</button>
+    <div id="error-msg" class="error-msg" style="display:none;"></div>
+  </div>
+
+  <footer>
+    Powered by <a href="/">TeamLodgr</a> — Group hotel booking made simple
+  </footer>
+</div>
+
+<script>
+  let hotelCount = 0;
+
+  function addHotelRow(name = '', email = '') {
+    hotelCount++;
+    const id = hotelCount;
+    const div = document.createElement('div');
+    div.className = 'hotel-row';
+    div.id = `hotel-row-${id}`;
+    div.innerHTML = `
+      <input type="text" placeholder="e.g. Marriott Downtown" data-hotel-name="${id}" value="${name}"/>
+      <input type="email" placeholder="e.g. sales@marriott.com" data-hotel-email="${id}" value="${email}"/>
+      <button class="btn-remove" onclick="removeHotel(${id})" title="Remove">✕</button>
+    `;
+    document.getElementById('hotels-list').appendChild(div);
+  }
+
+  function removeHotel(id) {
+    const el = document.getElementById(`hotel-row-${id}`);
+    if (el) el.remove();
+  }
+
+  async function submitRfp() {
+    const btn = document.getElementById('submit-btn');
+    const errEl = document.getElementById('error-msg');
+    errEl.style.display = 'none';
+
+    const organizerName = document.getElementById('organizer-name').value.trim();
+    const organizerEmail = document.getElementById('organizer-email').value.trim();
+    const eventName = document.getElementById('event-name').value.trim();
+    const checkIn = document.getElementById('check-in').value;
+    const checkOut = document.getElementById('check-out').value;
+    const roomsNeeded = parseInt(document.getElementById('rooms-needed').value, 10);
+    const notes = document.getElementById('notes').value.trim();
+
+    if (!organizerEmail || !eventName || !checkIn || !checkOut || !roomsNeeded) {
+      errEl.textContent = 'Please fill in all required fields.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (checkOut <= checkIn) {
+      errEl.textContent = 'Check-out must be after check-in.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    // Collect hotels
+    const hotels = [];
+    document.querySelectorAll('[data-hotel-name]').forEach(nameEl => {
+      const id = nameEl.getAttribute('data-hotel-name');
+      const emailEl = document.querySelector(`[data-hotel-email="${id}"]`);
+      const n = nameEl.value.trim();
+      const e = emailEl ? emailEl.value.trim() : '';
+      if (n && e) hotels.push({ name: n, email: e });
+    });
+
+    if (hotels.length === 0) {
+      errEl.textContent = 'Please add at least one hotel with a name and email.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Sending RFP...';
+
+    try {
+      const res = await fetch('/api/rfp-create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rfp: { organizer_email: organizerEmail, organizer_name: organizerName, event_name: eventName, check_in: checkIn, check_out: checkOut, rooms_needed: roomsNeeded, notes },
+          hotels,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Server error');
+
+      window.location.href = `/rfp-dashboard.html?rfp=${data.rfp_id}&email=${encodeURIComponent(organizerEmail)}`;
+    } catch (e) {
+      errEl.textContent = 'Something went wrong: ' + e.message;
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Send RFP to Hotels →';
+    }
+  }
+
+  // Start with 2 hotel rows
+  addHotelRow();
+  addHotelRow();
+</script>
+</body>
+</html>

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Submit Your Bid — TeamLodgr</title>
+  <meta name="description" content="Submit your hotel's bid for a room block request."/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0d1b3e;
+      --blue: #1a6fd4;
+      --blue-light: #3a8af0;
+      --blue-pale: #e8f0fd;
+      --white: #ffffff;
+      --gray: #f4f6fa;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+    }
+    body { font-family: 'Inter', sans-serif; background: #d1d5db; color: var(--text); min-height: 100vh; }
+
+    nav {
+      background: var(--white);
+      border-bottom: 1px solid #e5e7eb;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    nav img { height: 40px; }
+
+    .hero {
+      background: linear-gradient(135deg, var(--navy) 0%, #1a3a70 100%);
+      color: white;
+      text-align: center;
+      padding: 36px 20px 28px;
+    }
+    .hero h1 { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 900; margin-bottom: 8px; }
+    .hero p { color: #b0c8f0; font-size: 1rem; }
+
+    .main { max-width: 680px; margin: -24px auto 60px; padding: 0 20px; }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .card h2 { font-size: 1.1rem; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+    .card .sub { font-size: 0.88rem; color: var(--muted); margin-bottom: 20px; }
+
+    .rfp-summary {
+      background: var(--gray);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .rfp-summary h3 { font-size: 1.1rem; font-weight: 800; color: var(--navy); margin-bottom: 12px; }
+    .rfp-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #e5e7eb; font-size: 0.9rem; }
+    .rfp-row:last-child { border-bottom: none; }
+    .rfp-row .label { color: var(--muted); font-weight: 500; }
+    .rfp-row .value { color: var(--navy); font-weight: 700; }
+    .rfp-notes { margin-top: 10px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
+
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .field input, .field textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .field input:focus, .field textarea:focus { border-color: var(--blue); }
+    .field textarea { resize: vertical; }
+    .field .hint { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+
+    .input-prefix {
+      position: relative;
+    }
+    .input-prefix span {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.95rem;
+      pointer-events: none;
+    }
+    .input-prefix input { padding-left: 28px; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .btn-submit {
+      background: var(--blue);
+      color: white;
+      border: none;
+      padding: 15px 32px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      width: 100%;
+      transition: background 0.2s;
+      margin-top: 4px;
+    }
+    .btn-submit:hover { background: var(--blue-light); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .error-msg { color: #dc2626; font-weight: 600; font-size: 0.9rem; margin-top: 10px; }
+
+    /* Messages */
+    .message-bubble {
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .message-bubble.from-organizer { background: var(--blue-pale); border-left: 3px solid var(--blue); }
+    .message-bubble.from-hotel { background: var(--gray); border-left: 3px solid #9ca3af; }
+    .message-meta { font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
+
+    .success-screen {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .success-screen .icon { font-size: 3rem; margin-bottom: 16px; }
+    .success-screen h2 { font-size: 1.5rem; font-weight: 800; color: var(--navy); margin-bottom: 8px; }
+    .success-screen p { color: var(--muted); font-size: 0.95rem; line-height: 1.6; }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .badge-submitted { background: #dcfce7; color: #16a34a; }
+
+    footer {
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--muted);
+      padding: 20px;
+    }
+    footer a { color: var(--blue); text-decoration: none; font-weight: 600; }
+
+    @media (max-width: 600px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .card { padding: 22px 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/"><img src="logo.png" alt="TeamLodgr"/></a>
+</nav>
+
+<div class="hero">
+  <h1 id="hero-title">Hotel Bid Submission</h1>
+  <p id="hero-sub">Review the RFP details and submit your proposal below.</p>
+</div>
+
+<div class="main" id="main-content">
+  <div class="card" style="text-align:center; padding:40px;">
+    <div style="font-size:1.5rem; margin-bottom:12px;">⏳</div>
+    <p style="color:var(--muted);">Loading RFP details…</p>
+  </div>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const TOKEN = params.get('token');
+
+async function load() {
+  if (!TOKEN) {
+    renderError('Invalid link — no token provided.');
+    return;
+  }
+  try {
+    const res = await fetch(`/api/rfp-load?token=${TOKEN}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to load');
+    render(data);
+  } catch(e) {
+    renderError(e.message);
+  }
+}
+
+function renderError(msg) {
+  document.getElementById('main-content').innerHTML = `
+    <div class="card" style="text-align:center;padding:40px;">
+      <div style="font-size:2rem;margin-bottom:12px;">❌</div>
+      <h2 style="color:var(--navy);margin-bottom:8px;">Link Not Found</h2>
+      <p style="color:var(--muted);">${msg}</p>
+    </div>`;
+}
+
+function fmt(dateStr) {
+  if (!dateStr) return '';
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function render({ rfp, rfp_hotel, bid, messages }) {
+  document.getElementById('hero-title').textContent = `Bid for: ${rfp.event_name}`;
+  document.getElementById('hero-sub').textContent = `Submitted to: ${rfp_hotel.hotel_name}`;
+
+  const alreadySubmitted = bid && rfp_hotel.bid_status === 'submitted';
+
+  const messagesHtml = messages && messages.length > 0
+    ? messages.map(m => `
+        <div class="message-bubble from-${m.sender === 'organizer' ? 'organizer' : 'hotel'}">
+          <div class="message-meta">${m.sender === 'organizer' ? '📋 Organizer' : '🏨 You'} · ${new Date(m.created_at).toLocaleString()}</div>
+          ${m.message}
+        </div>`).join('')
+    : '<p style="color:var(--muted);font-size:0.9rem;">No messages yet.</p>';
+
+  document.getElementById('main-content').innerHTML = `
+    <!-- RFP Summary -->
+    <div class="card">
+      <h2>📋 Room Block Request</h2>
+      <p class="sub">Here are the details from the organizer. Review before submitting your bid.</p>
+      <div class="rfp-summary">
+        <h3>${rfp.event_name}</h3>
+        <div class="rfp-row"><span class="label">Check-In</span><span class="value">${fmt(rfp.check_in)}</span></div>
+        <div class="rfp-row"><span class="label">Check-Out</span><span class="value">${fmt(rfp.check_out)}</span></div>
+        <div class="rfp-row"><span class="label">Rooms Needed</span><span class="value">${rfp.rooms_needed} rooms</span></div>
+        <div class="rfp-row"><span class="label">Organizer</span><span class="value">${rfp.organizer_name || rfp.organizer_email}</span></div>
+        ${rfp.notes ? `<div class="rfp-notes"><strong>Notes:</strong> ${rfp.notes}</div>` : ''}
+      </div>
+    </div>
+
+    <!-- Bid Form or Submitted State -->
+    <div class="card" id="bid-card">
+      ${alreadySubmitted
+        ? `<div class="success-screen">
+            <div class="icon">✅</div>
+            <h2>Bid Submitted!</h2>
+            <p>Your proposal has been received. The organizer will review all bids and get back to you.</p>
+            <div style="margin-top:20px; background:var(--gray); border-radius:12px; padding:16px; text-align:left;">
+              <div class="rfp-row"><span class="label">Nightly Rate</span><span class="value">$${bid.nightly_rate}/night</span></div>
+              <div class="rfp-row"><span class="label">Total Estimate</span><span class="value">$${bid.total_estimate || '—'}</span></div>
+              <div class="rfp-row"><span class="label">Cutoff Date</span><span class="value">${fmt(bid.cutoff_date) || '—'}</span></div>
+              ${bid.perks ? `<div class="rfp-row"><span class="label">Perks</span><span class="value">${bid.perks}</span></div>` : ''}
+            </div>
+          </div>`
+        : `<h2>💰 Submit Your Bid</h2>
+           <p class="sub">Provide your best proposal for the room block. The organizer will compare all bids.</p>
+
+           <div class="grid-2">
+             <div class="field">
+               <label>Nightly Rate (per room)</label>
+               <div class="input-prefix"><span>$</span><input type="number" id="nightly-rate" placeholder="149" min="0" step="0.01"/></div>
+             </div>
+             <div class="field">
+               <label>Total Estimate <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);">(optional)</span></label>
+               <div class="input-prefix"><span>$</span><input type="number" id="total-estimate" placeholder="auto-calculated" min="0" step="0.01"/></div>
+             </div>
+           </div>
+
+           <div class="field">
+             <label>Room Block Cutoff Date</label>
+             <input type="date" id="cutoff-date"/>
+             <div class="hint">Last day rooms are held at this rate.</div>
+           </div>
+
+           <div class="field">
+             <label>Perks / Inclusions <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);">(optional)</span></label>
+             <input type="text" id="perks" placeholder="e.g. Free breakfast, complimentary shuttle, free WiFi, 1 suite upgrade"/>
+           </div>
+
+           <div class="field">
+             <label>Additional Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);">(optional)</span></label>
+             <textarea id="bid-notes" rows="3" placeholder="Anything else the organizer should know..."></textarea>
+           </div>
+
+           <button class="btn-submit" id="bid-btn" onclick="submitBid()">Submit My Bid →</button>
+           <div id="bid-error" class="error-msg" style="display:none;"></div>`
+      }
+    </div>
+
+    <!-- Messages -->
+    <div class="card">
+      <h2>💬 Messages</h2>
+      <p class="sub">Questions from the organizer will appear here. You can reply directly.</p>
+      <div id="messages-list" style="margin-bottom:16px;">${messagesHtml}</div>
+
+      <div class="field" style="margin-bottom:0;">
+        <label>Send a Message</label>
+        <textarea id="reply-text" rows="3" placeholder="Type your message to the organizer…"></textarea>
+      </div>
+      <button class="btn-submit" style="margin-top:10px;" id="reply-btn" onclick="sendReply()">Send Message</button>
+      <div id="reply-status" style="margin-top:8px; font-size:0.88rem; display:none;"></div>
+    </div>
+
+    <footer>Powered by <a href="/">TeamLodgr</a> — Group hotel booking made simple</footer>
+  `;
+
+  // Auto-calculate total if nightly rate changes
+  const nightlyInput = document.getElementById('nightly-rate');
+  const totalInput = document.getElementById('total-estimate');
+  if (nightlyInput && totalInput) {
+    const nights = Math.round((new Date(rfp.check_out) - new Date(rfp.check_in)) / 86400000);
+    nightlyInput.addEventListener('input', () => {
+      const rate = parseFloat(nightlyInput.value);
+      if (rate && !isNaN(rate)) {
+        totalInput.placeholder = `$${(rate * nights * rfp.rooms_needed).toFixed(2)} (${nights} nights × ${rfp.rooms_needed} rooms)`;
+      }
+    });
+  }
+}
+
+async function submitBid() {
+  const btn = document.getElementById('bid-btn');
+  const errEl = document.getElementById('bid-error');
+  errEl.style.display = 'none';
+
+  const nightly_rate = parseFloat(document.getElementById('nightly-rate').value);
+  const total_estimate = parseFloat(document.getElementById('total-estimate').value) || null;
+  const cutoff_date = document.getElementById('cutoff-date').value || null;
+  const perks = document.getElementById('perks').value.trim() || null;
+  const notes = document.getElementById('bid-notes').value.trim() || null;
+
+  if (!nightly_rate || isNaN(nightly_rate)) {
+    errEl.textContent = 'Please enter a nightly rate.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  try {
+    const res = await fetch('/api/rfp-bid', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: TOKEN, nightly_rate, total_estimate, cutoff_date, perks, notes }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to submit');
+    // Reload to show submitted state
+    window.location.reload();
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Submit My Bid →';
+  }
+}
+
+async function sendReply() {
+  const btn = document.getElementById('reply-btn');
+  const statusEl = document.getElementById('reply-status');
+  const text = document.getElementById('reply-text').value.trim();
+
+  if (!text) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  try {
+    const res = await fetch('/api/rfp-message', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: TOKEN, sender: 'hotel', message: text }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+
+    document.getElementById('reply-text').value = '';
+    statusEl.textContent = '✅ Message sent!';
+    statusEl.style.color = '#16a34a';
+    statusEl.style.display = 'block';
+    setTimeout(() => window.location.reload(), 1500);
+  } catch(e) {
+    statusEl.textContent = '❌ ' + e.message;
+    statusEl.style.color = '#dc2626';
+    statusEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Send Message';
+  }
+}
+
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "teamlodgr",
+  "version": "1.0.0",
+  "description": "Group hotel booking for sports teams and events.",
+  "main": "search.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gorddickie/teamlodgr.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gorddickie/teamlodgr/issues"
+  },
+  "homepage": "https://github.com/gorddickie/teamlodgr#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
+    "dotenv": "^18.0.8"
+  }
+}

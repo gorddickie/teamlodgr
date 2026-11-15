@@ -269,6 +269,7 @@
   <!-- Submit -->
   <div class="card">
     <p style="font-size:0.9rem; color:var(--muted); margin-bottom:14px;">Each hotel will receive an email with a secure link to submit their bid. You'll get a dashboard link to track and compare all bids.</p>
+    <button type="button" onclick="fillTestData()" style="display:block; width:100%; padding:12px; margin-bottom:10px; background:#f4f6fa; border:2px dashed #cbd5e1; border-radius:10px; color:var(--muted); font-weight:600; font-size:0.95rem; cursor:pointer;">🧪 Fill Test Data</button>
     <button class="btn-submit" id="submit-btn" onclick="submitRfp()">Send RFP to Hotels →</button>
     <div id="error-msg" class="error-msg" style="display:none;"></div>
   </div>
@@ -280,6 +281,28 @@
 
 <script>
   let hotelCount = 0;
+
+  function fillTestData() {
+    document.getElementById('organizer-name').value = 'Coach Gord';
+    document.getElementById('organizer-email').value = 'gorddickie@gmail.com';
+    document.getElementById('event-name').value = '2026 Provincial Hockey Championships';
+    // Set check-in to 30 days from now
+    const ci = new Date(); ci.setDate(ci.getDate() + 30);
+    const co = new Date(); co.setDate(co.getDate() + 33);
+    const fmt = d => d.toISOString().split('T')[0];
+    document.getElementById('checkin').value = fmt(ci);
+    document.getElementById('checkout').value = fmt(co);
+    document.getElementById('rooms').value = '15';
+    const notes = document.getElementById('notes');
+    if (notes) notes.value = 'Preference for indoor pool. Team needs early check-in if possible.';
+    // Clear existing hotels and add test ones
+    document.getElementById('hotels-list').innerHTML = '';
+    hotelCount = 0;
+    addHotelRow('Marriott Downtown Halifax', 'groups@marriott-test.com');
+    addHotelRow('Delta Hotels by Marriott', 'sales@delta-test.com');
+    addHotelRow('Holiday Inn Express Halifax', 'groupsales@hiexpress-test.com');
+  }
+
 
   function addHotelRow(name = '', email = '') {
     hotelCount++;

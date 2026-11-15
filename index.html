@@ -34,7 +34,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 18px 40px;
+      padding: 12px 24px;
       background: var(--white);
       border-bottom: 1px solid #e5e7eb;
       position: sticky;
@@ -155,7 +155,7 @@
     .search-card {
       background: var(--white);
       border-radius: 16px;
-      padding: 40px;
+      padding: 24px;
       max-width: 960px;
       margin: 0 auto;
       box-shadow: 0 8px 40px rgba(0,0,0,0.25);
@@ -464,10 +464,10 @@
 
     /* RESPONSIVE */
     @media (max-width: 700px) {
-      nav { padding: 16px 20px; }
+      nav { padding: 10px 16px; }
       .nav-links { display: none; }
       .hero { padding: 60px 20px; }
-      .search-section { padding: 40px 20px; }
+      .search-section { padding: 12px 12px 40px; }
       .search-row-1, .search-row-2 { grid-template-columns: 1fr; }
       .how-section, .features-section, .sports-section, .stats-section, .cta-section { padding: 60px 20px; }
     }
@@ -491,9 +491,8 @@
 
 <!-- HERO + SEARCH -->
 <section class="search-section" id="search">
-  <div style="text-align:center; padding:24px 20px 8px;">
-    <h1 style="font-size:1.5rem; font-weight:800; color:var(--navy);">Find Hotels for Your Team</h1>
-    <p style="color:var(--muted); font-size:0.95rem; margin-top:4px;">Search, compare, and get group rates — all in one place.</p>
+  <div style="text-align:center; padding:12px 20px 6px;">
+    <h1 style="font-size:1.2rem; font-weight:800; color:white;">Find Hotels for Your Team</h1>
   </div>
   <form class="search-card" id="search-form">
 

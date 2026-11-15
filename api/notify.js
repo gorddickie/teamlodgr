@@ -128,8 +128,33 @@ async function sendOrganizerConfirmEmail({ resendApiKey, confirmUrl, dashboardUr
 }
 
 module.exports = async (req, res) => {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // ── Remind action (routed here from /api/remind via vercel.json) ─────
+  if (req.query.action === 'remind' || req.body?.action === 'remind') {
+    const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const { token } = req.body || {};
+    if (!token) return res.status(400).json({ error: 'Missing token' });
+    async function sbr(path, method, body) {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1${path}`, { method: method || 'GET', headers: { 'Content-Type': 'application/json', apikey: sbKey, Authorization: `Bearer ${sbKey}`, Prefer: 'return=representation' }, body: body ? JSON.stringify(body) : undefined });
+      const t = await r.text(); if (!r.ok) throw new Error(t); return t ? JSON.parse(t) : [];
+    }
+    try {
+      const bookings = await sbr(`/bookings?share_token=eq.${encodeURIComponent(token)}&limit=1`);
+      if (!bookings.length) return res.status(404).json({ error: 'Booking not found' });
+      const booking = bookings[0];
+      const members = await sbr(`/team_members?booking_id=eq.${booking.id}&booked_at=is.null&select=id,email,name`);
+      if (!members.length) return res.status(200).json({ ok: true, sent: 0, message: 'Everyone has already booked!' });
+      const rk = process.env.RESEND_API_KEY; let sent = 0;
+      for (const m of members) {
+        const link = `https://teamlodgr.com/book.html?token=${encodeURIComponent(booking.share_token)}&email=${encodeURIComponent(m.email)}`;
+        const html = `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:40px 20px;"><p style="font-size:17px;">👋 Hey${m.name ? ' ' + m.name : ''}! Rooms are filling up for <strong>${booking.hotel_name}</strong>.</p><a href="${link}" style="display:block;background:#0d1b3e;color:#fff;text-decoration:none;text-align:center;font-size:18px;font-weight:700;padding:18px;border-radius:8px;margin:20px 0;">Book Your Room →</a></div>`;
+        if (rk) { const r = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${rk}` }, body: JSON.stringify({ from: 'TeamLodgr <bookings@teamlodgr.com>', to: [m.email], subject: `⏰ Reminder: Book your room at ${booking.hotel_name}`, html }) }); if (r.ok) { sent++; await sbr(`/team_members?id=eq.${m.id}`, 'PATCH', { notified_at: new Date().toISOString() }).catch(() => {}); } }
+      }
+      return res.status(200).json({ ok: true, sent, total: members.length });
+    } catch (err) { return res.status(500).json({ error: err.message }); }
   }
 
   const { action, bookingId, shareToken, members, hotelName, hotelPhoto, checkin, checkout, shareUrl, baseUrl } = req.body;
@@ -294,3 +319,5 @@ module.exports = async (req, res) => {
 
   return res.status(200).json({ ok: true, results });
 };
+
+

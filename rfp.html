@@ -367,7 +367,7 @@
     btn.textContent = 'Sending RFP...';
 
     try {
-      const res = await fetch('/api/rfp-create', {
+      const res = await fetch('/api/rfp?action=create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

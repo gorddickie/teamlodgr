@@ -196,7 +196,7 @@ async function load() {
     return;
   }
   try {
-    const res = await fetch(`/api/rfp-load?token=${TOKEN}`);
+    const res = await fetch(`/api/rfp?action=load?token=${TOKEN}`);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to load');
     render(data);
@@ -349,7 +349,7 @@ async function submitBid() {
   btn.textContent = 'Submitting…';
 
   try {
-    const res = await fetch('/api/rfp-bid', {
+    const res = await fetch('/api/rfp?action=bid', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token: TOKEN, nightly_rate, total_estimate, cutoff_date, perks, notes }),
@@ -377,7 +377,7 @@ async function sendReply() {
   btn.textContent = 'Sending…';
 
   try {
-    const res = await fetch('/api/rfp-message', {
+    const res = await fetch('/api/rfp?action=message', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token: TOKEN, sender: 'hotel', message: text }),

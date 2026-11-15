@@ -303,7 +303,7 @@ const openPanels = new Set();
 async function load() {
   if (!RFP_ID) { renderError('No RFP ID provided.'); return; }
   try {
-    const res = await fetch(`/api/rfp-load?rfp_id=${RFP_ID}&email=${encodeURIComponent(ORG_EMAIL || '')}`);
+    const res = await fetch(`/api/rfp?action=load?rfp_id=${RFP_ID}&email=${encodeURIComponent(ORG_EMAIL || '')}`);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to load');
     render(data);
@@ -595,7 +595,7 @@ async function sendReply(token, panelId) {
   statusEl.style.color = 'var(--muted)';
 
   try {
-    const res = await fetch('/api/rfp-message', {
+    const res = await fetch('/api/rfp?action=message', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token, sender: 'organizer', message: text }),
@@ -618,7 +618,7 @@ async function nudgeHotel(rfpHotelId) {
   if (mobBtn) { mobBtn.disabled = true; mobBtn.textContent = 'Sending…'; }
 
   try {
-    const res = await fetch('/api/rfp-nudge', {
+    const res = await fetch('/api/rfp?action=nudge', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rfp_hotel_id: rfpHotelId }),
@@ -637,7 +637,7 @@ async function nudgeHotel(rfpHotelId) {
 async function markDeclined(rfpHotelId) {
   if (!confirm('Mark this hotel as declined?')) return;
   try {
-    const res = await fetch('/api/rfp-status-update', {
+    const res = await fetch('/api/rfp?action=status-update', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rfp_hotel_id: rfpHotelId, status: 'declined' }),
@@ -653,7 +653,7 @@ async function markDeclined(rfpHotelId) {
 async function removeHotel(rfpHotelId) {
   if (!confirm('Remove this hotel from the RFP?')) return;
   try {
-    const res = await fetch('/api/rfp-status-update', {
+    const res = await fetch('/api/rfp?action=status-update', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rfp_hotel_id: rfpHotelId, status: 'removed' }),
@@ -669,7 +669,7 @@ async function removeHotel(rfpHotelId) {
 async function selectWinner(rfpId, rfpHotelId, organizerEmail) {
   if (!confirm('Select this hotel as the winner? All hotels will be notified.')) return;
   try {
-    const res = await fetch('/api/rfp-accept', {
+    const res = await fetch('/api/rfp?action=accept', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rfp_id: rfpId, rfp_hotel_id: rfpHotelId, organizer_email: organizerEmail }),
